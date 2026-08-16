@@ -50,9 +50,14 @@ fun HijriCalendarScreen(
         topBar = {
             TopAppBar(
                 title = {
+                    val loc = uiState.location
                     Column {
                         Text("Kalender Hijriah & Masehi", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = AstronomyStarWhite)
-                        Text("Waktu Shalat & Fase Bulan Harian", style = MaterialTheme.typography.bodySmall, color = AstronomyTwilightCivil)
+                        Text(
+                    text = if (loc != null) "📍 ${loc.name} (${String.format("%.2f°", loc.latitude)}, ${String.format("%.2f°", loc.longitude)})" else "Waktu Shalat & Fase Bulan Harian",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = AstronomyTwilightCivil
+                        )
                     }
                 },
                 navigationIcon = {

@@ -2,6 +2,7 @@ package com.adzannotif.presentation.astronomy.starmap
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.adzannotif.domain.model.LocationInfo
 import com.adzannotif.domain.model.astronomy.StarMapData
 import com.adzannotif.domain.repository.LocationRepository
 import com.adzannotif.domain.usecase.GetStarMapUseCase
@@ -9,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,6 +23,7 @@ class StarMapViewModel @Inject constructor(
 
     data class UiState(
         val starMapData: StarMapData? = null,
+        val location: LocationInfo? = null,
         val observedMillis: Long = System.currentTimeMillis(),
         val isLoading: Boolean = true,
         val error: String? = null
@@ -30,7 +33,7 @@ class StarMapViewModel @Inject constructor(
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     init {
-        updateStarMap()
+        observeLocationAndUpdates()
     }
 
     fun setObservedTime(millis: Long) {
@@ -38,27 +41,37 @@ class StarMapViewModel @Inject constructor(
         updateStarMap()
     }
 
+    private fun observeLocationAndUpdates() {
+        viewModelScope.launch {
+            locationRepository.currentOrSelectedLocation.collectLatest { loc ->
+                _uiState.value = _uiState.value.copy(location = loc)
+                updateStarMap()
+            }
+        }
+    }
+
     private fun updateStarMap() {
         viewModelScope.launch {
-            try {
-                val loc = locationRepository.currentOrSelectedLocation.firstOrNull()
-                if (loc != null) {
+            val loc = _uiState.value.location ?: locationRepository.currentOrSelectedLocation.firstOrNull()
+            if (loc != null) {
+                try {
                     val data = getStarMapUseCase(loc, _uiState.value.observedMillis).firstOrNull()
                     _uiState.value = _uiState.value.copy(
                         starMapData = data,
+                        location = loc,
                         isLoading = false,
                         error = null
                     )
-                } else {
+                } catch (e: Exception) {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = "Location not available"
+                        error = e.message
                     )
                 }
-            } catch (e: Exception) {
+            } else {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = e.message
+                    error = "Location not available"
                 )
             }
         }

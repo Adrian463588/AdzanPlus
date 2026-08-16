@@ -566,13 +566,13 @@ fun SettingsScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
-                                    text = "Widget Jadwal Sholat Real-Time",
+                                    text = "Pemasangan Widget Cepat (1-Klik)",
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "Hitung mundur waktu sholat live tanpa polling CPU (Hemat baterai)",
+                                    text = "Pasang widget favorit langsung ke Layar Utama perangkat",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -581,6 +581,7 @@ fun SettingsScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
+                        // 1. Prayer Times Widget
                         Button(
                             onClick = {
                                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O && appWidgetManager != null && isPinSupported) {
@@ -591,13 +592,38 @@ fun SettingsScreen(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Icon(
-                                imageVector = androidx.compose.material.icons.Icons.Default.Add,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Pasang Widget ke Layar Utama")
+                            Text("🕌 Pasang Widget Jadwal Sholat (Live)")
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // 2. Astronomy Moon & Sun Widgets
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(
+                                onClick = {
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O && appWidgetManager != null && isPinSupported) {
+                                        val provider = android.content.ComponentName(context, com.adzannotif.widget.MoonWidgetReceiver::class.java)
+                                        appWidgetManager.requestPinAppWidget(provider, null, null)
+                                    }
+                                },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text("🌙 Widget Bulan", style = MaterialTheme.typography.labelSmall)
+                            }
+
+                            OutlinedButton(
+                                onClick = {
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O && appWidgetManager != null && isPinSupported) {
+                                        val provider = android.content.ComponentName(context, com.adzannotif.widget.SunWidgetReceiver::class.java)
+                                        appWidgetManager.requestPinAppWidget(provider, null, null)
+                                    }
+                                },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text("☀️ Widget Surya", style = MaterialTheme.typography.labelSmall)
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))

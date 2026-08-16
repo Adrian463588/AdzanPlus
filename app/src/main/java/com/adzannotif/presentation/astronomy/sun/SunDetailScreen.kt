@@ -45,9 +45,14 @@ fun SunDetailScreen(
         topBar = {
             TopAppBar(
                 title = {
+                    val loc = uiState.location
                     Column {
                         Text("Detail Matahari & Fotografi", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = AstronomyStarWhite)
-                        Text("Elevasi Fisik & Hisab Cahaya", style = MaterialTheme.typography.bodySmall, color = AstronomyTwilightCivil)
+                        Text(
+                    text = if (loc != null) "📍 ${loc.name} (${String.format("%.2f°", loc.latitude)}, ${String.format("%.2f°", loc.longitude)})" else "Elevasi Fisik & Hisab Cahaya",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = AstronomyTwilightCivil
+                        )
                     }
                 },
                 navigationIcon = {

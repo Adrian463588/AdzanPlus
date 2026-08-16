@@ -17,10 +17,8 @@ import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
-import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
-import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.text.FontWeight
@@ -36,7 +34,7 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun SunWidgetContent(sunInfo: SunInfo?) {
+fun SunWidgetContent(sunInfo: SunInfo?, locationName: String = "Jakarta") {
     val context = LocalContext.current
     val fmt = SimpleDateFormat("HH:mm", Locale.getDefault())
 
@@ -44,7 +42,7 @@ fun SunWidgetContent(sunInfo: SunInfo?) {
         return if (start != null && end != null) {
             "${fmt.format(Date(start))} - ${fmt.format(Date(end))}"
         } else {
-            "Belum tersedia"
+            "--:--"
         }
     }
 
@@ -64,13 +62,21 @@ fun SunWidgetContent(sunInfo: SunInfo?) {
                     fontWeight = FontWeight.Bold
                 )
             )
+            Spacer(modifier = GlanceModifier.height(2.dp))
+            Text(
+                text = "📍 $locationName",
+                style = TextStyle(
+                    color = ColorProvider(Color(0xFFFF9A3C)),
+                    fontSize = 11.sp
+                )
+            )
             Spacer(modifier = GlanceModifier.height(4.dp))
 
             // Golden Hour Window
             val goldenMorning = formatWindow(sunInfo.morningGoldenHourStartMillis, sunInfo.morningGoldenHourEndMillis)
             val goldenEvening = formatWindow(sunInfo.eveningGoldenHourStartMillis, sunInfo.eveningGoldenHourEndMillis)
             Text(
-                text = "Golden Hour: $goldenMorning | $goldenEvening",
+                text = "Golden: $goldenMorning | $goldenEvening",
                 style = TextStyle(
                     color = ColorProvider(Color(0xFFFFB347)),
                     fontSize = 11.sp
@@ -81,7 +87,7 @@ fun SunWidgetContent(sunInfo: SunInfo?) {
             val blueMorning = formatWindow(sunInfo.morningBlueHourStartMillis, sunInfo.morningBlueHourEndMillis)
             val blueEvening = formatWindow(sunInfo.eveningBlueHourStartMillis, sunInfo.eveningBlueHourEndMillis)
             Text(
-                text = "Blue Hour: $blueMorning | $blueEvening",
+                text = "Blue: $blueMorning | $blueEvening",
                 style = TextStyle(
                     color = ColorProvider(Color(0xFF5B8FD4)),
                     fontSize = 11.sp
@@ -134,17 +140,18 @@ fun SunWidgetContent(sunInfo: SunInfo?) {
             }
         } else {
             Text(
-                text = "Data matahari belum tersedia",
+                text = "☀️ Memuat Surya...",
                 style = TextStyle(color = ColorProvider(Color.White), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+            )
+            Spacer(modifier = GlanceModifier.height(2.dp))
+            Text(
+                text = "📍 $locationName",
+                style = TextStyle(color = ColorProvider(Color(0xFFFF9A3C)), fontSize = 11.sp)
             )
             Spacer(modifier = GlanceModifier.height(4.dp))
             Text(
-                text = "Golden Hour belum tersedia",
+                text = "Golden Hour: --:-- | --:--",
                 style = TextStyle(color = ColorProvider(Color(0xFFFFB347)), fontSize = 11.sp)
-            )
-            Text(
-                text = "Blue Hour belum tersedia",
-                style = TextStyle(color = ColorProvider(Color(0xFF5B8FD4)), fontSize = 11.sp)
             )
         }
     }
@@ -172,7 +179,7 @@ class SunWidget : GlanceAppWidget() {
         }.getOrNull()
 
         provideContent {
-            SunWidgetContent(sunInfo = sunInfo)
+        SunWidgetContent(sunInfo = sunInfo, locationName = location.name)
         }
     }
 }

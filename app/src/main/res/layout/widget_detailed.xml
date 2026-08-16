@@ -20,7 +20,7 @@
             android:id="@+id/widget_det_location"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Jakarta"
+        android:text=""
             android:textColor="#88D6B7"
             android:textSize="11sp"
             android:textStyle="bold" />
@@ -29,7 +29,7 @@
             android:id="@+id/widget_det_prayer_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="MAGHRIB"
+            android:text=""
             android:textColor="#FFFFFF"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -38,7 +38,7 @@
             android:id="@+id/widget_det_prayer_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="18:05 WIB"
+            android:text=""
             android:textColor="#BFC9C3"
             android:textSize="12sp" />
 
@@ -56,12 +56,6 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <View
-        android:layout_width="1dp"
-        android:layout_height="match_parent"
-        android:layout_marginHorizontal="8dp"
-        android:background="#3F4945" />
-
     <!-- Right: Mini 5-Prayer Timeline -->
     <LinearLayout
         android:layout_width="0dp"
@@ -75,7 +69,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Subuh" android:textColor="#BFC9C3" android:textSize="11sp" />
-            <TextView android:id="@+id/widget_det_fajr" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="04:38" android:textColor="#FFFFFF" android:textSize="11sp" android:textStyle="bold" />
+            <TextView android:id="@+id/widget_det_fajr" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout
@@ -84,7 +78,7 @@
             android:layout_marginTop="2dp"
             android:orientation="horizontal">
             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Dzuhur" android:textColor="#BFC9C3" android:textSize="11sp" />
-            <TextView android:id="@+id/widget_det_dhuhr" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="11:58" android:textColor="#FFFFFF" android:textSize="11sp" android:textStyle="bold" />
+            <TextView android:id="@+id/widget_det_dhuhr" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout
@@ -93,7 +87,7 @@
             android:layout_marginTop="2dp"
             android:orientation="horizontal">
             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Ashar" android:textColor="#BFC9C3" android:textSize="11sp" />
-            <TextView android:id="@+id/widget_det_asr" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="15:18" android:textColor="#FFFFFF" android:textSize="11sp" android:textStyle="bold" />
+            <TextView android:id="@+id/widget_det_asr" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout
@@ -102,7 +96,7 @@
             android:layout_marginTop="2dp"
             android:orientation="horizontal">
             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Maghrib" android:textColor="#88D6B7" android:textSize="11sp" android:textStyle="bold" />
-            <TextView android:id="@+id/widget_det_maghrib" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="17:58" android:textColor="#88D6B7" android:textSize="11sp" android:textStyle="bold" />
+            <TextView android:id="@+id/widget_det_maghrib" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#88D6B7" android:textSize="11sp" android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout
@@ -111,7 +105,7 @@
             android:layout_marginTop="2dp"
             android:orientation="horizontal">
             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Isya" android:textColor="#BFC9C3" android:textSize="11sp" />
-            <TextView android:id="@+id/widget_det_isha" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="19:08" android:textColor="#FFFFFF" android:textSize="11sp" android:textStyle="bold" />
+            <TextView android:id="@+id/widget_det_isha" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:textStyle="bold" />
         </LinearLayout>
 
     </LinearLayout>

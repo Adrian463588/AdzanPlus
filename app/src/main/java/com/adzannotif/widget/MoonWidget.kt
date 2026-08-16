@@ -17,8 +17,10 @@ import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
+import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.text.FontWeight
@@ -36,14 +38,14 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.first
 
 @Composable
-fun MoonWidgetContent(moonInfo: MoonInfo?) {
+fun MoonWidgetContent(moonInfo: MoonInfo?, locationName: String = "Jakarta") {
     val context = LocalContext.current
-    
+
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(Color(0xFF111D30))
-            .padding(16.dp),
+            .padding(14.dp),
         horizontalAlignment = Alignment.Horizontal.Start
     ) {
         if (moonInfo != null) {
@@ -58,31 +60,41 @@ fun MoonWidgetContent(moonInfo: MoonInfo?) {
                 7 -> "🌘"
                 else -> "🌑"
             }
+            Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.Vertical.CenterVertically) {
+                Text(
+                    text = "$emoji ${moonInfo.phaseName}",
+                    style = TextStyle(
+                        color = ColorProvider(Color.White),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+            Spacer(modifier = GlanceModifier.height(2.dp))
             Text(
-                text = "$emoji ${moonInfo.phaseName}",
+                text = "📍 $locationName",
                 style = TextStyle(
-                    color = ColorProvider(Color.White), 
-                    fontSize = 16.sp, 
-                    fontWeight = FontWeight.Bold
+                    color = ColorProvider(Color(0xFFFAC248)),
+                    fontSize = 11.sp
                 )
             )
             Spacer(modifier = GlanceModifier.height(4.dp))
             val dist = String.format("%.0f km", moonInfo.distanceKm)
             val illum = String.format("%.1f%%", moonInfo.illuminationPercent)
             Text(
-                text = "Illum: $illum • Dist: $dist",
+                text = "Iluminasi: $illum • Jarak: $dist",
                 style = TextStyle(
-                    color = ColorProvider(Color(0xFFAAAAAA)), 
-                    fontSize = 12.sp
+                    color = ColorProvider(Color(0xFFAAAAAA)),
+                    fontSize = 11.sp
                 )
             )
-            Spacer(modifier = GlanceModifier.height(8.dp))
-            
+            Spacer(modifier = GlanceModifier.height(6.dp))
+
             val moonriseMillis = moonInfo.riseMillis
-            if (moonriseMillis != null && moonriseMillis > System.currentTimeMillis()) {
+            if (moonriseMillis != null) {
                 Text(
-                    text = "Moonrise",
-                    style = TextStyle(color = ColorProvider(Color.White), fontSize = 14.sp)
+                    text = "Bulan Terbit (Moonrise):",
+                    style = TextStyle(color = ColorProvider(Color(0xFFE1E3DF)), fontSize = 12.sp)
                 )
                 val baseChronometerMillis = SystemClock.elapsedRealtime() + (moonriseMillis - System.currentTimeMillis())
                 AndroidRemoteViews(
@@ -97,24 +109,24 @@ fun MoonWidgetContent(moonInfo: MoonInfo?) {
                 )
             } else {
                 Text(
-                    text = if (moonriseMillis == null) "Moonrise belum tersedia" else "Moonrise hari ini sudah berlalu",
-                    style = TextStyle(color = ColorProvider(Color(0xFFAAAAAA)), fontSize = 14.sp)
+                    text = "Tidak Ada Terbit Hari Ini",
+                    style = TextStyle(color = ColorProvider(Color(0xFFAAAAAA)), fontSize = 12.sp)
                 )
             }
         } else {
             Text(
-                text = "Data bulan belum tersedia",
-                style = TextStyle(color = ColorProvider(Color.White), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                text = "🌑 Memuat Bulan...",
+                style = TextStyle(color = ColorProvider(Color.White), fontSize = 15.sp, fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = GlanceModifier.height(4.dp))
             Text(
-                text = "Detail bulan belum tersedia",
-                style = TextStyle(color = ColorProvider(Color(0xFFAAAAAA)), fontSize = 12.sp)
+                text = "📍 $locationName",
+                style = TextStyle(color = ColorProvider(Color(0xFFFAC248)), fontSize = 11.sp)
             )
-            Spacer(modifier = GlanceModifier.height(8.dp))
+            Spacer(modifier = GlanceModifier.height(4.dp))
             Text(
-                text = "Moonrise belum tersedia",
-                style = TextStyle(color = ColorProvider(Color.White), fontSize = 14.sp)
+                text = "Iluminasi: -- • Jarak: --",
+                style = TextStyle(color = ColorProvider(Color(0xFFAAAAAA)), fontSize = 11.sp)
             )
         }
     }
@@ -149,7 +161,7 @@ class MoonWidget : GlanceAppWidget() {
         }.getOrNull()
 
         provideContent {
-            MoonWidgetContent(moonInfo = moonInfo)
+        MoonWidgetContent(moonInfo = moonInfo, locationName = location.name)
         }
     }
 }

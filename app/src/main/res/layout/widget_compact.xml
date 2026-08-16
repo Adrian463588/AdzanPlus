@@ -12,7 +12,7 @@
         android:id="@+id/widget_location_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Jakarta"
+        android:text=""
         android:textColor="#88D6B7"
         android:textSize="11sp"
         android:textStyle="bold" />
@@ -22,7 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:text="MAGHRIB"
+        android:text=""
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         android:textStyle="bold" />
@@ -31,7 +31,7 @@
         android:id="@+id/widget_target_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="18:05 WIB"
+        android:text=""
         android:textColor="#BFC9C3"
         android:textSize="12sp" />
 

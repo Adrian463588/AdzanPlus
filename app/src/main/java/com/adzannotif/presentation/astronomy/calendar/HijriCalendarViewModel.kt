@@ -2,6 +2,7 @@ package com.adzannotif.presentation.astronomy.calendar
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.adzannotif.domain.model.LocationInfo
 import com.adzannotif.domain.model.astronomy.CalendarDay
 import com.adzannotif.domain.repository.LocationRepository
 import com.adzannotif.domain.usecase.GetHijriCalendarUseCase
@@ -9,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -22,6 +24,7 @@ class HijriCalendarViewModel @Inject constructor(
 
     data class UiState(
         val days: List<CalendarDay> = emptyList(),
+        val location: LocationInfo? = null,
         val year: Int = 0,
         val month: Int = 0, // 0-based
         val selectedDay: CalendarDay? = null,
@@ -38,7 +41,7 @@ class HijriCalendarViewModel @Inject constructor(
             year = cal.get(Calendar.YEAR),
             month = cal.get(Calendar.MONTH)
         )
-        loadCalendar()
+        observeLocationAndCalendar()
     }
 
     fun previousMonth() {
@@ -73,11 +76,20 @@ class HijriCalendarViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(selectedDay = null)
     }
 
+    private fun observeLocationAndCalendar() {
+        viewModelScope.launch {
+            locationRepository.currentOrSelectedLocation.collectLatest { loc ->
+                _uiState.value = _uiState.value.copy(location = loc)
+                loadCalendar()
+            }
+        }
+    }
+
     private fun loadCalendar() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
-                val loc = locationRepository.currentOrSelectedLocation.firstOrNull()
+                val loc = _uiState.value.location ?: locationRepository.currentOrSelectedLocation.firstOrNull()
                 if (loc != null) {
                     val days = getHijriCalendarUseCase(
                         location = loc,
@@ -86,6 +98,7 @@ class HijriCalendarViewModel @Inject constructor(
                     )
                     _uiState.value = _uiState.value.copy(
                         days = days,
+                        location = loc,
                         isLoading = false,
                         error = null
                     )

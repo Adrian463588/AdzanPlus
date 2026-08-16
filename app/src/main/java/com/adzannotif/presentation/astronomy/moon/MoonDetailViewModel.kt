@@ -2,6 +2,7 @@ package com.adzannotif.presentation.astronomy.moon
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.adzannotif.domain.model.LocationInfo
 import com.adzannotif.domain.model.astronomy.CalendarDay
 import com.adzannotif.domain.model.astronomy.MoonInfo
 import com.adzannotif.domain.repository.LocationRepository
@@ -12,6 +13,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -27,6 +29,7 @@ class MoonDetailViewModel @Inject constructor(
 
     data class UiState(
         val moonInfo: MoonInfo? = null,
+        val location: LocationInfo? = null,
         val calendarDays: List<CalendarDay> = emptyList(),
         val isLoading: Boolean = true,
         val error: String? = null
@@ -41,10 +44,10 @@ class MoonDetailViewModel @Inject constructor(
 
     private fun startMoonUpdates() {
         viewModelScope.launch {
-            while (isActive) {
-                try {
-                    val loc = locationRepository.currentOrSelectedLocation.firstOrNull()
-                    if (loc != null) {
+            locationRepository.currentOrSelectedLocation.collectLatest { loc ->
+                _uiState.value = _uiState.value.copy(location = loc, isLoading = true)
+                while (isActive) {
+                    try {
                         val moonInfo = getMoonInfoUseCase(loc, System.currentTimeMillis()).firstOrNull()
                         val cal = Calendar.getInstance()
                         val calendarDays = getHijriCalendarUseCase(
@@ -52,26 +55,22 @@ class MoonDetailViewModel @Inject constructor(
                             cal.get(Calendar.YEAR),
                             cal.get(Calendar.MONTH) + 1
                         )
-                        
+
                         _uiState.value = _uiState.value.copy(
                             moonInfo = moonInfo,
+                            location = loc,
                             calendarDays = calendarDays,
                             isLoading = false,
                             error = null
                         )
-                    } else {
+                    } catch (e: Exception) {
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
-                            error = "Location not available"
+                            error = e.message
                         )
                     }
-                } catch (e: Exception) {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = e.message
-                    )
+                    delay(60_000)
                 }
-                delay(60_000)
             }
         }
     }

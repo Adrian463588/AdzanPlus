@@ -104,6 +104,44 @@ fun AstronomyDashboardScreen(
             } else {
                 val sunInfo = uiState.sunInfo
                 val moonInfo = uiState.moonInfo
+                val loc = uiState.location
+
+                if (loc != null) {
+                    item {
+                        Surface(
+                            color = AstronomySurface,
+                            shape = RoundedCornerShape(12.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AstronomyConstellationLine.copy(alpha = 0.4f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Filled.Place,
+                                        contentDescription = null,
+                                        tint = AstronomyMoonGold,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                        text = "${loc.name}, ${loc.country}",
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                        color = AstronomyStarWhite
+                                    )
+                                }
+                                Text(
+                                    text = "${String.format("%.2f°", loc.latitude)}, ${String.format("%.2f°", loc.longitude)}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = AstronomyTwilightCivil
+                                )
+                            }
+                        }
+                    }
+                }
 
                 item {
                     SolarPhaseBadge(sunInfo = sunInfo)
@@ -175,6 +213,86 @@ fun AstronomyDashboardScreen(
                             icon = Icons.Filled.CalendarMonth,
                             accentColor = AstronomyGoldenHour
                         ) { navController.navigate(Screen.HijriCalendar.route) }
+                    }
+                }
+
+                item {
+                    AstronomyWidgetPinningCard()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AstronomyWidgetPinningCard() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val appWidgetManager = remember { context.getSystemService(android.appwidget.AppWidgetManager::class.java) }
+    val isPinSupported = remember {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            appWidgetManager?.isRequestPinAppWidgetSupported == true
+        } else false
+    }
+
+    if (isPinSupported && appWidgetManager != null) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = AstronomySurface),
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, AstronomyMoonGold.copy(alpha = 0.3f)),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Filled.Widgets,
+                        contentDescription = null,
+                        tint = AstronomyMoonGold,
+                        modifier = Modifier.size(22.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "Widget Astronomi di Layar Utama",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = AstronomyStarWhite
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    "Pasang widget fase bulan atau jadwal matahari & golden hour langsung ke Home Screen Anda.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = AstronomyTwilightCivil
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = {
+                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                val provider = android.content.ComponentName(context, com.adzannotif.widget.MoonWidgetReceiver::class.java)
+                                appWidgetManager.requestPinAppWidget(provider, null, null)
+                            }
+                        },
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = AstronomyMoonGold),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("🌙 Widget Bulan", style = MaterialTheme.typography.labelSmall)
+                    }
+
+                    Button(
+                        onClick = {
+                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                val provider = android.content.ComponentName(context, com.adzannotif.widget.SunWidgetReceiver::class.java)
+                                appWidgetManager.requestPinAppWidget(provider, null, null)
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = AstronomySunAmber),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("☀️ Widget Surya", style = MaterialTheme.typography.labelSmall, color = Color.Black)
                     }
                 }
             }

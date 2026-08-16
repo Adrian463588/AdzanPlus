@@ -50,7 +50,17 @@ fun MoonDetailScreen(
         containerColor = AstronomyBackgroundDeep,
         topBar = {
             TopAppBar(
-                title = { Text("Detail & Fase Bulan", color = AstronomyStarWhite) },
+                title = {
+                    val loc = uiState.location
+                    Column {
+                        Text("Detail & Fase Bulan", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = AstronomyStarWhite)
+                        Text(
+                    text = if (loc != null) "📍 ${loc.name} (${String.format("%.2f°", loc.latitude)}, ${String.format("%.2f°", loc.longitude)})" else "Fase, Iluminasi & Orbit",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = AstronomyTwilightCivil
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(

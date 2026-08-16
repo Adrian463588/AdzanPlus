@@ -46,9 +46,14 @@ fun StarMapScreen(
         topBar = {
             TopAppBar(
                 title = {
+                    val loc = uiState.location
                     Column {
-                        Text("Peta Langit & Bintang", color = AstronomyStarWhite)
-                        Text("500 Bintang Hipparcos & 40 Rasi", style = MaterialTheme.typography.bodySmall, color = AstronomyTwilightCivil)
+                        Text("Peta Langit & Bintang", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = AstronomyStarWhite)
+                        Text(
+                    text = if (loc != null) "📍 ${loc.name} (${String.format("%.2f°", loc.latitude)}, ${String.format("%.2f°", loc.longitude)})" else "500 Bintang & 40 Rasi",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = AstronomyTwilightCivil
+                        )
                     }
                 },
                 navigationIcon = {
