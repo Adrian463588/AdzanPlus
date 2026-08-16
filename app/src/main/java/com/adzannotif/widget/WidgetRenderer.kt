@@ -23,8 +23,15 @@ object WidgetRenderer {
     ): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.widget_compact)
         val tz = TimeZone.of(location.timeZoneId)
+        val tzSuffix = when (location.timeZoneId) {
+            "Asia/Jakarta", "Asia/Pontianak" -> "WIB"
+            "Asia/Makassar", "Asia/Ujung_Pandang", "Asia/Bali" -> "WITA"
+            "Asia/Jayapura" -> "WIT"
+            "Asia/Riyadh" -> "AST"
+            else -> ""
+        }
         val localTime = targetInstant.toLocalDateTime(tz)
-        val timeFormatted = String.format("%02d:%02d WIB", localTime.hour, localTime.minute)
+        val timeFormatted = if (tzSuffix.isNotEmpty()) String.format("%02d:%02d %s", localTime.hour, localTime.minute, tzSuffix) else String.format("%02d:%02d", localTime.hour, localTime.minute)
 
         views.setTextViewText(R.id.widget_location_title, location.name)
         views.setTextViewText(R.id.widget_next_prayer_name, nextPrayerName.uppercase())
@@ -59,7 +66,14 @@ object WidgetRenderer {
         val views = RemoteViews(context.packageName, R.layout.widget_detailed)
         val tz = TimeZone.of(location.timeZoneId)
         val localTarget = targetInstant.toLocalDateTime(tz)
-        val targetFormatted = String.format("%02d:%02d WIB", localTarget.hour, localTarget.minute)
+        val tzSuffix = when (location.timeZoneId) {
+            "Asia/Jakarta", "Asia/Pontianak" -> "WIB"
+            "Asia/Makassar", "Asia/Ujung_Pandang", "Asia/Bali" -> "WITA"
+            "Asia/Jayapura" -> "WIT"
+            "Asia/Riyadh" -> "AST"
+            else -> ""
+        }
+        val targetFormatted = if (tzSuffix.isNotEmpty()) String.format("%02d:%02d %s", localTarget.hour, localTarget.minute, tzSuffix) else String.format("%02d:%02d", localTarget.hour, localTarget.minute)
 
         views.setTextViewText(R.id.widget_det_location, location.name)
         views.setTextViewText(R.id.widget_det_prayer_name, nextPrayerName.uppercase())

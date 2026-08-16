@@ -106,3 +106,31 @@ class ExactAlarmPermissionReceiver : BroadcastReceiver() {
         }
     }
 }
+
+/**
+ * Handles action to stop adhan audio playback and dismiss notification.
+ */
+@AndroidEntryPoint
+class StopAdhanReceiver : BroadcastReceiver() {
+
+    @Inject
+    lateinit var audioPlayer: com.adzannotif.platform.audio.AdhanAudioPlayer
+
+    companion object {
+        const val ACTION_STOP_ADHAN = "com.adzannotif.ACTION_STOP_ADHAN"
+        const val EXTRA_NOTIFICATION_ID = "extra_notification_id"
+    }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == ACTION_STOP_ADHAN) {
+            Log.d("StopAdhanReceiver", "Stopping adhan playback")
+            audioPlayer.stop()
+            val notificationId = intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1)
+            if (notificationId != -1) {
+                val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+                notificationManager.cancel(notificationId)
+            }
+        }
+    }
+}
+

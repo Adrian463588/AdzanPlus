@@ -107,6 +107,17 @@ class NotificationHelper @Inject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val stopIntent = Intent(context, com.adzannotif.platform.receiver.StopAdhanReceiver::class.java).apply {
+            action = com.adzannotif.platform.receiver.StopAdhanReceiver.ACTION_STOP_ADHAN
+            putExtra(com.adzannotif.platform.receiver.StopAdhanReceiver.EXTRA_NOTIFICATION_ID, NOTIFICATION_ID_ADHAN + prayer.ordinal)
+        }
+        val stopPendingIntent = PendingIntent.getBroadcast(
+            context,
+            prayer.ordinal + 300,
+            stopIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         val builder = NotificationCompat.Builder(context, CHANNEL_ADHAN_ID)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setContentTitle("Waktu ${prayer.displayNameId} Telah Tiba")
@@ -117,6 +128,7 @@ class NotificationHelper @Inject constructor(
             .setAutoCancel(true)
             .setContentIntent(contentPendingIntent)
             .setFullScreenIntent(fullScreenPendingIntent, true)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Hentikan Suara", stopPendingIntent)
             .setVibrate(longArrayOf(0, 500, 250, 500, 250, 1000))
 
         try {

@@ -1,41 +1,28 @@
-package com.adzannotif
+package com.adzannotif.domain.usecase
 
 import com.adzannotif.core.prayer.CalculationMethod
-import com.adzannotif.core.prayer.Prayer
 import com.adzannotif.domain.model.LocationInfo
 import com.adzannotif.domain.model.UserSettings
 import com.adzannotif.domain.repository.LocationRepository
-import com.adzannotif.domain.repository.PrayerTimesRepository
-import com.adzannotif.domain.repository.SettingsRepository
-import com.adzannotif.domain.usecase.GetNextPrayerUseCase
-import com.adzannotif.domain.usecase.GetQiblaDirectionUseCase
-import com.adzannotif.domain.usecase.GetTodayPrayerTimesUseCase
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.LocalDate
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class DomainUseCasesTest {
 
-    private val fakeLocation = LocationInfo(
-        id = "test_jakarta",
-        name = "Jakarta",
-        country = "Indonesia",
-        latitude = -6.2088,
-        longitude = 106.8456,
-        timeZoneId = "Asia/Jakarta"
-    )
-
-    private val fakeSettings = UserSettings(
-        calculationMethod = CalculationMethod.KEMENAG_RI
-    )
-
     @Test
     fun testGetQiblaDirectionCalculation() = runTest {
+        val fakeLocation = LocationInfo(
+            id = "test_jakarta",
+            name = "Jakarta",
+            country = "Indonesia",
+            latitude = -6.2088,
+            longitude = 106.8456,
+            timeZoneId = "Asia/Jakarta"
+        )
         val fakeLocationRepo = object : LocationRepository {
             override val currentOrSelectedLocation = flowOf(fakeLocation)
             override val favoriteLocations = flowOf(listOf(fakeLocation))
@@ -51,8 +38,8 @@ class DomainUseCasesTest {
 
         assertNotNull(qibla)
         // Jakarta Qibla is roughly 295° Northwest
-        assertTrue("Jakarta Qibla angle should be ~295°", qibla.directionDegrees in 290.0..300.0)
+        assertTrue(qibla.directionDegrees in 290.0..300.0, "Jakarta Qibla angle should be ~295°")
         // Distance from Jakarta to Kaaba is ~7900 km
-        assertTrue("Jakarta distance to Kaaba should be ~7900 km", qibla.distanceKm in 7800.0..8000.0)
+        assertTrue(qibla.distanceKm in 7800.0..8000.0, "Jakarta distance to Kaaba should be ~7900 km")
     }
 }

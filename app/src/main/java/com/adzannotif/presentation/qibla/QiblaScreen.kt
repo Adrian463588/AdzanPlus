@@ -33,6 +33,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -54,9 +55,23 @@ fun QiblaScreen(
     viewModel: QiblaViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+
+    var continuousHeading by androidx.compose.runtime.remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
+    androidx.compose.runtime.LaunchedEffect(state.deviceHeading) {
+        val diff = (state.deviceHeading - (continuousHeading % 360f + 360f) % 360f)
+        val shortestDiff = ((diff + 180f) % 360f + 360f) % 360f - 180f
+        continuousHeading += shortestDiff
+    }
+
+    androidx.compose.runtime.LaunchedEffect(state.isFacingQibla) {
+        if (state.isFacingQibla) {
+            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+        }
+    }
 
     val animatedRotation by animateFloatAsState(
-        targetValue = -state.deviceHeading,
+        targetValue = -continuousHeading,
         animationSpec = tween(durationMillis = 150),
         label = "compassRotation"
     )

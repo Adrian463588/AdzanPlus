@@ -1,7 +1,6 @@
 package com.adzannotif.data.repository
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.location.Location
 import com.adzannotif.data.datastore.AppDataStore
 import com.adzannotif.data.local.city.OfflineCityDatabase
@@ -24,7 +23,6 @@ import kotlin.coroutines.resumeWithException
 
 @Singleton
 class LocationRepositoryImpl @Inject constructor(
-    private val context: Context,
     private val appDataStore: AppDataStore,
     private val savedLocationDao: SavedLocationDao,
     private val offlineCityDatabase: OfflineCityDatabase,

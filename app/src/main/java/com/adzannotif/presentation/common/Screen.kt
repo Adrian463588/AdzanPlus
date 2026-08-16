@@ -48,6 +48,7 @@ sealed class Screen(
     )
 
     companion object {
-        val items = listOf(Home, Schedule, Qibla, Settings)
+        val items: List<Screen>
+            get() = listOf(Home, Schedule, Qibla, Settings)
     }
 }

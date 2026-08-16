@@ -3,9 +3,9 @@ package com.adzannotif.presentation.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.adzannotif.core.prayer.CalculationMethod
+import com.adzannotif.core.prayer.HighLatitudeRule
 import com.adzannotif.core.prayer.Madhab
 import com.adzannotif.core.prayer.Prayer
-import com.adzannotif.domain.model.AdhanSoundType
 import com.adzannotif.domain.model.AdhanVoice
 import com.adzannotif.domain.model.AllAlarmSettings
 import com.adzannotif.domain.model.LocationInfo
@@ -14,6 +14,7 @@ import com.adzannotif.domain.model.UserSettings
 import com.adzannotif.domain.repository.LocationRepository
 import com.adzannotif.domain.repository.SettingsRepository
 import com.adzannotif.domain.usecase.SchedulePrayerAlarmsUseCase
+import com.adzannotif.platform.audio.AdhanAudioPlayer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,15 +31,18 @@ data class SettingsUiState(
     val searchQuery: String = "",
     val filteredCities: List<LocationInfo> = emptyList(),
     val isCityPickerVisible: Boolean = false,
+    val currentlyPlayingVoice: AdhanVoice? = null,
     val isLoading: Boolean = false,
 )
 
 sealed interface SettingsUiAction {
     data class SetCalculationMethod(val method: CalculationMethod) : SettingsUiAction
     data class SetMadhab(val madhab: Madhab) : SettingsUiAction
+    data class SetHighLatitudeRule(val rule: HighLatitudeRule) : SettingsUiAction
     data class SetThemeMode(val themeMode: ThemeMode) : SettingsUiAction
     data class SetPrayerAdjustment(val prayer: Prayer, val minutes: Int) : SettingsUiAction
     data class SetAdhanVoice(val prayer: Prayer, val voice: AdhanVoice) : SettingsUiAction
+    data class ToggleAdhanPreview(val voice: AdhanVoice) : SettingsUiAction
     data class SetPreReminder(val prayer: Prayer, val minutesBefore: Int) : SettingsUiAction
     data class SetDndSilenceMinutes(val minutes: Int) : SettingsUiAction
     data class SearchCity(val query: String) : SettingsUiAction
@@ -51,19 +55,21 @@ class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val locationRepository: LocationRepository,
     private val schedulePrayerAlarmsUseCase: SchedulePrayerAlarmsUseCase,
+    private val audioPlayer: AdhanAudioPlayer,
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
     private val _isCityPickerVisible = MutableStateFlow(false)
     private val _allCities = MutableStateFlow<List<LocationInfo>>(emptyList())
+    private val _currentlyPlayingVoice = MutableStateFlow<AdhanVoice?>(null)
 
     val uiState: StateFlow<SettingsUiState> = combine(
-        settingsRepository.userSettings,
-        settingsRepository.alarmSettings,
-        _allCities,
-        _searchQuery,
-        _isCityPickerVisible
-    ) { userSettings, alarmSettings, cities, query, isPickerOpen ->
+        combine(settingsRepository.userSettings, settingsRepository.alarmSettings, ::Pair),
+        combine(_allCities, _searchQuery, _isCityPickerVisible) { cities, query, isPickerOpen ->
+            Triple(cities, query, isPickerOpen)
+        },
+        _currentlyPlayingVoice
+    ) { (userSettings, alarmSettings), (cities, query, isPickerOpen), playingVoice ->
         val filtered = if (query.isEmpty()) {
             cities
         } else {
@@ -78,6 +84,7 @@ class SettingsViewModel @Inject constructor(
             searchQuery = query,
             filteredCities = filtered,
             isCityPickerVisible = isPickerOpen,
+            currentlyPlayingVoice = playingVoice,
             isLoading = false
         )
     }.stateIn(
@@ -111,6 +118,12 @@ class SettingsViewModel @Inject constructor(
                     schedulePrayerAlarmsUseCase()
                 }
             }
+            is SettingsUiAction.SetHighLatitudeRule -> {
+                viewModelScope.launch {
+                    settingsRepository.updateUserSettings { it.copy(highLatitudeRule = action.rule) }
+                    schedulePrayerAlarmsUseCase()
+                }
+            }
             is SettingsUiAction.SetThemeMode -> {
                 viewModelScope.launch {
                     settingsRepository.updateUserSettings { it.copy(themeMode = action.themeMode) }
@@ -136,6 +149,21 @@ class SettingsViewModel @Inject constructor(
                     val currentConfig = uiState.value.alarmSettings.getConfigForPrayer(action.prayer)
                     val updated = currentConfig.copy(adhanVoice = action.voice)
                     settingsRepository.updateAlarmSettings { it.updateConfig(updated) }
+                }
+            }
+            is SettingsUiAction.ToggleAdhanPreview -> {
+                if (_currentlyPlayingVoice.value == action.voice) {
+                    audioPlayer.stop()
+                    _currentlyPlayingVoice.value = null
+                } else {
+                    _currentlyPlayingVoice.value = action.voice
+                    audioPlayer.playAdhan(
+                        voice = action.voice,
+                        durationMinutes = 1,
+                        onCompletion = {
+                            _currentlyPlayingVoice.value = null
+                        }
+                    )
                 }
             }
             is SettingsUiAction.SetPreReminder -> {
@@ -168,5 +196,10 @@ class SettingsViewModel @Inject constructor(
                 _isCityPickerVisible.value = action.visible
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        audioPlayer.stop()
     }
 }

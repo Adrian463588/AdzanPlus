@@ -9,6 +9,14 @@
 
 ---
 
+## 📱 Live App Previews (Tampilan Aplikasi Nyata)
+
+| Beranda (Home & Countdown) | Jadwal Bulanan (30-Day Schedule) | Kompas Arah Kiblat (Qibla) | Pengaturan & Hisab (Settings) |
+|:---:|:---:|:---:|:---:|
+| <img src="docs/screenshots/home.png" width="220" alt="Beranda AdzanPlus" /> | <img src="docs/screenshots/schedule.png" width="220" alt="Jadwal Bulanan" /> | <img src="docs/screenshots/qibla.png" width="220" alt="Kompas Arah Kiblat" /> | <img src="docs/screenshots/settings.png" width="220" alt="Pengaturan & Hisab" /> |
+
+---
+
 ## 📖 Overview
 
 **AdzanPlus** adalah aplikasi jadwal sholat dan pengingat adzan modern berbasis Android yang mengedepankan privasi pengguna, performa tinggi, efisiensi baterai, dan kemampuan **100% Offline-First**. 
@@ -21,23 +29,27 @@ Berbeda dengan aplikasi konvensional yang bergantung pada REST API pihak ketiga,
 
 - 🕋 **Kalkulasi Astronomis On-Device (100% Offline)**:
   - Mendukung standar hisab **Kemenag RI (Kementerian Agama Republik Indonesia)** dengan koreksi ihtiyath (+2 menit).
-  - Pilihan metode internasional: **Muslim World League (MWL)**, **Umm Al-Qura (Makkah)**, **Egyptian General Authority**, **Karachi**, **ISNA**, **MUIS (Singapura)**, dan **Custom Method**.
+  - Pilihan metode hisab internasional lengkap: **Muslim World League (MWL)**, **Umm Al-Qura (Makkah)**, **Egyptian General Authority of Survey**, **Karachi**, **ISNA**, **MUIS (Singapura)**, dan **Custom Method**.
   - Pilihan Madhab (Syafi'i/Hambali/Maliki vs Hanafi) dan aturan lintang tinggi (*High Latitude Rules*).
+  - Koreksi menit per-waktu sholat (*Per-Prayer Minute Adjustments*) untuk kalibrasi masjid lokal.
   - Waktu sholat komprehensif: Subuh, Terbit (Syuruq), Dzuhur, Ashar, Maghrib, Isya, Imsak, Tengah Malam (*Midnight*), dan Sepertiga Malam Terakhir (*Tahajjud*).
 
 - ⏰ **Sistem Alarm & Notifikasi Presisi (Doze-Resistant)**:
   - Memanfaatkan `AlarmManager.setExactAndAllowWhileIdle()` untuk ketepatan waktu alarm bahkan saat perangkat dalam mode *Doze*.
   - Pemulihan otomatis setelah *reboot* (`BootReceiver`) dan deteksi pergantian zona waktu (`TimeChangeReceiver`).
   - Rekonsiliasi harian mandiri via `WorkManager`.
-  - Audio playback adzan autentik dan layar fullscreen dismiss/snooze ketika alarm berbunyi dalam keadaan layar terkunci.
+  - Audio playback adzan autentik (Makkah, Madinah, Al-Aqsa, Mesir, Subuh) dengan fitur pratinjau suara langsung di Pengaturan.
+  - Layar fullscreen dismiss/snooze ketika alarm berbunyi dalam keadaan layar terkunci.
 
 - 📱 **Real-Time Home Screen Widget (Jetpack Compose Glance)**:
   - Menampilkan hitung mundur waktu sholat berikutnya secara *live* tanpa menguras baterai menggunakan `RemoteViews.Chronometer`.
   - Tersedia varian *Compact* (2x2) dan *Detailed* (4x2 / 4x3) dengan tema adaptif *Material You*.
 
-- 🧭 **Kompas Kiblat Presisi**:
+- 🧭 **Kompas Kiblat Presisi & Haptic Feedback**:
   - Perhitungan arah Ka'bah (21.4225° N, 39.8262° E) menggunakan algoritma *Great-Circle Bearing*.
-  - Integrasi sensor geomagnetik dan akselerometer perangkat dengan visualisasi kompas yang mulus.
+  - Integrasi sensor geomagnetik dan akselerometer perangkat dengan low-pass filter untuk visualisasi kompas yang halus.
+  - Getaran *haptic feedback* otomatis saat perangkat mengarah tepat ke Ka'bah (±2°).
+  - Informasi jarak langsung ke Ka'bah dalam kilometer.
 
 - 🎨 **Modern Islamic Elegance (Material 3)**:
   - Palet warna eksklusif *Deep Emerald & Warm Gold* dengan dukungan tema Terang (*Light*) dan Gelap (*Dark*).
@@ -114,7 +126,8 @@ AdzanPlus/
 │   │   └── commonTest/                  # Unit Tests (>95% coverage kalkulasi waktu sholat)
 │   └── build.gradle.kts
 │
-├── docs/                                # Dokumentasi teknis & spesifikasi sprint
+├── docs/                                # Dokumentasi teknis & screenshots aplikasi
+│   └── screenshots/                     # Tangkapan layar beresolusi tinggi dari perangkat
 ├── .github/                             # GitHub Actions CI/CD workflows
 ├── .gitignore                           # DevSecOps Anti-Leakage rules
 ├── .gitattributes                       # Line normalization & binary assets handling
@@ -150,11 +163,14 @@ AdzanPlus/
    # Menjalankan unit test modul kalkulasi
    ./gradlew :core-prayer:test
 
+   # Menjalankan seluruh test suite aplikasi
+   ./gradlew testDebugUnitTest
+
    # Build APK Debug
    ./gradlew assembleDebug
 
    # Install langsung ke perangkat/emulator yang terhubung
-   ./gradlew installDebug
+   adb install -r app/build/outputs/apk/debug/app-debug.apk
    ```
 
 ---

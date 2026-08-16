@@ -140,8 +140,17 @@ fun NextPrayerHeroCard(
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
 
+                val tzSuffix = when (location.timeZoneId) {
+                    "Asia/Jakarta", "Asia/Pontianak" -> "WIB"
+                    "Asia/Makassar", "Asia/Ujung_Pandang", "Asia/Bali" -> "WITA"
+                    "Asia/Jayapura" -> "WIT"
+                    "Asia/Riyadh" -> "AST"
+                    else -> ""
+                }
+                val timeLabel = if (tzSuffix.isNotEmpty()) "Pukul $targetFormatted $tzSuffix" else "Pukul $targetFormatted"
+
                 Text(
-                    text = "Pukul $targetFormatted WIB",
+                    text = timeLabel,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
                 )

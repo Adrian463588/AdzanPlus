@@ -83,6 +83,14 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name=".platform.receiver.StopAdhanReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.adzannotif.ACTION_STOP_ADHAN" />
+            </intent-filter>
+        </receiver>
+
         <!-- Glance Widget Receiver -->
         <receiver
             android:name=".widget.PrayerTimesGlanceReceiver"
