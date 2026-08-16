@@ -1,0 +1,46 @@
+﻿package com.adzannotif.core.astronomy
+
+import com.adzannotif.core.astronomy.internal.SunMath
+import kotlin.test.Test
+import kotlin.test.assertTrue
+import kotlin.test.assertNotNull
+
+class SunMathTest {
+    @Test
+    fun testJakartaSunrise() {
+        val lat = -6.2
+        val lon = 106.8
+        // 17 Aug 2026 ~00:00:00 UTC = 1786924800000 (roughly)
+        val epochMillis = 1786924800000L
+        
+        val sunrise = SunMath.computeSunRise(lat, lon, epochMillis)
+        assertNotNull(sunrise)
+        val sunriseHourUTC = (sunrise % 86400000L) / 3600000.0
+        // Expect ~ 22.6 hours UTC (22:36 UTC -> 05:36 WIB)
+        assertTrue(sunriseHourUTC > 22.0 && sunriseHourUTC < 23.5, "Sunrise should be ~22:36 UTC")
+    }
+
+    @Test
+    fun testJakartaSunset() {
+        val lat = -6.2
+        val lon = 106.8
+        val epochMillis = 1786924800000L
+        
+        val sunset = SunMath.computeSunSet(lat, lon, epochMillis)
+        assertNotNull(sunset)
+        val sunsetHourUTC = (sunset % 86400000L) / 3600000.0
+        // Expect ~ 10.9 hours UTC (10:53 UTC -> 17:53 WIB)
+        assertTrue(sunsetHourUTC > 10.0 && sunsetHourUTC < 11.5, "Sunset should be ~10:53 UTC")
+    }
+
+    @Test
+    fun testSolarNoon() {
+        val lat = -6.2
+        val lon = 106.8
+        val epochMillis = 1786924800000L
+        val noon = SunMath.computeSolarNoon(lat, lon, epochMillis)
+        val noonHourUTC = (noon % 86400000L) / 3600000.0
+        // roughly 4.7-5.0 UTC -> 11:45-12:00 WIB
+        assertTrue(noonHourUTC > 4.5 && noonHourUTC < 5.5, "Noon should be around 5.0 UTC")
+    }
+}

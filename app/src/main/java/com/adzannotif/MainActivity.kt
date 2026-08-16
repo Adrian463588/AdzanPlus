@@ -27,6 +27,11 @@ import com.adzannotif.presentation.home.HomeScreen
 import com.adzannotif.presentation.qibla.QiblaScreen
 import com.adzannotif.presentation.schedule.ScheduleScreen
 import com.adzannotif.presentation.settings.SettingsScreen
+import com.adzannotif.presentation.astronomy.AstronomyDashboardScreen
+import com.adzannotif.presentation.astronomy.sun.SunDetailScreen
+import com.adzannotif.presentation.astronomy.moon.MoonDetailScreen
+import com.adzannotif.presentation.astronomy.starmap.StarMapScreen
+import com.adzannotif.presentation.astronomy.calendar.HijriCalendarScreen
 import com.adzannotif.platform.alarm.AdhanScheduler
 import com.adzannotif.presentation.theme.AdzanNotifTheme
 import com.adzannotif.widget.PrayerTimesWidgetReceiver
@@ -125,6 +130,21 @@ fun AppNavHost(
         }
         composable(Screen.Settings.route) {
             SettingsScreen(widthSizeClass = widthSizeClass)
+        }
+        composable(Screen.AstronomyDashboard.route) {
+            AstronomyDashboardScreen(navController = navController, widthSizeClass = widthSizeClass)
+        }
+        composable(Screen.SunDetail.route) {
+            SunDetailScreen(navController = navController)
+        }
+        composable(Screen.MoonDetail.route) {
+            MoonDetailScreen(navController = navController)
+        }
+        composable(Screen.StarMap.route) {
+            StarMapScreen(navController = navController)
+        }
+        composable(Screen.HijriCalendar.route) {
+            HijriCalendarScreen(navController = navController)
         }
     }
 }

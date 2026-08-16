@@ -89,3 +89,93 @@
 - **Architecture**: Clean Architecture + MVVM + Unidirectional Data Flow (UDF).
 - **Code Quality**: SOLID, DRY, modular structure, strict linting, zero warnings.
 - **Compatibility**: Android API 24 (Android 7.0) through Android 15+.
+
+---
+
+## 6. Sprint 2 — Celestial Astronomy Features
+
+### 6.1. Astronomy Engine (`:core-astronomy` KMP Module)
+- **Pure Kotlin, zero `android.*` imports** — fully testable on JVM/iOS.
+- **Primary engine**: Ported astronomical algorithms from reference projects (Astronomy Engine / SuntimesWidget algorithms, MIT license) providing:
+  - Sun azimuth, altitude, rise, set, solar noon for any observer lat/lon/date.
+  - Moon azimuth, altitude, rise, set, transit, illumination, phase, distance, apogee/perigee.
+  - Civil, nautical, and astronomical twilight begin/end times.
+  - Golden Hour and Blue Hour windows (morning & evening) via `PhotoPhasePolicy` (altitude threshold classification).
+  - Star positions (RA/Dec → azimuth/altitude for observer + sidereal time).
+  - Hijri date conversion (Umm al-Qura algorithm).
+- **Star catalog**: ~500 bright stars (magnitude ≤ 4.5) + 40 major constellations, embedded as JSON asset.
+- **Accuracy targets**: Sun rise/set ≤ ±2 min of NOAA reference; Moon phase name exact; Hijri date matches Kemenag official calendar.
+
+### 6.2. Solar Phase Classification
+```
+NIGHT → ASTRONOMICAL_TWILIGHT → NAUTICAL_TWILIGHT → BLUE_HOUR → CIVIL_TWILIGHT → GOLDEN_HOUR → DAY
+```
+- **Golden Hour**: Solar altitude between −4° and +6° (rise/set transitions).
+- **Blue Hour**: Solar altitude between −6° and −4° (deeper twilight).
+- Each threshold defined in `PhotoPhasePolicy` — fully unit-tested, independent of UI.
+
+### 6.3. Astronomy Dashboard Screen
+- Live solar phase badge (Golden Hour / Day / Twilight / Night) updated every 60 seconds (foreground only).
+- Current Sun azimuth/altitude display.
+- Current Moon phase icon + illumination % + moonrise/set times.
+- Visual timeline bar showing morning/evening golden & blue hour windows for the day.
+- Navigation tiles to: Moon Detail, Sun Detail, Star Map, Hijri Calendar.
+- Fully offline — all data from `:core-astronomy`.
+
+### 6.4. Moon Detail Screen
+- **Animated Moon phase illustration** (Canvas-drawn crescent/gibbous/full shape, not a static image).
+- Phase name (New Moon → Waxing Crescent → First Quarter → Waxing Gibbous → Full Moon → Waning Gibbous → Last Quarter → Waning Crescent).
+- Illumination percentage, age in days since last New Moon.
+- Moonrise, Transit, Moonset times with azimuth at rise/set.
+- Current distance in km, Apogee/Perigee indicator.
+- 30-day phase mini-calendar (phase icon per day for current month).
+
+### 6.5. Sun Detail Screen
+- **Sun arc visualization** (Canvas arc from rise azimuth through solar noon to set azimuth).
+- Layered twilight band timeline: Golden Hour (morning & evening), Blue Hour (morning & evening), Civil, Nautical, Astronomical twilight.
+- Key times: Sunrise, Solar Noon, Sunset, Civil/Nautical/Astronomical dusk.
+- Live Sun altitude indicator and current solar phase badge.
+
+### 6.6. Star Map / Constellation Viewer Screen
+- **2D Sky Chart** (polar projection, Canvas-rendered):
+  - ~500 bright stars drawn as dots (size proportional to magnitude).
+  - 40 major constellation stick-figure lines.
+  - Constellation labels (Orion, Scorpius, Leo, Ursa Major, etc.).
+  - Sun & Moon positions marked with icons.
+  - Horizon line with cardinal direction labels (N, E, S, W).
+- **Interactive**: pinch-to-zoom, drag-to-pan, time slider (simulate sky at any hour).
+- **Fully offline**: star catalog bundled as JSON asset in APK.
+
+### 6.7. Hijri / Gregorian Dual Calendar Screen
+- Month grid (7-column): each day cell shows Gregorian day + Hijri day + prayer dots + Moon phase mini-icon + Golden Hour indicator.
+- Day-detail bottom sheet: full prayer times + Sun events (rise/set/golden hour) + Moon phase for selected day.
+- Month navigation: swipe or arrow buttons (forward/back).
+- Hijri month name displayed prominently alongside Gregorian month name.
+- All data computed offline from `:core-prayer` + `:core-astronomy`.
+
+### 6.8. Celestial Notification System
+- New notification channel: `Celestial Events` (Default importance).
+- User-configurable alerts:
+  - Golden Hour Start (morning & evening) — notify N minutes before.
+  - Blue Hour Start (morning & evening).
+  - Moonrise / Moonset.
+  - Full Moon (day-before reminder).
+  - New Moon (day-before reminder).
+- Uses `AlarmManager.setExactAndAllowWhileIdle()` (same pattern as prayer alarms).
+- `CelestialAlarmReceiver` handles broadcast → `NotificationHelper.showCelestialEventNotification()`.
+
+### 6.9. Moon Widget & Sun Widget (Jetpack Glance)
+- **Moon Widget (2×2)**:
+  - Moon phase icon + phase name.
+  - Illumination %.
+  - Next moonrise countdown (RemoteViews Chronometer).
+- **Sun Widget (2×2)**:
+  - Sun icon + current solar phase badge.
+  - Next key event (Golden Hour / Sunset).
+  - Countdown to next event (RemoteViews Chronometer).
+
+### 6.10. Offline & Online Operation
+- All celestial calculations: 100% offline via `:core-astronomy` KMP engine.
+- No mandatory internet for any feature. GPS location optional (fallback to saved city or manual coordinates).
+- Daily WorkManager job caches next 7 days of celestial events and refreshes widget data.
+- When network is available (optional future): nothing changes — no online celestial data fetching is planned.

@@ -41,9 +41,16 @@ Berbeda dengan aplikasi konvensional yang bergantung pada REST API pihak ketiga,
   - Audio playback adzan autentik (Makkah, Madinah, Al-Aqsa, Mesir, Subuh) dengan fitur pratinjau suara langsung di Pengaturan.
   - Layar fullscreen dismiss/snooze ketika alarm berbunyi dalam keadaan layar terkunci.
 
-- 📱 **Real-Time Home Screen Widget (Jetpack Compose Glance)**:
+- 📱 **Real-Time Home Screen Widget (Jetpack Compose Glance & Pin Widget)**:
   - Menampilkan hitung mundur waktu sholat berikutnya secara *live* tanpa menguras baterai menggunakan `RemoteViews.Chronometer`.
-  - Tersedia varian *Compact* (2x2) dan *Detailed* (4x2 / 4x3) dengan tema adaptif *Material You*.
+  - Pasang widget langsung 1-klik dari menu Pengaturan (*In-App Pin Widget*) atau menu launcher.
+  - Tersedia varian *Compact* (2x2), *Detailed* (4x2 / 4x3), serta widget fase *Moon* & *Sun*.
+
+- 🌌 **Modul Astronomi & Kalender Hijriah Murni (`:core-astronomy`)**:
+  - Pelacakan posisi Bulan & Matahari presisi (ketinggian, azimut, iluminasi, dan fase bulan komplit).
+  - Peta Bintang (*Star Map*) kutub 2D dengan katalog 500 bintang dan 40 konstelasi.
+  - Kalender Hijriah Umm al-Qura terintegrasi dengan fase bulan dan jadwal sholat.
+  - Deteksi waktu fotografi *Golden Hour* & *Blue Hour* secara otomatis.
 
 - 🧭 **Kompas Kiblat Presisi & Haptic Feedback**:
   - Perhitungan arah Ka'bah (21.4225° N, 39.8262° E) menggunakan algoritma *Great-Circle Bearing*.
@@ -77,18 +84,17 @@ AdzanPlus dibangun dengan prinsip **Clean Architecture**, **SOLID**, **DRY**, da
 │                              ▼                              │
 │  ┌────────────────────────────────────────────────────────┐ │
 │  │     Data Layer (Room DB, DataStore, AlarmManager)      │ │
-│  └───────────────────────────┬────────────────────────────┘ │
-└──────────────────────────────┼──────────────────────────────┘
-                               │ (Domain Contract)
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  :core-prayer (KMP Shared)                  │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │  Pure Kotlin Astronomical Calculation Math & Algorithms│ │
-│  │   (AstronomicalMath, SolarCoordinates, PrayerTimes)    │ │
-│  │             * Zero Android SDK Dependencies *          │ │
-│  └────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
+│  └───────────┬──────────────────────────────┬─────────────┘ │
+└──────────────┼──────────────────────────────┼───────────────┘
+               │                              │
+               ▼                              ▼
+┌──────────────────────────────┐┌──────────────────────────────┐
+│  :core-prayer (KMP Shared)   ││:core-astronomy (KMP Shared)  │
+│ ┌──────────────────────────┐ ││ ┌──────────────────────────┐ │
+│ │ Pure Kotlin Prayer Times │ ││ │ Pure Kotlin Sun, Moon,   │ │
+│ │ Astronomical Calculation │ ││ │ Star Map & Hijri Math    │ │
+│ └──────────────────────────┘ ││ └──────────────────────────┘ │
+└──────────────────────────────┘└──────────────────────────────┘
 ```
 
 ### Komponen Teknologi:
@@ -114,16 +120,22 @@ AdzanPlus/
 │   │   │   ├── di/                      # Hilt DI Dependency Injection Modules
 │   │   │   ├── domain/                  # UseCases & Business Contracts
 │   │   │   ├── platform/                # AlarmManager, Receivers, Audio & Notifications
-│   │   │   ├── presentation/            # Compose Screens (Home, Schedule, Qibla, Settings)
+│   │   │   ├── presentation/            # Compose Screens (Home, Schedule, Astronomy, Qibla, Settings)
 │   │   │   ├── ui/                      # Material 3 Theme, Typography, Colors
-│   │   │   └── widget/                  # Jetpack Compose Glance Home Widget
-│   │   └── res/                         # Vector drawables, Audio assets, Layouts
+│   │   │   └── widget/                  # Jetpack Compose Glance & AppWidget Providers
+│   │   └── res/                         # Vector drawables, Authentic Audio assets, Layouts
 │   └── build.gradle.kts
 │
-├── core-prayer/                         # Modul KMP Pure Domain & Calculation Engine
+├── core-prayer/                         # Modul KMP Pure Prayer Calculation Engine (Zero android.*)
 │   ├── src/
 │   │   ├── commonMain/                  # Algoritma Astronomi, Solar Times, Qibla (Pure Kotlin)
 │   │   └── commonTest/                  # Unit Tests (>95% coverage kalkulasi waktu sholat)
+│   └── build.gradle.kts
+│
+├── core-astronomy/                      # Modul KMP Pure Celestial Engine (Zero android.*)
+│   ├── src/
+│   │   ├── commonMain/                  # SunMath, MoonMath, StarMath, HijriCalendar, GoldenHour
+│   │   └── commonTest/                  # Unit Tests (>90% coverage hisab astronomi & bintang)
 │   └── build.gradle.kts
 │
 ├── docs/                                # Dokumentasi teknis & screenshots aplikasi

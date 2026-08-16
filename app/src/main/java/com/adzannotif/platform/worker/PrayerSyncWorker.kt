@@ -2,6 +2,7 @@ package com.adzannotif.platform.worker
 
 import android.content.Context
 import android.util.Log
+import androidx.glance.appwidget.updateAll
 import androidx.hilt.work.HiltWorker
 import androidx.work.BackoffPolicy
 import androidx.work.CoroutineWorker
@@ -9,10 +10,13 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.adzannotif.domain.repository.AstronomyRepository
 import com.adzannotif.domain.repository.LocationRepository
 import com.adzannotif.domain.repository.PrayerTimesRepository
 import com.adzannotif.domain.repository.SettingsRepository
 import com.adzannotif.domain.usecase.SchedulePrayerAlarmsUseCase
+import com.adzannotif.widget.MoonWidget
+import com.adzannotif.widget.SunWidget
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.first
@@ -34,6 +38,7 @@ class PrayerSyncWorker @AssistedInject constructor(
     private val settingsRepository: SettingsRepository,
     private val locationRepository: LocationRepository,
     private val schedulePrayerAlarmsUseCase: SchedulePrayerAlarmsUseCase,
+    private val astronomyRepository: AstronomyRepository,
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
@@ -53,6 +58,21 @@ class PrayerSyncWorker @AssistedInject constructor(
 
             // Reconcile and schedule upcoming alarms
             schedulePrayerAlarmsUseCase()
+
+            // Update Glance Widgets
+            try {
+                MoonWidget().updateAll(applicationContext)
+                SunWidget().updateAll(applicationContext)
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to update glance widgets", e)
+            }
+
+            // Schedule CelestialAlarmReceiver alarms
+            val epochMillis = System.currentTimeMillis()
+            val sunInfo = astronomyRepository.getSunInfo(location.latitude, location.longitude, epochMillis).first()
+            val moonInfo = astronomyRepository.getMoonInfo(location.latitude, location.longitude, epochMillis).first()
+            scheduleCelestialAlarm(applicationContext, sunInfo.morningGoldenHourStartMillis, "golden_hour", "Morning Golden Hour")
+            scheduleCelestialAlarm(applicationContext, moonInfo.riseMillis, "moonrise", "Moonrise")
 
             Log.d(TAG, "Daily prayer sync completed successfully")
             Result.success()
@@ -100,6 +120,27 @@ class PrayerSyncWorker @AssistedInject constructor(
                 }
             }
             return calendar.timeInMillis - now
+        }
+
+        private fun scheduleCelestialAlarm(context: Context, timeMillis: Long?, eventType: String, eventLabel: String) {
+            if (timeMillis == null || timeMillis <= System.currentTimeMillis()) return
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+            val intent = android.content.Intent(context, com.adzannotif.platform.receiver.CelestialAlarmReceiver::class.java).apply {
+                action = com.adzannotif.platform.receiver.CelestialAlarmReceiver.ACTION_CELESTIAL_ALARM
+                putExtra(com.adzannotif.platform.receiver.CelestialAlarmReceiver.EXTRA_EVENT_TYPE, eventType)
+                putExtra(com.adzannotif.platform.receiver.CelestialAlarmReceiver.EXTRA_EVENT_LABEL, eventLabel)
+            }
+            val pendingIntent = android.app.PendingIntent.getBroadcast(
+                context,
+                eventType.hashCode(),
+                intent,
+                android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+            )
+            try {
+                alarmManager.setExactAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, timeMillis, pendingIntent)
+            } catch (e: SecurityException) {
+                alarmManager.set(android.app.AlarmManager.RTC_WAKEUP, timeMillis, pendingIntent)
+            }
         }
     }
 }

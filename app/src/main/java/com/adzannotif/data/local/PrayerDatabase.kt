@@ -11,6 +11,7 @@ import com.adzannotif.data.local.entity.SavedLocationEntity
     entities = [
         PrayerScheduleEntity::class,
         SavedLocationEntity::class,
+        com.adzannotif.data.local.entity.AstronomyCacheEntity::class,
     ],
     version = 1,
     exportSchema = false
@@ -18,4 +19,5 @@ import com.adzannotif.data.local.entity.SavedLocationEntity
 abstract class PrayerDatabase : RoomDatabase() {
     abstract fun prayerScheduleDao(): PrayerScheduleDao
     abstract fun savedLocationDao(): SavedLocationDao
+    abstract fun astronomyCacheDao(): com.adzannotif.data.local.dao.AstronomyCacheDao
 }

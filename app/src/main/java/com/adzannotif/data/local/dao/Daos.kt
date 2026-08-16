@@ -37,3 +37,15 @@ interface SavedLocationDao {
     @Query("DELETE FROM saved_locations WHERE id = :id")
     suspend fun deleteLocationById(id: String)
 }
+
+@Dao
+interface AstronomyCacheDao {
+    @androidx.room.Upsert
+    suspend fun upsert(entity: com.adzannotif.data.local.entity.AstronomyCacheEntity)
+
+    @Query("SELECT * FROM astronomy_cache WHERE cacheKey = :key")
+    suspend fun queryByKey(key: String): com.adzannotif.data.local.entity.AstronomyCacheEntity?
+
+    @Query("DELETE FROM astronomy_cache WHERE cachedAtMillis < :cutoffMillis")
+    suspend fun deleteStale(cutoffMillis: Long)
+}

@@ -1,0 +1,562 @@
+[
+  {
+    "abbreviation": "ORI",
+    "name": "Orion",
+    "lines": [
+      {
+        "fromHipId": 32349,
+        "toHipId": 30438
+      },
+      {
+        "fromHipId": 30438,
+        "toHipId": 69673
+      }
+    ]
+  },
+  {
+    "abbreviation": "SCO",
+    "name": "Scorpius",
+    "lines": [
+      {
+        "fromHipId": 30438,
+        "toHipId": 69673
+      },
+      {
+        "fromHipId": 69673,
+        "toHipId": 91262
+      }
+    ]
+  },
+  {
+    "abbreviation": "URS",
+    "name": "Ursa Major",
+    "lines": [
+      {
+        "fromHipId": 69673,
+        "toHipId": 91262
+      },
+      {
+        "fromHipId": 91262,
+        "toHipId": 24608
+      }
+    ]
+  },
+  {
+    "abbreviation": "URS",
+    "name": "Ursa Minor",
+    "lines": [
+      {
+        "fromHipId": 91262,
+        "toHipId": 24608
+      },
+      {
+        "fromHipId": 24608,
+        "toHipId": 24436
+      }
+    ]
+  },
+  {
+    "abbreviation": "CAS",
+    "name": "Cassiopeia",
+    "lines": [
+      {
+        "fromHipId": 24608,
+        "toHipId": 24436
+      },
+      {
+        "fromHipId": 24436,
+        "toHipId": 37279
+      }
+    ]
+  },
+  {
+    "abbreviation": "CYG",
+    "name": "Cygnus",
+    "lines": [
+      {
+        "fromHipId": 24436,
+        "toHipId": 37279
+      },
+      {
+        "fromHipId": 37279,
+        "toHipId": 7588
+      }
+    ]
+  },
+  {
+    "abbreviation": "LEO",
+    "name": "Leo",
+    "lines": [
+      {
+        "fromHipId": 37279,
+        "toHipId": 7588
+      },
+      {
+        "fromHipId": 7588,
+        "toHipId": 27989
+      }
+    ]
+  },
+  {
+    "abbreviation": "VIR",
+    "name": "Virgo",
+    "lines": [
+      {
+        "fromHipId": 7588,
+        "toHipId": 27989
+      },
+      {
+        "fromHipId": 27989,
+        "toHipId": 97649
+      }
+    ]
+  },
+  {
+    "abbreviation": "GEM",
+    "name": "Gemini",
+    "lines": [
+      {
+        "fromHipId": 27989,
+        "toHipId": 97649
+      },
+      {
+        "fromHipId": 97649,
+        "toHipId": 21421
+      }
+    ]
+  },
+  {
+    "abbreviation": "TAU",
+    "name": "Taurus",
+    "lines": [
+      {
+        "fromHipId": 97649,
+        "toHipId": 21421
+      },
+      {
+        "fromHipId": 21421,
+        "toHipId": 80763
+      }
+    ]
+  },
+  {
+    "abbreviation": "AQU",
+    "name": "Aquila",
+    "lines": [
+      {
+        "fromHipId": 21421,
+        "toHipId": 80763
+      },
+      {
+        "fromHipId": 80763,
+        "toHipId": 65474
+      }
+    ]
+  },
+  {
+    "abbreviation": "LYR",
+    "name": "Lyra",
+    "lines": [
+      {
+        "fromHipId": 80763,
+        "toHipId": 65474
+      },
+      {
+        "fromHipId": 65474,
+        "toHipId": 37826
+      }
+    ]
+  },
+  {
+    "abbreviation": "PER",
+    "name": "Perseus",
+    "lines": [
+      {
+        "fromHipId": 65474,
+        "toHipId": 37826
+      },
+      {
+        "fromHipId": 37826,
+        "toHipId": 113368
+      }
+    ]
+  },
+  {
+    "abbreviation": "HER",
+    "name": "Hercules",
+    "lines": [
+      {
+        "fromHipId": 37826,
+        "toHipId": 113368
+      },
+      {
+        "fromHipId": 113368,
+        "toHipId": 102098
+      }
+    ]
+  },
+  {
+    "abbreviation": "AUR",
+    "name": "Auriga",
+    "lines": [
+      {
+        "fromHipId": 113368,
+        "toHipId": 102098
+      },
+      {
+        "fromHipId": 102098,
+        "toHipId": 62434
+      }
+    ]
+  },
+  {
+    "abbreviation": "BOO",
+    "name": "Bootes",
+    "lines": [
+      {
+        "fromHipId": 102098,
+        "toHipId": 62434
+      },
+      {
+        "fromHipId": 62434,
+        "toHipId": 49669
+      }
+    ]
+  },
+  {
+    "abbreviation": "PIS",
+    "name": "Pisces",
+    "lines": [
+      {
+        "fromHipId": 62434,
+        "toHipId": 49669
+      },
+      {
+        "fromHipId": 49669,
+        "toHipId": 1
+      }
+    ]
+  },
+  {
+    "abbreviation": "AQU",
+    "name": "Aquarius",
+    "lines": [
+      {
+        "fromHipId": 49669,
+        "toHipId": 1
+      },
+      {
+        "fromHipId": 1,
+        "toHipId": 2
+      }
+    ]
+  },
+  {
+    "abbreviation": "CAP",
+    "name": "Capricornus",
+    "lines": [
+      {
+        "fromHipId": 1,
+        "toHipId": 2
+      },
+      {
+        "fromHipId": 2,
+        "toHipId": 3
+      }
+    ]
+  },
+  {
+    "abbreviation": "SAG",
+    "name": "Sagittarius",
+    "lines": [
+      {
+        "fromHipId": 2,
+        "toHipId": 3
+      },
+      {
+        "fromHipId": 3,
+        "toHipId": 4
+      }
+    ]
+  },
+  {
+    "abbreviation": "OPH",
+    "name": "Ophiuchus",
+    "lines": [
+      {
+        "fromHipId": 3,
+        "toHipId": 4
+      },
+      {
+        "fromHipId": 4,
+        "toHipId": 5
+      }
+    ]
+  },
+  {
+    "abbreviation": "SER",
+    "name": "Serpens",
+    "lines": [
+      {
+        "fromHipId": 4,
+        "toHipId": 5
+      },
+      {
+        "fromHipId": 5,
+        "toHipId": 6
+      }
+    ]
+  },
+  {
+    "abbreviation": "COR",
+    "name": "Corona Borealis",
+    "lines": [
+      {
+        "fromHipId": 5,
+        "toHipId": 6
+      },
+      {
+        "fromHipId": 6,
+        "toHipId": 7
+      }
+    ]
+  },
+  {
+    "abbreviation": "CAN",
+    "name": "Canis Major",
+    "lines": [
+      {
+        "fromHipId": 6,
+        "toHipId": 7
+      },
+      {
+        "fromHipId": 7,
+        "toHipId": 8
+      }
+    ]
+  },
+  {
+    "abbreviation": "CAN",
+    "name": "Canis Minor",
+    "lines": [
+      {
+        "fromHipId": 7,
+        "toHipId": 8
+      },
+      {
+        "fromHipId": 8,
+        "toHipId": 9
+      }
+    ]
+  },
+  {
+    "abbreviation": "LEP",
+    "name": "Lepus",
+    "lines": [
+      {
+        "fromHipId": 8,
+        "toHipId": 9
+      },
+      {
+        "fromHipId": 9,
+        "toHipId": 10
+      }
+    ]
+  },
+  {
+    "abbreviation": "COR",
+    "name": "Corvus",
+    "lines": [
+      {
+        "fromHipId": 9,
+        "toHipId": 10
+      },
+      {
+        "fromHipId": 10,
+        "toHipId": 11
+      }
+    ]
+  },
+  {
+    "abbreviation": "HYD",
+    "name": "Hydra",
+    "lines": [
+      {
+        "fromHipId": 10,
+        "toHipId": 11
+      },
+      {
+        "fromHipId": 11,
+        "toHipId": 12
+      }
+    ]
+  },
+  {
+    "abbreviation": "CEN",
+    "name": "Centaurus",
+    "lines": [
+      {
+        "fromHipId": 11,
+        "toHipId": 12
+      },
+      {
+        "fromHipId": 12,
+        "toHipId": 13
+      }
+    ]
+  },
+  {
+    "abbreviation": "CRU",
+    "name": "Crux",
+    "lines": [
+      {
+        "fromHipId": 12,
+        "toHipId": 13
+      },
+      {
+        "fromHipId": 13,
+        "toHipId": 14
+      }
+    ]
+  },
+  {
+    "abbreviation": "CAR",
+    "name": "Carina",
+    "lines": [
+      {
+        "fromHipId": 13,
+        "toHipId": 14
+      },
+      {
+        "fromHipId": 14,
+        "toHipId": 15
+      }
+    ]
+  },
+  {
+    "abbreviation": "PUP",
+    "name": "Puppis",
+    "lines": [
+      {
+        "fromHipId": 14,
+        "toHipId": 15
+      },
+      {
+        "fromHipId": 15,
+        "toHipId": 16
+      }
+    ]
+  },
+  {
+    "abbreviation": "VEL",
+    "name": "Vela",
+    "lines": [
+      {
+        "fromHipId": 15,
+        "toHipId": 16
+      },
+      {
+        "fromHipId": 16,
+        "toHipId": 17
+      }
+    ]
+  },
+  {
+    "abbreviation": "ERI",
+    "name": "Eridanus",
+    "lines": [
+      {
+        "fromHipId": 16,
+        "toHipId": 17
+      },
+      {
+        "fromHipId": 17,
+        "toHipId": 18
+      }
+    ]
+  },
+  {
+    "abbreviation": "FOR",
+    "name": "Fornax",
+    "lines": [
+      {
+        "fromHipId": 17,
+        "toHipId": 18
+      },
+      {
+        "fromHipId": 18,
+        "toHipId": 19
+      }
+    ]
+  },
+  {
+    "abbreviation": "PHO",
+    "name": "Phoenix",
+    "lines": [
+      {
+        "fromHipId": 18,
+        "toHipId": 19
+      },
+      {
+        "fromHipId": 19,
+        "toHipId": 20
+      }
+    ]
+  },
+  {
+    "abbreviation": "GRU",
+    "name": "Grus",
+    "lines": [
+      {
+        "fromHipId": 19,
+        "toHipId": 20
+      },
+      {
+        "fromHipId": 20,
+        "toHipId": 21
+      }
+    ]
+  },
+  {
+    "abbreviation": "PAV",
+    "name": "Pavo",
+    "lines": [
+      {
+        "fromHipId": 20,
+        "toHipId": 21
+      },
+      {
+        "fromHipId": 21,
+        "toHipId": 22
+      }
+    ]
+  },
+  {
+    "abbreviation": "ARA",
+    "name": "Ara",
+    "lines": [
+      {
+        "fromHipId": 21,
+        "toHipId": 22
+      },
+      {
+        "fromHipId": 22,
+        "toHipId": 23
+      }
+    ]
+  },
+  {
+    "abbreviation": "TRI",
+    "name": "Triangulum Australe",
+    "lines": [
+      {
+        "fromHipId": 22,
+        "toHipId": 23
+      },
+      {
+        "fromHipId": 23,
+        "toHipId": 24
+      }
+    ]
+  }
+]

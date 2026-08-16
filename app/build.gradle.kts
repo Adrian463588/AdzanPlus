@@ -77,6 +77,7 @@ hilt {
 
 dependencies {
     implementation(project(":core-prayer"))
+    implementation(project(":core-astronomy"))
 
     // AndroidX Core & Lifecycle
     implementation(libs.androidx.core.ktx)

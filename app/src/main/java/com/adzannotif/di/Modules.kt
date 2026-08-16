@@ -10,6 +10,8 @@ import com.adzannotif.data.local.dao.SavedLocationDao
 import com.adzannotif.data.repository.AlarmRepositoryImpl
 import com.adzannotif.data.repository.LocationRepositoryImpl
 import com.adzannotif.data.repository.PrayerTimesRepositoryImpl
+import com.adzannotif.core.astronomy.AstronomyEngine
+import com.adzannotif.core.astronomy.AstronomyResourceLoader
 import com.adzannotif.data.repository.SettingsRepositoryImpl
 import com.adzannotif.domain.repository.AlarmRepository
 import com.adzannotif.domain.repository.LocationRepository
@@ -58,6 +60,21 @@ object AppModule {
     fun provideSavedLocationDao(database: PrayerDatabase): SavedLocationDao {
         return database.savedLocationDao()
     }
+
+    @Provides
+    @Singleton
+    fun provideAstronomyCacheDao(database: PrayerDatabase): com.adzannotif.data.local.dao.AstronomyCacheDao {
+        return database.astronomyCacheDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAstronomyEngine(@ApplicationContext context: Context): AstronomyEngine {
+        val loader = AstronomyResourceLoader { name ->
+            context.assets.open(name).bufferedReader().use { it.readText() }
+        }
+        return AstronomyEngine(resourceLoader = loader)
+    }
 }
 
 @Module
@@ -83,4 +100,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindNetworkMonitor(impl: NetworkMonitorImpl): NetworkMonitor
+
+    @Binds
+    @Singleton
+    abstract fun bindAstronomyRepository(impl: com.adzannotif.data.repository.AstronomyRepositoryImpl): com.adzannotif.domain.repository.AstronomyRepository
 }

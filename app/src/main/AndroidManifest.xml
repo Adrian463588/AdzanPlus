@@ -92,6 +92,14 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name=".platform.receiver.CelestialAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.adzannotif.ACTION_CELESTIAL_ALARM" />
+            </intent-filter>
+        </receiver>
+
         <!-- App Widget Receiver -->
         <receiver
             android:name=".widget.PrayerTimesWidgetReceiver"
@@ -107,6 +115,29 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/prayer_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.MoonWidgetReceiver"
+            android:exported="true"
+            android:label="Moon Widget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/moon_widget_info" />
+        </receiver>
+        <receiver
+            android:name=".widget.SunWidgetReceiver"
+            android:exported="true"
+            android:label="Sun Widget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/sun_widget_info" />
         </receiver>
 
     </application>

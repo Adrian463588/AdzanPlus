@@ -7,10 +7,12 @@ import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(
@@ -47,8 +49,43 @@ sealed class Screen(
         unselectedIcon = Icons.Outlined.Settings,
     )
 
+    data object AstronomyDashboard : Screen(
+        route = "astronomy_dashboard",
+        title = "Astronomi",
+        selectedIcon = Icons.Filled.AutoAwesome,
+        unselectedIcon = Icons.Outlined.AutoAwesome,
+    )
+
+    data object MoonDetail : Screen(
+        route = "moon_detail",
+        title = "Bulan",
+        selectedIcon = Icons.Filled.AutoAwesome,
+        unselectedIcon = Icons.Outlined.AutoAwesome,
+    )
+
+    data object SunDetail : Screen(
+        route = "sun_detail",
+        title = "Matahari",
+        selectedIcon = Icons.Filled.AutoAwesome,
+        unselectedIcon = Icons.Outlined.AutoAwesome,
+    )
+
+    data object StarMap : Screen(
+        route = "star_map",
+        title = "Peta Bintang",
+        selectedIcon = Icons.Filled.AutoAwesome,
+        unselectedIcon = Icons.Outlined.AutoAwesome,
+    )
+
+    data object HijriCalendar : Screen(
+        route = "hijri_calendar",
+        title = "Kalender Hijriah",
+        selectedIcon = Icons.Filled.AutoAwesome,
+        unselectedIcon = Icons.Outlined.AutoAwesome,
+    )
+
     companion object {
         val items: List<Screen>
-            get() = listOf(Home, Schedule, Qibla, Settings)
+            get() = listOf(Home, Schedule, Qibla, AstronomyDashboard, Settings)
     }
 }

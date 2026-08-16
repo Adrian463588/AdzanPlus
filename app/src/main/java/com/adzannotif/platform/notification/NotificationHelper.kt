@@ -24,6 +24,7 @@ class NotificationHelper @Inject constructor(
         const val CHANNEL_ADHAN_ID = "channel_adhan_alerts"
         const val CHANNEL_REMINDER_ID = "channel_prayer_reminders"
         const val CHANNEL_PERSISTENT_ID = "channel_prayer_persistent"
+        const val CELESTIAL_CHANNEL_ID = "celestial_events"
 
         const val NOTIFICATION_ID_ADHAN = 1001
         const val NOTIFICATION_ID_REMINDER = 2001
@@ -74,7 +75,16 @@ class NotificationHelper @Inject constructor(
                 setShowBadge(false)
             }
 
-            notificationManager.createNotificationChannels(listOf(adhanChannel, reminderChannel, persistentChannel))
+            val celestialChannel = NotificationChannel(
+                CELESTIAL_CHANNEL_ID,
+                "Peristiwa Langit",
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = "Notifikasi untuk peristiwa langit seperti sunrise, sunset, dan fase bulan"
+                enableVibration(true)
+            }
+
+            notificationManager.createNotificationChannels(listOf(adhanChannel, reminderChannel, persistentChannel, celestialChannel))
         }
     }
 
@@ -171,6 +181,24 @@ class NotificationHelper @Inject constructor(
             )
         } catch (e: SecurityException) {
             Log.w(TAG, "Notification permission not granted for pre-reminder", e)
+        }
+    }
+
+    fun showCelestialEventNotification(eventType: String, label: String) {
+        val builder = NotificationCompat.Builder(context, CELESTIAL_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle("Peristiwa Langit: $label")
+            .setContentText("Waktu $eventType telah tiba")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+
+        try {
+            NotificationManagerCompat.from(context).notify(
+                eventType.hashCode(),
+                builder.build()
+            )
+        } catch (e: SecurityException) {
+            Log.w(TAG, "Notification permission not granted for celestial event", e)
         }
     }
 }

@@ -1,0 +1,3502 @@
+[
+  {
+    "hipId": 32349,
+    "name": "Sirius",
+    "ra": 101.287,
+    "dec": -16.716,
+    "magnitude": -1.46
+  },
+  {
+    "hipId": 30438,
+    "name": "Canopus",
+    "ra": 95.988,
+    "dec": -52.696,
+    "magnitude": -0.74
+  },
+  {
+    "hipId": 69673,
+    "name": "Arcturus",
+    "ra": 213.915,
+    "dec": 19.182,
+    "magnitude": -0.05
+  },
+  {
+    "hipId": 91262,
+    "name": "Vega",
+    "ra": 279.235,
+    "dec": 38.784,
+    "magnitude": 0.03
+  },
+  {
+    "hipId": 24608,
+    "name": "Capella",
+    "ra": 79.172,
+    "dec": 45.998,
+    "magnitude": 0.08
+  },
+  {
+    "hipId": 24436,
+    "name": "Rigel",
+    "ra": 78.634,
+    "dec": -8.202,
+    "magnitude": 0.12
+  },
+  {
+    "hipId": 37279,
+    "name": "Procyon",
+    "ra": 114.826,
+    "dec": 5.224,
+    "magnitude": 0.34
+  },
+  {
+    "hipId": 7588,
+    "name": "Achernar",
+    "ra": 24.429,
+    "dec": -57.237,
+    "magnitude": 0.46
+  },
+  {
+    "hipId": 27989,
+    "name": "Betelgeuse",
+    "ra": 88.793,
+    "dec": 7.407,
+    "magnitude": 0.5
+  },
+  {
+    "hipId": 97649,
+    "name": "Altair",
+    "ra": 297.696,
+    "dec": 8.868,
+    "magnitude": 0.77
+  },
+  {
+    "hipId": 21421,
+    "name": "Aldebaran",
+    "ra": 68.98,
+    "dec": 16.509,
+    "magnitude": 0.85
+  },
+  {
+    "hipId": 80763,
+    "name": "Antares",
+    "ra": 247.352,
+    "dec": -26.432,
+    "magnitude": 1.09
+  },
+  {
+    "hipId": 65474,
+    "name": "Spica",
+    "ra": 201.298,
+    "dec": -11.161,
+    "magnitude": 0.97
+  },
+  {
+    "hipId": 37826,
+    "name": "Pollux",
+    "ra": 116.329,
+    "dec": 28.026,
+    "magnitude": 1.14
+  },
+  {
+    "hipId": 113368,
+    "name": "Fomalhaut",
+    "ra": 344.413,
+    "dec": -29.622,
+    "magnitude": 1.16
+  },
+  {
+    "hipId": 102098,
+    "name": "Deneb",
+    "ra": 310.358,
+    "dec": 45.28,
+    "magnitude": 1.25
+  },
+  {
+    "hipId": 62434,
+    "name": "Mimosa",
+    "ra": 191.93,
+    "dec": -59.689,
+    "magnitude": 1.25
+  },
+  {
+    "hipId": 49669,
+    "name": "Regulus",
+    "ra": 152.093,
+    "dec": 11.967,
+    "magnitude": 1.35
+  },
+  {
+    "hipId": 1,
+    "name": null,
+    "ra": 230.194,
+    "dec": -85.498,
+    "magnitude": 2.33
+  },
+  {
+    "hipId": 2,
+    "name": null,
+    "ra": 80.356,
+    "dec": 42.565,
+    "magnitude": 3.53
+  },
+  {
+    "hipId": 3,
+    "name": null,
+    "ra": 321.185,
+    "dec": -74.351,
+    "magnitude": 2.77
+  },
+  {
+    "hipId": 4,
+    "name": null,
+    "ra": 10.727,
+    "dec": -50.645,
+    "magnitude": 3.02
+  },
+  {
+    "hipId": 5,
+    "name": null,
+    "ra": 9.553,
+    "dec": -54.209,
+    "magnitude": 3.45
+  },
+  {
+    "hipId": 6,
+    "name": null,
+    "ra": 196.179,
+    "dec": -50.321,
+    "magnitude": 3.27
+  },
+  {
+    "hipId": 7,
+    "name": null,
+    "ra": 291.395,
+    "dec": -88.83,
+    "magnitude": 3.92
+  },
+  {
+    "hipId": 8,
+    "name": null,
+    "ra": 251.33,
+    "dec": -28.755,
+    "magnitude": 1.97
+  },
+  {
+    "hipId": 9,
+    "name": null,
+    "ra": 344.597,
+    "dec": -29.413,
+    "magnitude": 1.78
+  },
+  {
+    "hipId": 10,
+    "name": null,
+    "ra": 34.818,
+    "dec": 62.549,
+    "magnitude": 3.31
+  },
+  {
+    "hipId": 11,
+    "name": null,
+    "ra": 290.566,
+    "dec": 41.352,
+    "magnitude": 3.11
+  },
+  {
+    "hipId": 12,
+    "name": null,
+    "ra": 350.322,
+    "dec": -21.864,
+    "magnitude": 3.16
+  },
+  {
+    "hipId": 13,
+    "name": null,
+    "ra": 298.586,
+    "dec": 21.334,
+    "magnitude": 4.09
+  },
+  {
+    "hipId": 14,
+    "name": null,
+    "ra": 207.847,
+    "dec": 36.823,
+    "magnitude": 1.64
+  },
+  {
+    "hipId": 15,
+    "name": null,
+    "ra": 82.043,
+    "dec": -37.91,
+    "magnitude": 1.74
+  },
+  {
+    "hipId": 16,
+    "name": null,
+    "ra": 83.805,
+    "dec": -71.82,
+    "magnitude": 2.33
+  },
+  {
+    "hipId": 17,
+    "name": null,
+    "ra": 228.846,
+    "dec": -24.33,
+    "magnitude": 2.61
+  },
+  {
+    "hipId": 18,
+    "name": null,
+    "ra": 75.423,
+    "dec": -41.944,
+    "magnitude": 4.31
+  },
+  {
+    "hipId": 19,
+    "name": null,
+    "ra": 233.293,
+    "dec": 19.644,
+    "magnitude": 2.01
+  },
+  {
+    "hipId": 20,
+    "name": null,
+    "ra": 262.486,
+    "dec": -60.588,
+    "magnitude": 2.64
+  },
+  {
+    "hipId": 21,
+    "name": null,
+    "ra": 356.228,
+    "dec": 25.2,
+    "magnitude": 3.17
+  },
+  {
+    "hipId": 22,
+    "name": null,
+    "ra": 246.461,
+    "dec": 61.713,
+    "magnitude": 3.83
+  },
+  {
+    "hipId": 23,
+    "name": null,
+    "ra": 82.457,
+    "dec": -84.222,
+    "magnitude": 2.45
+  },
+  {
+    "hipId": 24,
+    "name": null,
+    "ra": 96.387,
+    "dec": -52.023,
+    "magnitude": 4.33
+  },
+  {
+    "hipId": 25,
+    "name": null,
+    "ra": 315.492,
+    "dec": -33.358,
+    "magnitude": 3.47
+  },
+  {
+    "hipId": 26,
+    "name": null,
+    "ra": 142.427,
+    "dec": 74.619,
+    "magnitude": 2.88
+  },
+  {
+    "hipId": 27,
+    "name": null,
+    "ra": 95.357,
+    "dec": -45.607,
+    "magnitude": 3.18
+  },
+  {
+    "hipId": 28,
+    "name": null,
+    "ra": 94.587,
+    "dec": 15.225,
+    "magnitude": 4.19
+  },
+  {
+    "hipId": 29,
+    "name": null,
+    "ra": 143.784,
+    "dec": -50.522,
+    "magnitude": 4.49
+  },
+  {
+    "hipId": 30,
+    "name": null,
+    "ra": 183.429,
+    "dec": -73.636,
+    "magnitude": 1.64
+  },
+  {
+    "hipId": 31,
+    "name": null,
+    "ra": 39.474,
+    "dec": 22.94,
+    "magnitude": 3.88
+  },
+  {
+    "hipId": 32,
+    "name": null,
+    "ra": 151.978,
+    "dec": -78.565,
+    "magnitude": 2.64
+  },
+  {
+    "hipId": 33,
+    "name": null,
+    "ra": 358.604,
+    "dec": 5.241,
+    "magnitude": 4.41
+  },
+  {
+    "hipId": 34,
+    "name": null,
+    "ra": 309.881,
+    "dec": -87.933,
+    "magnitude": 3.66
+  },
+  {
+    "hipId": 35,
+    "name": null,
+    "ra": 245.416,
+    "dec": 6.655,
+    "magnitude": 2.3
+  },
+  {
+    "hipId": 36,
+    "name": null,
+    "ra": 230.746,
+    "dec": -69.921,
+    "magnitude": 2.8
+  },
+  {
+    "hipId": 37,
+    "name": null,
+    "ra": 163.341,
+    "dec": 81.687,
+    "magnitude": 4.13
+  },
+  {
+    "hipId": 38,
+    "name": null,
+    "ra": 94.82,
+    "dec": 0.106,
+    "magnitude": 2.04
+  },
+  {
+    "hipId": 39,
+    "name": null,
+    "ra": 328.546,
+    "dec": 66.693,
+    "magnitude": 2.4
+  },
+  {
+    "hipId": 40,
+    "name": null,
+    "ra": 230.022,
+    "dec": 19.615,
+    "magnitude": 1.96
+  },
+  {
+    "hipId": 41,
+    "name": null,
+    "ra": 274.504,
+    "dec": 7.088,
+    "magnitude": 3.84
+  },
+  {
+    "hipId": 42,
+    "name": null,
+    "ra": 190.927,
+    "dec": -89.897,
+    "magnitude": 2.47
+  },
+  {
+    "hipId": 43,
+    "name": null,
+    "ra": 7.012,
+    "dec": 77.238,
+    "magnitude": 4.14
+  },
+  {
+    "hipId": 44,
+    "name": null,
+    "ra": 299.4,
+    "dec": -34.647,
+    "magnitude": 1.67
+  },
+  {
+    "hipId": 45,
+    "name": null,
+    "ra": 316.083,
+    "dec": 80.451,
+    "magnitude": 1.76
+  },
+  {
+    "hipId": 46,
+    "name": null,
+    "ra": 174.957,
+    "dec": -77.542,
+    "magnitude": 3.78
+  },
+  {
+    "hipId": 47,
+    "name": null,
+    "ra": 275.7,
+    "dec": -66.89,
+    "magnitude": 2.93
+  },
+  {
+    "hipId": 48,
+    "name": null,
+    "ra": 197.929,
+    "dec": -42.29,
+    "magnitude": 4.12
+  },
+  {
+    "hipId": 49,
+    "name": null,
+    "ra": 152.33,
+    "dec": -51.876,
+    "magnitude": 3.12
+  },
+  {
+    "hipId": 50,
+    "name": null,
+    "ra": 262.775,
+    "dec": -53.793,
+    "magnitude": 2.44
+  },
+  {
+    "hipId": 51,
+    "name": null,
+    "ra": 358.254,
+    "dec": 26.978,
+    "magnitude": 2.81
+  },
+  {
+    "hipId": 52,
+    "name": null,
+    "ra": 186.327,
+    "dec": -68.219,
+    "magnitude": 2.17
+  },
+  {
+    "hipId": 53,
+    "name": null,
+    "ra": 121.711,
+    "dec": 15.896,
+    "magnitude": 2.19
+  },
+  {
+    "hipId": 54,
+    "name": null,
+    "ra": 79.278,
+    "dec": -77.221,
+    "magnitude": 3.39
+  },
+  {
+    "hipId": 55,
+    "name": null,
+    "ra": 82.419,
+    "dec": 72.976,
+    "magnitude": 4.08
+  },
+  {
+    "hipId": 56,
+    "name": null,
+    "ra": 25.509,
+    "dec": -47.159,
+    "magnitude": 3.51
+  },
+  {
+    "hipId": 57,
+    "name": null,
+    "ra": 77.125,
+    "dec": -66.184,
+    "magnitude": 4.31
+  },
+  {
+    "hipId": 58,
+    "name": null,
+    "ra": 205.576,
+    "dec": -4.919,
+    "magnitude": 3.85
+  },
+  {
+    "hipId": 59,
+    "name": null,
+    "ra": 290.699,
+    "dec": -55.726,
+    "magnitude": 1.79
+  },
+  {
+    "hipId": 60,
+    "name": null,
+    "ra": 155.178,
+    "dec": -13.756,
+    "magnitude": 2.9
+  },
+  {
+    "hipId": 61,
+    "name": null,
+    "ra": 262.467,
+    "dec": 31.206,
+    "magnitude": 4.45
+  },
+  {
+    "hipId": 62,
+    "name": null,
+    "ra": 35.43,
+    "dec": -17.528,
+    "magnitude": 2.52
+  },
+  {
+    "hipId": 63,
+    "name": null,
+    "ra": 310.202,
+    "dec": -45.242,
+    "magnitude": 2.07
+  },
+  {
+    "hipId": 64,
+    "name": null,
+    "ra": 161.501,
+    "dec": -14.061,
+    "magnitude": 2.34
+  },
+  {
+    "hipId": 65,
+    "name": null,
+    "ra": 89.93,
+    "dec": 76.188,
+    "magnitude": 2.83
+  },
+  {
+    "hipId": 66,
+    "name": null,
+    "ra": 310.086,
+    "dec": 9.059,
+    "magnitude": 1.65
+  },
+  {
+    "hipId": 67,
+    "name": null,
+    "ra": 359.742,
+    "dec": 60.485,
+    "magnitude": 4.41
+  },
+  {
+    "hipId": 68,
+    "name": null,
+    "ra": 333.492,
+    "dec": 62.765,
+    "magnitude": 2.0
+  },
+  {
+    "hipId": 69,
+    "name": null,
+    "ra": 174.831,
+    "dec": -51.525,
+    "magnitude": 2.7
+  },
+  {
+    "hipId": 70,
+    "name": null,
+    "ra": 21.109,
+    "dec": -21.785,
+    "magnitude": 4.46
+  },
+  {
+    "hipId": 71,
+    "name": null,
+    "ra": 95.473,
+    "dec": 51.133,
+    "magnitude": 2.87
+  },
+  {
+    "hipId": 72,
+    "name": null,
+    "ra": 152.283,
+    "dec": 82.317,
+    "magnitude": 4.49
+  },
+  {
+    "hipId": 73,
+    "name": null,
+    "ra": 200.077,
+    "dec": 39.313,
+    "magnitude": 1.96
+  },
+  {
+    "hipId": 74,
+    "name": null,
+    "ra": 106.815,
+    "dec": 84.368,
+    "magnitude": 3.24
+  },
+  {
+    "hipId": 75,
+    "name": null,
+    "ra": 195.19,
+    "dec": 44.636,
+    "magnitude": 1.67
+  },
+  {
+    "hipId": 76,
+    "name": null,
+    "ra": 210.304,
+    "dec": 0.513,
+    "magnitude": 4.06
+  },
+  {
+    "hipId": 77,
+    "name": null,
+    "ra": 56.676,
+    "dec": 82.94,
+    "magnitude": 1.74
+  },
+  {
+    "hipId": 78,
+    "name": null,
+    "ra": 66.897,
+    "dec": 17.106,
+    "magnitude": 3.53
+  },
+  {
+    "hipId": 79,
+    "name": null,
+    "ra": 84.673,
+    "dec": -68.42,
+    "magnitude": 4.17
+  },
+  {
+    "hipId": 80,
+    "name": null,
+    "ra": 88.638,
+    "dec": 17.013,
+    "magnitude": 3.36
+  },
+  {
+    "hipId": 81,
+    "name": null,
+    "ra": 150.921,
+    "dec": 15.061,
+    "magnitude": 3.07
+  },
+  {
+    "hipId": 82,
+    "name": null,
+    "ra": 336.494,
+    "dec": -53.233,
+    "magnitude": 3.65
+  },
+  {
+    "hipId": 83,
+    "name": null,
+    "ra": 85.927,
+    "dec": -18.759,
+    "magnitude": 3.52
+  },
+  {
+    "hipId": 84,
+    "name": null,
+    "ra": 107.999,
+    "dec": -33.088,
+    "magnitude": 3.76
+  },
+  {
+    "hipId": 85,
+    "name": null,
+    "ra": 26.116,
+    "dec": -7.509,
+    "magnitude": 4.5
+  },
+  {
+    "hipId": 86,
+    "name": null,
+    "ra": 358.595,
+    "dec": -76.813,
+    "magnitude": 2.14
+  },
+  {
+    "hipId": 87,
+    "name": null,
+    "ra": 95.472,
+    "dec": 77.987,
+    "magnitude": 4.14
+  },
+  {
+    "hipId": 88,
+    "name": null,
+    "ra": 316.537,
+    "dec": -23.485,
+    "magnitude": 1.97
+  },
+  {
+    "hipId": 89,
+    "name": null,
+    "ra": 300.148,
+    "dec": 36.637,
+    "magnitude": 3.34
+  },
+  {
+    "hipId": 90,
+    "name": null,
+    "ra": 355.404,
+    "dec": 27.716,
+    "magnitude": 1.52
+  },
+  {
+    "hipId": 91,
+    "name": null,
+    "ra": 294.157,
+    "dec": -36.112,
+    "magnitude": 3.49
+  },
+  {
+    "hipId": 92,
+    "name": null,
+    "ra": 338.015,
+    "dec": -65.828,
+    "magnitude": 1.85
+  },
+  {
+    "hipId": 93,
+    "name": null,
+    "ra": 38.533,
+    "dec": 9.58,
+    "magnitude": 2.32
+  },
+  {
+    "hipId": 94,
+    "name": null,
+    "ra": 217.739,
+    "dec": 39.17,
+    "magnitude": 2.11
+  },
+  {
+    "hipId": 95,
+    "name": null,
+    "ra": 228.326,
+    "dec": -42.483,
+    "magnitude": 2.97
+  },
+  {
+    "hipId": 96,
+    "name": null,
+    "ra": 325.921,
+    "dec": 62.299,
+    "magnitude": 1.78
+  },
+  {
+    "hipId": 97,
+    "name": null,
+    "ra": 152.487,
+    "dec": -40.198,
+    "magnitude": 1.51
+  },
+  {
+    "hipId": 98,
+    "name": null,
+    "ra": 277.603,
+    "dec": 24.68,
+    "magnitude": 2.29
+  },
+  {
+    "hipId": 99,
+    "name": null,
+    "ra": 266.843,
+    "dec": 9.302,
+    "magnitude": 2.78
+  },
+  {
+    "hipId": 100,
+    "name": null,
+    "ra": 3.481,
+    "dec": -76.456,
+    "magnitude": 4.15
+  },
+  {
+    "hipId": 101,
+    "name": null,
+    "ra": 325.414,
+    "dec": 8.206,
+    "magnitude": 4.0
+  },
+  {
+    "hipId": 102,
+    "name": null,
+    "ra": 209.703,
+    "dec": -63.343,
+    "magnitude": 1.88
+  },
+  {
+    "hipId": 103,
+    "name": null,
+    "ra": 110.973,
+    "dec": 71.817,
+    "magnitude": 3.89
+  },
+  {
+    "hipId": 104,
+    "name": null,
+    "ra": 309.853,
+    "dec": 71.806,
+    "magnitude": 2.13
+  },
+  {
+    "hipId": 105,
+    "name": null,
+    "ra": 89.831,
+    "dec": -71.497,
+    "magnitude": 3.84
+  },
+  {
+    "hipId": 106,
+    "name": null,
+    "ra": 318.288,
+    "dec": -16.852,
+    "magnitude": 3.36
+  },
+  {
+    "hipId": 107,
+    "name": null,
+    "ra": 55.639,
+    "dec": 77.379,
+    "magnitude": 4.09
+  },
+  {
+    "hipId": 108,
+    "name": null,
+    "ra": 351.434,
+    "dec": 55.939,
+    "magnitude": 4.14
+  },
+  {
+    "hipId": 109,
+    "name": null,
+    "ra": 8.923,
+    "dec": 42.582,
+    "magnitude": 2.5
+  },
+  {
+    "hipId": 110,
+    "name": null,
+    "ra": 335.094,
+    "dec": 54.402,
+    "magnitude": 4.09
+  },
+  {
+    "hipId": 111,
+    "name": null,
+    "ra": 291.87,
+    "dec": -41.975,
+    "magnitude": 3.86
+  },
+  {
+    "hipId": 112,
+    "name": null,
+    "ra": 38.914,
+    "dec": 66.99,
+    "magnitude": 4.08
+  },
+  {
+    "hipId": 113,
+    "name": null,
+    "ra": 80.076,
+    "dec": 56.986,
+    "magnitude": 2.88
+  },
+  {
+    "hipId": 114,
+    "name": null,
+    "ra": 109.869,
+    "dec": 53.162,
+    "magnitude": 2.18
+  },
+  {
+    "hipId": 115,
+    "name": null,
+    "ra": 8.519,
+    "dec": -55.237,
+    "magnitude": 2.48
+  },
+  {
+    "hipId": 116,
+    "name": null,
+    "ra": 311.167,
+    "dec": 84.04,
+    "magnitude": 2.34
+  },
+  {
+    "hipId": 117,
+    "name": null,
+    "ra": 230.933,
+    "dec": -18.058,
+    "magnitude": 4.44
+  },
+  {
+    "hipId": 118,
+    "name": null,
+    "ra": 193.038,
+    "dec": 79.063,
+    "magnitude": 1.85
+  },
+  {
+    "hipId": 119,
+    "name": null,
+    "ra": 349.344,
+    "dec": -57.858,
+    "magnitude": 4.39
+  },
+  {
+    "hipId": 120,
+    "name": null,
+    "ra": 95.568,
+    "dec": -70.488,
+    "magnitude": 2.8
+  },
+  {
+    "hipId": 121,
+    "name": null,
+    "ra": 262.276,
+    "dec": -33.538,
+    "magnitude": 3.32
+  },
+  {
+    "hipId": 122,
+    "name": null,
+    "ra": 184.112,
+    "dec": -20.665,
+    "magnitude": 3.23
+  },
+  {
+    "hipId": 123,
+    "name": null,
+    "ra": 91.7,
+    "dec": 37.581,
+    "magnitude": 1.51
+  },
+  {
+    "hipId": 124,
+    "name": null,
+    "ra": 333.207,
+    "dec": 6.921,
+    "magnitude": 3.66
+  },
+  {
+    "hipId": 125,
+    "name": null,
+    "ra": 267.102,
+    "dec": 30.713,
+    "magnitude": 2.59
+  },
+  {
+    "hipId": 126,
+    "name": null,
+    "ra": 25.191,
+    "dec": 29.563,
+    "magnitude": 2.49
+  },
+  {
+    "hipId": 127,
+    "name": null,
+    "ra": 113.01,
+    "dec": 62.643,
+    "magnitude": 3.66
+  },
+  {
+    "hipId": 128,
+    "name": null,
+    "ra": 108.116,
+    "dec": -34.329,
+    "magnitude": 2.73
+  },
+  {
+    "hipId": 129,
+    "name": null,
+    "ra": 144.864,
+    "dec": -36.782,
+    "magnitude": 1.88
+  },
+  {
+    "hipId": 130,
+    "name": null,
+    "ra": 151.361,
+    "dec": 79.265,
+    "magnitude": 3.53
+  },
+  {
+    "hipId": 131,
+    "name": null,
+    "ra": 325.01,
+    "dec": 20.793,
+    "magnitude": 2.4
+  },
+  {
+    "hipId": 132,
+    "name": null,
+    "ra": 197.257,
+    "dec": -89.927,
+    "magnitude": 2.36
+  },
+  {
+    "hipId": 133,
+    "name": null,
+    "ra": 154.76,
+    "dec": 14.397,
+    "magnitude": 3.46
+  },
+  {
+    "hipId": 134,
+    "name": null,
+    "ra": 167.396,
+    "dec": -10.411,
+    "magnitude": 2.14
+  },
+  {
+    "hipId": 135,
+    "name": null,
+    "ra": 170.347,
+    "dec": 72.213,
+    "magnitude": 3.89
+  },
+  {
+    "hipId": 136,
+    "name": null,
+    "ra": 61.089,
+    "dec": -74.737,
+    "magnitude": 3.05
+  },
+  {
+    "hipId": 137,
+    "name": null,
+    "ra": 227.859,
+    "dec": -29.666,
+    "magnitude": 3.96
+  },
+  {
+    "hipId": 138,
+    "name": null,
+    "ra": 270.41,
+    "dec": 31.103,
+    "magnitude": 2.17
+  },
+  {
+    "hipId": 139,
+    "name": null,
+    "ra": 71.687,
+    "dec": -85.603,
+    "magnitude": 2.23
+  },
+  {
+    "hipId": 140,
+    "name": null,
+    "ra": 171.049,
+    "dec": 62.953,
+    "magnitude": 1.72
+  },
+  {
+    "hipId": 141,
+    "name": null,
+    "ra": 149.199,
+    "dec": 23.358,
+    "magnitude": 2.08
+  },
+  {
+    "hipId": 142,
+    "name": null,
+    "ra": 250.688,
+    "dec": -1.012,
+    "magnitude": 2.23
+  },
+  {
+    "hipId": 143,
+    "name": null,
+    "ra": 236.181,
+    "dec": -89.002,
+    "magnitude": 3.75
+  },
+  {
+    "hipId": 144,
+    "name": null,
+    "ra": 277.217,
+    "dec": -70.814,
+    "magnitude": 2.78
+  },
+  {
+    "hipId": 145,
+    "name": null,
+    "ra": 63.319,
+    "dec": 82.434,
+    "magnitude": 3.05
+  },
+  {
+    "hipId": 146,
+    "name": null,
+    "ra": 18.079,
+    "dec": -45.144,
+    "magnitude": 4.05
+  },
+  {
+    "hipId": 147,
+    "name": null,
+    "ra": 164.326,
+    "dec": 54.255,
+    "magnitude": 3.5
+  },
+  {
+    "hipId": 148,
+    "name": null,
+    "ra": 355.641,
+    "dec": 17.181,
+    "magnitude": 4.35
+  },
+  {
+    "hipId": 149,
+    "name": null,
+    "ra": 320.913,
+    "dec": 20.277,
+    "magnitude": 3.66
+  },
+  {
+    "hipId": 150,
+    "name": null,
+    "ra": 181.72,
+    "dec": 59.502,
+    "magnitude": 3.14
+  },
+  {
+    "hipId": 151,
+    "name": null,
+    "ra": 322.995,
+    "dec": 43.858,
+    "magnitude": 2.92
+  },
+  {
+    "hipId": 152,
+    "name": null,
+    "ra": 93.309,
+    "dec": -45.497,
+    "magnitude": 3.41
+  },
+  {
+    "hipId": 153,
+    "name": null,
+    "ra": 275.693,
+    "dec": 3.834,
+    "magnitude": 3.38
+  },
+  {
+    "hipId": 154,
+    "name": null,
+    "ra": 98.855,
+    "dec": -76.053,
+    "magnitude": 2.36
+  },
+  {
+    "hipId": 155,
+    "name": null,
+    "ra": 97.817,
+    "dec": -32.452,
+    "magnitude": 3.12
+  },
+  {
+    "hipId": 156,
+    "name": null,
+    "ra": 49.815,
+    "dec": -48.373,
+    "magnitude": 3.58
+  },
+  {
+    "hipId": 157,
+    "name": null,
+    "ra": 254.311,
+    "dec": -78.439,
+    "magnitude": 2.72
+  },
+  {
+    "hipId": 158,
+    "name": null,
+    "ra": 195.34,
+    "dec": -15.161,
+    "magnitude": 2.12
+  },
+  {
+    "hipId": 159,
+    "name": null,
+    "ra": 151.252,
+    "dec": 72.871,
+    "magnitude": 3.25
+  },
+  {
+    "hipId": 160,
+    "name": null,
+    "ra": 250.388,
+    "dec": 64.212,
+    "magnitude": 3.8
+  },
+  {
+    "hipId": 161,
+    "name": null,
+    "ra": 136.937,
+    "dec": -88.939,
+    "magnitude": 2.56
+  },
+  {
+    "hipId": 162,
+    "name": null,
+    "ra": 271.251,
+    "dec": 63.621,
+    "magnitude": 4.36
+  },
+  {
+    "hipId": 163,
+    "name": null,
+    "ra": 150.848,
+    "dec": 44.553,
+    "magnitude": 3.14
+  },
+  {
+    "hipId": 164,
+    "name": null,
+    "ra": 217.171,
+    "dec": -50.303,
+    "magnitude": 2.16
+  },
+  {
+    "hipId": 165,
+    "name": null,
+    "ra": 156.901,
+    "dec": -84.776,
+    "magnitude": 2.51
+  },
+  {
+    "hipId": 166,
+    "name": null,
+    "ra": 244.491,
+    "dec": -17.223,
+    "magnitude": 2.0
+  },
+  {
+    "hipId": 167,
+    "name": null,
+    "ra": 168.26,
+    "dec": -67.027,
+    "magnitude": 3.37
+  },
+  {
+    "hipId": 168,
+    "name": null,
+    "ra": 9.708,
+    "dec": -19.076,
+    "magnitude": 3.19
+  },
+  {
+    "hipId": 169,
+    "name": null,
+    "ra": 9.757,
+    "dec": 25.695,
+    "magnitude": 1.91
+  },
+  {
+    "hipId": 170,
+    "name": null,
+    "ra": 166.211,
+    "dec": -80.949,
+    "magnitude": 2.64
+  },
+  {
+    "hipId": 171,
+    "name": null,
+    "ra": 76.198,
+    "dec": -31.168,
+    "magnitude": 3.78
+  },
+  {
+    "hipId": 172,
+    "name": null,
+    "ra": 136.485,
+    "dec": 45.362,
+    "magnitude": 4.0
+  },
+  {
+    "hipId": 173,
+    "name": null,
+    "ra": 90.818,
+    "dec": -75.257,
+    "magnitude": 1.56
+  },
+  {
+    "hipId": 174,
+    "name": null,
+    "ra": 194.191,
+    "dec": 89.983,
+    "magnitude": 2.55
+  },
+  {
+    "hipId": 175,
+    "name": null,
+    "ra": 234.052,
+    "dec": 50.622,
+    "magnitude": 3.46
+  },
+  {
+    "hipId": 176,
+    "name": null,
+    "ra": 271.524,
+    "dec": 80.93,
+    "magnitude": 2.1
+  },
+  {
+    "hipId": 177,
+    "name": null,
+    "ra": 7.337,
+    "dec": -62.571,
+    "magnitude": 1.88
+  },
+  {
+    "hipId": 178,
+    "name": null,
+    "ra": 241.005,
+    "dec": 11.515,
+    "magnitude": 2.15
+  },
+  {
+    "hipId": 179,
+    "name": null,
+    "ra": 251.807,
+    "dec": 48.042,
+    "magnitude": 2.0
+  },
+  {
+    "hipId": 180,
+    "name": null,
+    "ra": 218.609,
+    "dec": 44.627,
+    "magnitude": 1.84
+  },
+  {
+    "hipId": 181,
+    "name": null,
+    "ra": 294.948,
+    "dec": 83.65,
+    "magnitude": 1.82
+  },
+  {
+    "hipId": 182,
+    "name": null,
+    "ra": 9.244,
+    "dec": -33.848,
+    "magnitude": 3.53
+  },
+  {
+    "hipId": 183,
+    "name": null,
+    "ra": 344.942,
+    "dec": -18.602,
+    "magnitude": 3.65
+  },
+  {
+    "hipId": 184,
+    "name": null,
+    "ra": 27.359,
+    "dec": 34.311,
+    "magnitude": 3.38
+  },
+  {
+    "hipId": 185,
+    "name": null,
+    "ra": 36.684,
+    "dec": 49.047,
+    "magnitude": 4.05
+  },
+  {
+    "hipId": 186,
+    "name": null,
+    "ra": 216.148,
+    "dec": -68.21,
+    "magnitude": 4.45
+  },
+  {
+    "hipId": 187,
+    "name": null,
+    "ra": 281.749,
+    "dec": -27.503,
+    "magnitude": 2.79
+  },
+  {
+    "hipId": 188,
+    "name": null,
+    "ra": 133.406,
+    "dec": 1.073,
+    "magnitude": 2.52
+  },
+  {
+    "hipId": 189,
+    "name": null,
+    "ra": 305.847,
+    "dec": 58.02,
+    "magnitude": 1.82
+  },
+  {
+    "hipId": 190,
+    "name": null,
+    "ra": 345.884,
+    "dec": 24.405,
+    "magnitude": 3.99
+  },
+  {
+    "hipId": 191,
+    "name": null,
+    "ra": 254.631,
+    "dec": -11.612,
+    "magnitude": 3.7
+  },
+  {
+    "hipId": 192,
+    "name": null,
+    "ra": 347.571,
+    "dec": -41.385,
+    "magnitude": 3.92
+  },
+  {
+    "hipId": 193,
+    "name": null,
+    "ra": 193.742,
+    "dec": -2.97,
+    "magnitude": 2.81
+  },
+  {
+    "hipId": 194,
+    "name": null,
+    "ra": 263.169,
+    "dec": -41.689,
+    "magnitude": 4.06
+  },
+  {
+    "hipId": 195,
+    "name": null,
+    "ra": 299.063,
+    "dec": -74.401,
+    "magnitude": 4.14
+  },
+  {
+    "hipId": 196,
+    "name": null,
+    "ra": 87.791,
+    "dec": -6.352,
+    "magnitude": 3.33
+  },
+  {
+    "hipId": 197,
+    "name": null,
+    "ra": 136.436,
+    "dec": -84.834,
+    "magnitude": 4.05
+  },
+  {
+    "hipId": 198,
+    "name": null,
+    "ra": 65.462,
+    "dec": -51.818,
+    "magnitude": 3.89
+  },
+  {
+    "hipId": 199,
+    "name": null,
+    "ra": 122.522,
+    "dec": 68.458,
+    "magnitude": 3.6
+  },
+  {
+    "hipId": 200,
+    "name": null,
+    "ra": 99.457,
+    "dec": -88.173,
+    "magnitude": 4.34
+  },
+  {
+    "hipId": 201,
+    "name": null,
+    "ra": 30.821,
+    "dec": 39.613,
+    "magnitude": 2.97
+  },
+  {
+    "hipId": 202,
+    "name": null,
+    "ra": 272.939,
+    "dec": 34.31,
+    "magnitude": 3.44
+  },
+  {
+    "hipId": 203,
+    "name": null,
+    "ra": 176.696,
+    "dec": 52.728,
+    "magnitude": 1.78
+  },
+  {
+    "hipId": 204,
+    "name": null,
+    "ra": 79.775,
+    "dec": 34.522,
+    "magnitude": 2.42
+  },
+  {
+    "hipId": 205,
+    "name": null,
+    "ra": 209.36,
+    "dec": -4.813,
+    "magnitude": 3.09
+  },
+  {
+    "hipId": 206,
+    "name": null,
+    "ra": 153.181,
+    "dec": 44.268,
+    "magnitude": 2.49
+  },
+  {
+    "hipId": 207,
+    "name": null,
+    "ra": 253.028,
+    "dec": -41.235,
+    "magnitude": 2.25
+  },
+  {
+    "hipId": 208,
+    "name": null,
+    "ra": 43.436,
+    "dec": -55.335,
+    "magnitude": 1.86
+  },
+  {
+    "hipId": 209,
+    "name": null,
+    "ra": 192.911,
+    "dec": 47.194,
+    "magnitude": 2.06
+  },
+  {
+    "hipId": 210,
+    "name": null,
+    "ra": 77.898,
+    "dec": -2.844,
+    "magnitude": 3.67
+  },
+  {
+    "hipId": 211,
+    "name": null,
+    "ra": 351.579,
+    "dec": 4.435,
+    "magnitude": 2.35
+  },
+  {
+    "hipId": 212,
+    "name": null,
+    "ra": 36.189,
+    "dec": -55.059,
+    "magnitude": 2.18
+  },
+  {
+    "hipId": 213,
+    "name": null,
+    "ra": 64.599,
+    "dec": -87.453,
+    "magnitude": 3.1
+  },
+  {
+    "hipId": 214,
+    "name": null,
+    "ra": 98.752,
+    "dec": 85.373,
+    "magnitude": 3.16
+  },
+  {
+    "hipId": 215,
+    "name": null,
+    "ra": 251.07,
+    "dec": -67.27,
+    "magnitude": 4.11
+  },
+  {
+    "hipId": 216,
+    "name": null,
+    "ra": 176.716,
+    "dec": 67.09,
+    "magnitude": 3.22
+  },
+  {
+    "hipId": 217,
+    "name": null,
+    "ra": 168.983,
+    "dec": -10.716,
+    "magnitude": 2.05
+  },
+  {
+    "hipId": 218,
+    "name": null,
+    "ra": 18.496,
+    "dec": 79.391,
+    "magnitude": 2.93
+  },
+  {
+    "hipId": 219,
+    "name": null,
+    "ra": 295.962,
+    "dec": -17.873,
+    "magnitude": 1.72
+  },
+  {
+    "hipId": 220,
+    "name": null,
+    "ra": 226.6,
+    "dec": -80.35,
+    "magnitude": 1.95
+  },
+  {
+    "hipId": 221,
+    "name": null,
+    "ra": 202.622,
+    "dec": -35.31,
+    "magnitude": 4.48
+  },
+  {
+    "hipId": 222,
+    "name": null,
+    "ra": 42.643,
+    "dec": 47.6,
+    "magnitude": 3.32
+  },
+  {
+    "hipId": 223,
+    "name": null,
+    "ra": 284.667,
+    "dec": -49.376,
+    "magnitude": 3.07
+  },
+  {
+    "hipId": 224,
+    "name": null,
+    "ra": 162.185,
+    "dec": -10.31,
+    "magnitude": 4.08
+  },
+  {
+    "hipId": 225,
+    "name": null,
+    "ra": 356.411,
+    "dec": -35.032,
+    "magnitude": 3.36
+  },
+  {
+    "hipId": 226,
+    "name": null,
+    "ra": 219.467,
+    "dec": 43.216,
+    "magnitude": 4.34
+  },
+  {
+    "hipId": 227,
+    "name": null,
+    "ra": 74.804,
+    "dec": -52.015,
+    "magnitude": 3.48
+  },
+  {
+    "hipId": 228,
+    "name": null,
+    "ra": 56.541,
+    "dec": -58.714,
+    "magnitude": 1.73
+  },
+  {
+    "hipId": 229,
+    "name": null,
+    "ra": 0.963,
+    "dec": -8.909,
+    "magnitude": 3.28
+  },
+  {
+    "hipId": 230,
+    "name": null,
+    "ra": 104.853,
+    "dec": -48.334,
+    "magnitude": 3.62
+  },
+  {
+    "hipId": 231,
+    "name": null,
+    "ra": 253.076,
+    "dec": -8.274,
+    "magnitude": 3.56
+  },
+  {
+    "hipId": 232,
+    "name": null,
+    "ra": 332.608,
+    "dec": 51.809,
+    "magnitude": 3.38
+  },
+  {
+    "hipId": 233,
+    "name": null,
+    "ra": 238.026,
+    "dec": 78.06,
+    "magnitude": 2.78
+  },
+  {
+    "hipId": 234,
+    "name": null,
+    "ra": 196.042,
+    "dec": 26.574,
+    "magnitude": 4.23
+  },
+  {
+    "hipId": 235,
+    "name": null,
+    "ra": 297.587,
+    "dec": -77.146,
+    "magnitude": 2.0
+  },
+  {
+    "hipId": 236,
+    "name": null,
+    "ra": 110.74,
+    "dec": 44.812,
+    "magnitude": 3.21
+  },
+  {
+    "hipId": 237,
+    "name": null,
+    "ra": 103.9,
+    "dec": -67.616,
+    "magnitude": 3.57
+  },
+  {
+    "hipId": 238,
+    "name": null,
+    "ra": 251.904,
+    "dec": 79.682,
+    "magnitude": 3.0
+  },
+  {
+    "hipId": 239,
+    "name": null,
+    "ra": 177.766,
+    "dec": -75.52,
+    "magnitude": 1.62
+  },
+  {
+    "hipId": 240,
+    "name": null,
+    "ra": 155.53,
+    "dec": -31.982,
+    "magnitude": 2.25
+  },
+  {
+    "hipId": 241,
+    "name": null,
+    "ra": 32.878,
+    "dec": 83.144,
+    "magnitude": 4.01
+  },
+  {
+    "hipId": 242,
+    "name": null,
+    "ra": 207.072,
+    "dec": 81.142,
+    "magnitude": 4.5
+  },
+  {
+    "hipId": 243,
+    "name": null,
+    "ra": 242.021,
+    "dec": -41.488,
+    "magnitude": 1.62
+  },
+  {
+    "hipId": 244,
+    "name": null,
+    "ra": 272.257,
+    "dec": -5.31,
+    "magnitude": 3.45
+  },
+  {
+    "hipId": 245,
+    "name": null,
+    "ra": 329.786,
+    "dec": -57.332,
+    "magnitude": 3.26
+  },
+  {
+    "hipId": 246,
+    "name": null,
+    "ra": 228.522,
+    "dec": -1.489,
+    "magnitude": 1.77
+  },
+  {
+    "hipId": 247,
+    "name": null,
+    "ra": 125.266,
+    "dec": -30.004,
+    "magnitude": 3.51
+  },
+  {
+    "hipId": 248,
+    "name": null,
+    "ra": 308.784,
+    "dec": -30.635,
+    "magnitude": 3.58
+  },
+  {
+    "hipId": 249,
+    "name": null,
+    "ra": 103.758,
+    "dec": 80.135,
+    "magnitude": 3.94
+  },
+  {
+    "hipId": 250,
+    "name": null,
+    "ra": 198.035,
+    "dec": -8.131,
+    "magnitude": 2.44
+  },
+  {
+    "hipId": 251,
+    "name": null,
+    "ra": 116.379,
+    "dec": 84.633,
+    "magnitude": 2.71
+  },
+  {
+    "hipId": 252,
+    "name": null,
+    "ra": 185.255,
+    "dec": 87.861,
+    "magnitude": 3.47
+  },
+  {
+    "hipId": 253,
+    "name": null,
+    "ra": 195.334,
+    "dec": -15.615,
+    "magnitude": 2.06
+  },
+  {
+    "hipId": 254,
+    "name": null,
+    "ra": 130.241,
+    "dec": 46.16,
+    "magnitude": 3.38
+  },
+  {
+    "hipId": 255,
+    "name": null,
+    "ra": 273.597,
+    "dec": -53.36,
+    "magnitude": 3.15
+  },
+  {
+    "hipId": 256,
+    "name": null,
+    "ra": 333.962,
+    "dec": -11.139,
+    "magnitude": 3.59
+  },
+  {
+    "hipId": 257,
+    "name": null,
+    "ra": 43.713,
+    "dec": 85.166,
+    "magnitude": 3.33
+  },
+  {
+    "hipId": 258,
+    "name": null,
+    "ra": 86.147,
+    "dec": -61.492,
+    "magnitude": 3.15
+  },
+  {
+    "hipId": 259,
+    "name": null,
+    "ra": 198.811,
+    "dec": -73.222,
+    "magnitude": 4.48
+  },
+  {
+    "hipId": 260,
+    "name": null,
+    "ra": 328.655,
+    "dec": -6.939,
+    "magnitude": 1.85
+  },
+  {
+    "hipId": 261,
+    "name": null,
+    "ra": 299.572,
+    "dec": -0.292,
+    "magnitude": 3.65
+  },
+  {
+    "hipId": 262,
+    "name": null,
+    "ra": 183.194,
+    "dec": -40.784,
+    "magnitude": 4.0
+  },
+  {
+    "hipId": 263,
+    "name": null,
+    "ra": 352.888,
+    "dec": -46.128,
+    "magnitude": 3.15
+  },
+  {
+    "hipId": 264,
+    "name": null,
+    "ra": 138.091,
+    "dec": 75.936,
+    "magnitude": 3.02
+  },
+  {
+    "hipId": 265,
+    "name": null,
+    "ra": 316.557,
+    "dec": 65.525,
+    "magnitude": 2.33
+  },
+  {
+    "hipId": 266,
+    "name": null,
+    "ra": 284.402,
+    "dec": -15.31,
+    "magnitude": 4.3
+  },
+  {
+    "hipId": 267,
+    "name": null,
+    "ra": 182.786,
+    "dec": 57.699,
+    "magnitude": 2.35
+  },
+  {
+    "hipId": 268,
+    "name": null,
+    "ra": 107.48,
+    "dec": 15.649,
+    "magnitude": 4.5
+  },
+  {
+    "hipId": 269,
+    "name": null,
+    "ra": 176.271,
+    "dec": -63.253,
+    "magnitude": 3.12
+  },
+  {
+    "hipId": 270,
+    "name": null,
+    "ra": 124.245,
+    "dec": 9.345,
+    "magnitude": 3.13
+  },
+  {
+    "hipId": 271,
+    "name": null,
+    "ra": 163.924,
+    "dec": -32.08,
+    "magnitude": 2.07
+  },
+  {
+    "hipId": 272,
+    "name": null,
+    "ra": 251.099,
+    "dec": 12.924,
+    "magnitude": 2.2
+  },
+  {
+    "hipId": 273,
+    "name": null,
+    "ra": 279.196,
+    "dec": -82.143,
+    "magnitude": 3.73
+  },
+  {
+    "hipId": 274,
+    "name": null,
+    "ra": 253.882,
+    "dec": 56.054,
+    "magnitude": 2.66
+  },
+  {
+    "hipId": 275,
+    "name": null,
+    "ra": 238.928,
+    "dec": 57.735,
+    "magnitude": 4.44
+  },
+  {
+    "hipId": 276,
+    "name": null,
+    "ra": 178.318,
+    "dec": -83.336,
+    "magnitude": 3.01
+  },
+  {
+    "hipId": 277,
+    "name": null,
+    "ra": 212.465,
+    "dec": 66.546,
+    "magnitude": 4.12
+  },
+  {
+    "hipId": 278,
+    "name": null,
+    "ra": 158.51,
+    "dec": 4.671,
+    "magnitude": 2.87
+  },
+  {
+    "hipId": 279,
+    "name": null,
+    "ra": 260.08,
+    "dec": -16.204,
+    "magnitude": 3.46
+  },
+  {
+    "hipId": 280,
+    "name": null,
+    "ra": 55.57,
+    "dec": -5.492,
+    "magnitude": 4.41
+  },
+  {
+    "hipId": 281,
+    "name": null,
+    "ra": 121.882,
+    "dec": 34.687,
+    "magnitude": 3.45
+  },
+  {
+    "hipId": 282,
+    "name": null,
+    "ra": 306.636,
+    "dec": 63.421,
+    "magnitude": 4.08
+  },
+  {
+    "hipId": 283,
+    "name": null,
+    "ra": 136.803,
+    "dec": -33.001,
+    "magnitude": 3.66
+  },
+  {
+    "hipId": 284,
+    "name": null,
+    "ra": 273.385,
+    "dec": 67.029,
+    "magnitude": 1.61
+  },
+  {
+    "hipId": 285,
+    "name": null,
+    "ra": 24.631,
+    "dec": 23.609,
+    "magnitude": 4.26
+  },
+  {
+    "hipId": 286,
+    "name": null,
+    "ra": 359.073,
+    "dec": 44.418,
+    "magnitude": 2.8
+  },
+  {
+    "hipId": 287,
+    "name": null,
+    "ra": 35.44,
+    "dec": 24.075,
+    "magnitude": 4.12
+  },
+  {
+    "hipId": 288,
+    "name": null,
+    "ra": 159.724,
+    "dec": 34.92,
+    "magnitude": 4.21
+  },
+  {
+    "hipId": 289,
+    "name": null,
+    "ra": 16.557,
+    "dec": 53.306,
+    "magnitude": 2.38
+  },
+  {
+    "hipId": 290,
+    "name": null,
+    "ra": 134.943,
+    "dec": -63.797,
+    "magnitude": 3.09
+  },
+  {
+    "hipId": 291,
+    "name": null,
+    "ra": 203.734,
+    "dec": 52.654,
+    "magnitude": 2.01
+  },
+  {
+    "hipId": 292,
+    "name": null,
+    "ra": 28.429,
+    "dec": 66.751,
+    "magnitude": 3.36
+  },
+  {
+    "hipId": 293,
+    "name": null,
+    "ra": 86.699,
+    "dec": 74.309,
+    "magnitude": 1.93
+  },
+  {
+    "hipId": 294,
+    "name": null,
+    "ra": 166.014,
+    "dec": -44.284,
+    "magnitude": 2.27
+  },
+  {
+    "hipId": 295,
+    "name": null,
+    "ra": 3.383,
+    "dec": 54.834,
+    "magnitude": 4.2
+  },
+  {
+    "hipId": 296,
+    "name": null,
+    "ra": 243.94,
+    "dec": -61.564,
+    "magnitude": 2.83
+  },
+  {
+    "hipId": 297,
+    "name": null,
+    "ra": 124.404,
+    "dec": 15.763,
+    "magnitude": 3.42
+  },
+  {
+    "hipId": 298,
+    "name": null,
+    "ra": 152.751,
+    "dec": -44.982,
+    "magnitude": 4.04
+  },
+  {
+    "hipId": 299,
+    "name": null,
+    "ra": 71.718,
+    "dec": -20.755,
+    "magnitude": 2.95
+  },
+  {
+    "hipId": 300,
+    "name": null,
+    "ra": 85.394,
+    "dec": 12.946,
+    "magnitude": 3.22
+  },
+  {
+    "hipId": 301,
+    "name": null,
+    "ra": 357.369,
+    "dec": -36.858,
+    "magnitude": 4.43
+  },
+  {
+    "hipId": 302,
+    "name": null,
+    "ra": 236.963,
+    "dec": -40.594,
+    "magnitude": 3.2
+  },
+  {
+    "hipId": 303,
+    "name": null,
+    "ra": 246.888,
+    "dec": 44.04,
+    "magnitude": 1.65
+  },
+  {
+    "hipId": 304,
+    "name": null,
+    "ra": 218.306,
+    "dec": -0.589,
+    "magnitude": 4.21
+  },
+  {
+    "hipId": 305,
+    "name": null,
+    "ra": 103.03,
+    "dec": 53.795,
+    "magnitude": 3.32
+  },
+  {
+    "hipId": 306,
+    "name": null,
+    "ra": 126.836,
+    "dec": 24.591,
+    "magnitude": 3.36
+  },
+  {
+    "hipId": 307,
+    "name": null,
+    "ra": 243.995,
+    "dec": 39.767,
+    "magnitude": 3.48
+  },
+  {
+    "hipId": 308,
+    "name": null,
+    "ra": 301.801,
+    "dec": 23.085,
+    "magnitude": 4.21
+  },
+  {
+    "hipId": 309,
+    "name": null,
+    "ra": 232.683,
+    "dec": -34.392,
+    "magnitude": 2.82
+  },
+  {
+    "hipId": 310,
+    "name": null,
+    "ra": 208.647,
+    "dec": 41.825,
+    "magnitude": 1.77
+  },
+  {
+    "hipId": 311,
+    "name": null,
+    "ra": 106.24,
+    "dec": 44.547,
+    "magnitude": 2.03
+  },
+  {
+    "hipId": 312,
+    "name": null,
+    "ra": 47.578,
+    "dec": 7.093,
+    "magnitude": 4.41
+  },
+  {
+    "hipId": 313,
+    "name": null,
+    "ra": 191.107,
+    "dec": 74.428,
+    "magnitude": 3.99
+  },
+  {
+    "hipId": 314,
+    "name": null,
+    "ra": 92.509,
+    "dec": 58.444,
+    "magnitude": 2.95
+  },
+  {
+    "hipId": 315,
+    "name": null,
+    "ra": 290.336,
+    "dec": 44.381,
+    "magnitude": 2.52
+  },
+  {
+    "hipId": 316,
+    "name": null,
+    "ra": 41.461,
+    "dec": 83.321,
+    "magnitude": 1.92
+  },
+  {
+    "hipId": 317,
+    "name": null,
+    "ra": 347.94,
+    "dec": 64.825,
+    "magnitude": 3.67
+  },
+  {
+    "hipId": 318,
+    "name": null,
+    "ra": 352.779,
+    "dec": 84.109,
+    "magnitude": 3.91
+  },
+  {
+    "hipId": 319,
+    "name": null,
+    "ra": 131.679,
+    "dec": 52.323,
+    "magnitude": 1.54
+  },
+  {
+    "hipId": 320,
+    "name": null,
+    "ra": 193.166,
+    "dec": -8.139,
+    "magnitude": 3.52
+  },
+  {
+    "hipId": 321,
+    "name": null,
+    "ra": 242.043,
+    "dec": 15.221,
+    "magnitude": 3.97
+  },
+  {
+    "hipId": 322,
+    "name": null,
+    "ra": 338.505,
+    "dec": -70.498,
+    "magnitude": 2.2
+  },
+  {
+    "hipId": 323,
+    "name": null,
+    "ra": 9.009,
+    "dec": 69.162,
+    "magnitude": 3.18
+  },
+  {
+    "hipId": 324,
+    "name": null,
+    "ra": 329.492,
+    "dec": -50.154,
+    "magnitude": 1.69
+  },
+  {
+    "hipId": 325,
+    "name": null,
+    "ra": 296.588,
+    "dec": 73.69,
+    "magnitude": 2.41
+  },
+  {
+    "hipId": 326,
+    "name": null,
+    "ra": 146.987,
+    "dec": -64.84,
+    "magnitude": 4.34
+  },
+  {
+    "hipId": 327,
+    "name": null,
+    "ra": 109.571,
+    "dec": -1.328,
+    "magnitude": 1.79
+  },
+  {
+    "hipId": 328,
+    "name": null,
+    "ra": 319.413,
+    "dec": -65.58,
+    "magnitude": 2.86
+  },
+  {
+    "hipId": 329,
+    "name": null,
+    "ra": 241.375,
+    "dec": 43.765,
+    "magnitude": 4.34
+  },
+  {
+    "hipId": 330,
+    "name": null,
+    "ra": 150.886,
+    "dec": 43.608,
+    "magnitude": 1.96
+  },
+  {
+    "hipId": 331,
+    "name": null,
+    "ra": 149.358,
+    "dec": -72.176,
+    "magnitude": 2.97
+  },
+  {
+    "hipId": 332,
+    "name": null,
+    "ra": 146.922,
+    "dec": 81.274,
+    "magnitude": 1.6
+  },
+  {
+    "hipId": 333,
+    "name": null,
+    "ra": 133.391,
+    "dec": -10.191,
+    "magnitude": 4.35
+  },
+  {
+    "hipId": 334,
+    "name": null,
+    "ra": 307.962,
+    "dec": -72.116,
+    "magnitude": 3.56
+  },
+  {
+    "hipId": 335,
+    "name": null,
+    "ra": 196.008,
+    "dec": 86.012,
+    "magnitude": 2.58
+  },
+  {
+    "hipId": 336,
+    "name": null,
+    "ra": 143.33,
+    "dec": -55.834,
+    "magnitude": 1.87
+  },
+  {
+    "hipId": 337,
+    "name": null,
+    "ra": 305.292,
+    "dec": -8.151,
+    "magnitude": 3.49
+  },
+  {
+    "hipId": 338,
+    "name": null,
+    "ra": 231.014,
+    "dec": 17.486,
+    "magnitude": 1.56
+  },
+  {
+    "hipId": 339,
+    "name": null,
+    "ra": 283.246,
+    "dec": -46.158,
+    "magnitude": 1.88
+  },
+  {
+    "hipId": 340,
+    "name": null,
+    "ra": 203.248,
+    "dec": -77.65,
+    "magnitude": 3.8
+  },
+  {
+    "hipId": 341,
+    "name": null,
+    "ra": 74.577,
+    "dec": -51.129,
+    "magnitude": 4.11
+  },
+  {
+    "hipId": 342,
+    "name": null,
+    "ra": 118.281,
+    "dec": -63.44,
+    "magnitude": 4.2
+  },
+  {
+    "hipId": 343,
+    "name": null,
+    "ra": 1.021,
+    "dec": 64.513,
+    "magnitude": 1.93
+  },
+  {
+    "hipId": 344,
+    "name": null,
+    "ra": 46.797,
+    "dec": -44.882,
+    "magnitude": 2.02
+  },
+  {
+    "hipId": 345,
+    "name": null,
+    "ra": 237.981,
+    "dec": -85.36,
+    "magnitude": 1.54
+  },
+  {
+    "hipId": 346,
+    "name": null,
+    "ra": 284.394,
+    "dec": -47.172,
+    "magnitude": 2.47
+  },
+  {
+    "hipId": 347,
+    "name": null,
+    "ra": 62.729,
+    "dec": -80.568,
+    "magnitude": 3.73
+  },
+  {
+    "hipId": 348,
+    "name": null,
+    "ra": 189.391,
+    "dec": 44.22,
+    "magnitude": 2.93
+  },
+  {
+    "hipId": 349,
+    "name": null,
+    "ra": 280.086,
+    "dec": 2.383,
+    "magnitude": 1.83
+  },
+  {
+    "hipId": 350,
+    "name": null,
+    "ra": 181.382,
+    "dec": 80.175,
+    "magnitude": 1.63
+  },
+  {
+    "hipId": 351,
+    "name": null,
+    "ra": 281.962,
+    "dec": 66.057,
+    "magnitude": 3.06
+  },
+  {
+    "hipId": 352,
+    "name": null,
+    "ra": 164.895,
+    "dec": 83.525,
+    "magnitude": 1.68
+  },
+  {
+    "hipId": 353,
+    "name": null,
+    "ra": 172.433,
+    "dec": -17.709,
+    "magnitude": 3.56
+  },
+  {
+    "hipId": 354,
+    "name": null,
+    "ra": 176.497,
+    "dec": 73.746,
+    "magnitude": 1.72
+  },
+  {
+    "hipId": 355,
+    "name": null,
+    "ra": 29.085,
+    "dec": 19.494,
+    "magnitude": 1.7
+  },
+  {
+    "hipId": 356,
+    "name": null,
+    "ra": 99.006,
+    "dec": 23.954,
+    "magnitude": 3.15
+  },
+  {
+    "hipId": 357,
+    "name": null,
+    "ra": 117.067,
+    "dec": 89.033,
+    "magnitude": 3.09
+  },
+  {
+    "hipId": 358,
+    "name": null,
+    "ra": 163.338,
+    "dec": 18.977,
+    "magnitude": 1.8
+  },
+  {
+    "hipId": 359,
+    "name": null,
+    "ra": 252.641,
+    "dec": 63.503,
+    "magnitude": 3.45
+  },
+  {
+    "hipId": 360,
+    "name": null,
+    "ra": 276.827,
+    "dec": 39.751,
+    "magnitude": 2.15
+  },
+  {
+    "hipId": 361,
+    "name": null,
+    "ra": 162.56,
+    "dec": -48.871,
+    "magnitude": 2.52
+  },
+  {
+    "hipId": 362,
+    "name": null,
+    "ra": 163.26,
+    "dec": -15.122,
+    "magnitude": 1.79
+  },
+  {
+    "hipId": 363,
+    "name": null,
+    "ra": 153.635,
+    "dec": 29.719,
+    "magnitude": 2.62
+  },
+  {
+    "hipId": 364,
+    "name": null,
+    "ra": 54.95,
+    "dec": 76.137,
+    "magnitude": 1.7
+  },
+  {
+    "hipId": 365,
+    "name": null,
+    "ra": 299.438,
+    "dec": -73.219,
+    "magnitude": 1.79
+  },
+  {
+    "hipId": 366,
+    "name": null,
+    "ra": 265.967,
+    "dec": 56.118,
+    "magnitude": 3.17
+  },
+  {
+    "hipId": 367,
+    "name": null,
+    "ra": 211.127,
+    "dec": 11.086,
+    "magnitude": 2.49
+  },
+  {
+    "hipId": 368,
+    "name": null,
+    "ra": 44.003,
+    "dec": -26.352,
+    "magnitude": 3.5
+  },
+  {
+    "hipId": 369,
+    "name": null,
+    "ra": 270.102,
+    "dec": 66.257,
+    "magnitude": 3.66
+  },
+  {
+    "hipId": 370,
+    "name": null,
+    "ra": 348.624,
+    "dec": 18.074,
+    "magnitude": 2.55
+  },
+  {
+    "hipId": 371,
+    "name": null,
+    "ra": 208.051,
+    "dec": -51.707,
+    "magnitude": 3.47
+  },
+  {
+    "hipId": 372,
+    "name": null,
+    "ra": 80.728,
+    "dec": -70.521,
+    "magnitude": 4.04
+  },
+  {
+    "hipId": 373,
+    "name": null,
+    "ra": 132.322,
+    "dec": 47.269,
+    "magnitude": 3.22
+  },
+  {
+    "hipId": 374,
+    "name": null,
+    "ra": 290.6,
+    "dec": 62.128,
+    "magnitude": 4.42
+  },
+  {
+    "hipId": 375,
+    "name": null,
+    "ra": 294.634,
+    "dec": 20.443,
+    "magnitude": 3.43
+  },
+  {
+    "hipId": 376,
+    "name": null,
+    "ra": 9.451,
+    "dec": 77.235,
+    "magnitude": 3.99
+  },
+  {
+    "hipId": 377,
+    "name": null,
+    "ra": 96.281,
+    "dec": -57.525,
+    "magnitude": 3.61
+  },
+  {
+    "hipId": 378,
+    "name": null,
+    "ra": 111.234,
+    "dec": -28.832,
+    "magnitude": 1.52
+  },
+  {
+    "hipId": 379,
+    "name": null,
+    "ra": 313.151,
+    "dec": 11.938,
+    "magnitude": 2.7
+  },
+  {
+    "hipId": 380,
+    "name": null,
+    "ra": 51.075,
+    "dec": 23.971,
+    "magnitude": 1.59
+  },
+  {
+    "hipId": 381,
+    "name": null,
+    "ra": 268.6,
+    "dec": -51.276,
+    "magnitude": 2.76
+  },
+  {
+    "hipId": 382,
+    "name": null,
+    "ra": 122.723,
+    "dec": -23.39,
+    "magnitude": 3.66
+  },
+  {
+    "hipId": 383,
+    "name": null,
+    "ra": 279.661,
+    "dec": 12.167,
+    "magnitude": 1.75
+  },
+  {
+    "hipId": 384,
+    "name": null,
+    "ra": 18.939,
+    "dec": -61.666,
+    "magnitude": 3.35
+  },
+  {
+    "hipId": 385,
+    "name": null,
+    "ra": 242.629,
+    "dec": -41.021,
+    "magnitude": 3.49
+  },
+  {
+    "hipId": 386,
+    "name": null,
+    "ra": 174.838,
+    "dec": -10.432,
+    "magnitude": 2.32
+  },
+  {
+    "hipId": 387,
+    "name": null,
+    "ra": 271.78,
+    "dec": -69.513,
+    "magnitude": 2.79
+  },
+  {
+    "hipId": 388,
+    "name": null,
+    "ra": 101.969,
+    "dec": 32.128,
+    "magnitude": 2.96
+  },
+  {
+    "hipId": 389,
+    "name": null,
+    "ra": 240.168,
+    "dec": -81.825,
+    "magnitude": 2.69
+  },
+  {
+    "hipId": 390,
+    "name": null,
+    "ra": 215.757,
+    "dec": -88.616,
+    "magnitude": 2.4
+  },
+  {
+    "hipId": 391,
+    "name": null,
+    "ra": 76.044,
+    "dec": -65.298,
+    "magnitude": 2.27
+  },
+  {
+    "hipId": 392,
+    "name": null,
+    "ra": 118.124,
+    "dec": -88.609,
+    "magnitude": 3.74
+  },
+  {
+    "hipId": 393,
+    "name": null,
+    "ra": 63.25,
+    "dec": -21.563,
+    "magnitude": 3.61
+  },
+  {
+    "hipId": 394,
+    "name": null,
+    "ra": 180.094,
+    "dec": 60.004,
+    "magnitude": 3.92
+  },
+  {
+    "hipId": 395,
+    "name": null,
+    "ra": 25.947,
+    "dec": 65.118,
+    "magnitude": 1.63
+  },
+  {
+    "hipId": 396,
+    "name": null,
+    "ra": 6.747,
+    "dec": 75.809,
+    "magnitude": 4.09
+  },
+  {
+    "hipId": 397,
+    "name": null,
+    "ra": 207.273,
+    "dec": 13.212,
+    "magnitude": 3.63
+  },
+  {
+    "hipId": 398,
+    "name": null,
+    "ra": 150.37,
+    "dec": -69.269,
+    "magnitude": 1.56
+  },
+  {
+    "hipId": 399,
+    "name": null,
+    "ra": 116.917,
+    "dec": 54.238,
+    "magnitude": 3.35
+  },
+  {
+    "hipId": 400,
+    "name": null,
+    "ra": 299.529,
+    "dec": 75.559,
+    "magnitude": 1.76
+  },
+  {
+    "hipId": 401,
+    "name": null,
+    "ra": 304.014,
+    "dec": -46.203,
+    "magnitude": 3.27
+  },
+  {
+    "hipId": 402,
+    "name": null,
+    "ra": 188.627,
+    "dec": -18.762,
+    "magnitude": 2.43
+  },
+  {
+    "hipId": 403,
+    "name": null,
+    "ra": 122.225,
+    "dec": -30.048,
+    "magnitude": 2.0
+  },
+  {
+    "hipId": 404,
+    "name": null,
+    "ra": 183.774,
+    "dec": -69.475,
+    "magnitude": 3.03
+  },
+  {
+    "hipId": 405,
+    "name": null,
+    "ra": 326.132,
+    "dec": -27.112,
+    "magnitude": 3.68
+  },
+  {
+    "hipId": 406,
+    "name": null,
+    "ra": 294.821,
+    "dec": 56.707,
+    "magnitude": 2.21
+  },
+  {
+    "hipId": 407,
+    "name": null,
+    "ra": 52.72,
+    "dec": -54.491,
+    "magnitude": 3.31
+  },
+  {
+    "hipId": 408,
+    "name": null,
+    "ra": 273.678,
+    "dec": 27.992,
+    "magnitude": 2.03
+  },
+  {
+    "hipId": 409,
+    "name": null,
+    "ra": 278.225,
+    "dec": -1.059,
+    "magnitude": 3.76
+  },
+  {
+    "hipId": 410,
+    "name": null,
+    "ra": 273.556,
+    "dec": -9.197,
+    "magnitude": 4.27
+  },
+  {
+    "hipId": 411,
+    "name": null,
+    "ra": 203.217,
+    "dec": 24.354,
+    "magnitude": 3.37
+  },
+  {
+    "hipId": 412,
+    "name": null,
+    "ra": 311.129,
+    "dec": 22.899,
+    "magnitude": 1.95
+  },
+  {
+    "hipId": 413,
+    "name": null,
+    "ra": 24.583,
+    "dec": -10.403,
+    "magnitude": 2.41
+  },
+  {
+    "hipId": 414,
+    "name": null,
+    "ra": 98.883,
+    "dec": -79.889,
+    "magnitude": 3.02
+  },
+  {
+    "hipId": 415,
+    "name": null,
+    "ra": 111.747,
+    "dec": -8.656,
+    "magnitude": 1.67
+  },
+  {
+    "hipId": 416,
+    "name": null,
+    "ra": 299.411,
+    "dec": -76.188,
+    "magnitude": 4.09
+  },
+  {
+    "hipId": 417,
+    "name": null,
+    "ra": 307.906,
+    "dec": 20.702,
+    "magnitude": 3.02
+  },
+  {
+    "hipId": 418,
+    "name": null,
+    "ra": 166.576,
+    "dec": 9.777,
+    "magnitude": 3.88
+  },
+  {
+    "hipId": 419,
+    "name": null,
+    "ra": 322.516,
+    "dec": -9.048,
+    "magnitude": 3.93
+  },
+  {
+    "hipId": 420,
+    "name": null,
+    "ra": 234.661,
+    "dec": -32.125,
+    "magnitude": 2.93
+  },
+  {
+    "hipId": 421,
+    "name": null,
+    "ra": 54.31,
+    "dec": -78.863,
+    "magnitude": 1.81
+  },
+  {
+    "hipId": 422,
+    "name": null,
+    "ra": 323.686,
+    "dec": -28.181,
+    "magnitude": 3.64
+  },
+  {
+    "hipId": 423,
+    "name": null,
+    "ra": 181.638,
+    "dec": -58.939,
+    "magnitude": 2.24
+  },
+  {
+    "hipId": 424,
+    "name": null,
+    "ra": 157.593,
+    "dec": -10.904,
+    "magnitude": 3.07
+  },
+  {
+    "hipId": 425,
+    "name": null,
+    "ra": 57.149,
+    "dec": -22.887,
+    "magnitude": 2.35
+  },
+  {
+    "hipId": 426,
+    "name": null,
+    "ra": 147.157,
+    "dec": -29.094,
+    "magnitude": 3.29
+  },
+  {
+    "hipId": 427,
+    "name": null,
+    "ra": 284.122,
+    "dec": 26.515,
+    "magnitude": 1.7
+  },
+  {
+    "hipId": 428,
+    "name": null,
+    "ra": 34.022,
+    "dec": 32.108,
+    "magnitude": 2.35
+  },
+  {
+    "hipId": 429,
+    "name": null,
+    "ra": 260.544,
+    "dec": 28.182,
+    "magnitude": 4.22
+  },
+  {
+    "hipId": 430,
+    "name": null,
+    "ra": 314.381,
+    "dec": -29.995,
+    "magnitude": 3.25
+  },
+  {
+    "hipId": 431,
+    "name": null,
+    "ra": 50.914,
+    "dec": -27.032,
+    "magnitude": 4.4
+  },
+  {
+    "hipId": 432,
+    "name": null,
+    "ra": 251.453,
+    "dec": -19.448,
+    "magnitude": 3.29
+  },
+  {
+    "hipId": 433,
+    "name": null,
+    "ra": 337.681,
+    "dec": -34.275,
+    "magnitude": 2.63
+  },
+  {
+    "hipId": 434,
+    "name": null,
+    "ra": 284.998,
+    "dec": 56.373,
+    "magnitude": 3.51
+  },
+  {
+    "hipId": 435,
+    "name": null,
+    "ra": 298.425,
+    "dec": 42.979,
+    "magnitude": 3.56
+  },
+  {
+    "hipId": 436,
+    "name": null,
+    "ra": 189.502,
+    "dec": 26.284,
+    "magnitude": 2.77
+  },
+  {
+    "hipId": 437,
+    "name": null,
+    "ra": 130.258,
+    "dec": -24.732,
+    "magnitude": 2.04
+  },
+  {
+    "hipId": 438,
+    "name": null,
+    "ra": 77.109,
+    "dec": 80.58,
+    "magnitude": 2.96
+  },
+  {
+    "hipId": 439,
+    "name": null,
+    "ra": 81.555,
+    "dec": -65.238,
+    "magnitude": 1.73
+  },
+  {
+    "hipId": 440,
+    "name": null,
+    "ra": 303.994,
+    "dec": -71.795,
+    "magnitude": 3.81
+  },
+  {
+    "hipId": 441,
+    "name": null,
+    "ra": 300.643,
+    "dec": 69.063,
+    "magnitude": 1.61
+  },
+  {
+    "hipId": 442,
+    "name": null,
+    "ra": 121.235,
+    "dec": 47.935,
+    "magnitude": 1.89
+  },
+  {
+    "hipId": 443,
+    "name": null,
+    "ra": 135.619,
+    "dec": -60.796,
+    "magnitude": 3.99
+  },
+  {
+    "hipId": 444,
+    "name": null,
+    "ra": 277.595,
+    "dec": 55.628,
+    "magnitude": 2.0
+  },
+  {
+    "hipId": 445,
+    "name": null,
+    "ra": 157.562,
+    "dec": -16.045,
+    "magnitude": 3.53
+  },
+  {
+    "hipId": 446,
+    "name": null,
+    "ra": 85.511,
+    "dec": -10.044,
+    "magnitude": 2.35
+  },
+  {
+    "hipId": 447,
+    "name": null,
+    "ra": 269.473,
+    "dec": -9.193,
+    "magnitude": 3.1
+  },
+  {
+    "hipId": 448,
+    "name": null,
+    "ra": 111.408,
+    "dec": 55.552,
+    "magnitude": 2.91
+  },
+  {
+    "hipId": 449,
+    "name": null,
+    "ra": 300.641,
+    "dec": -23.789,
+    "magnitude": 4.34
+  },
+  {
+    "hipId": 450,
+    "name": null,
+    "ra": 354.398,
+    "dec": -6.898,
+    "magnitude": 2.35
+  },
+  {
+    "hipId": 451,
+    "name": null,
+    "ra": 137.474,
+    "dec": 4.943,
+    "magnitude": 4.4
+  },
+  {
+    "hipId": 452,
+    "name": null,
+    "ra": 294.081,
+    "dec": 54.227,
+    "magnitude": 1.92
+  },
+  {
+    "hipId": 453,
+    "name": null,
+    "ra": 90.001,
+    "dec": 25.412,
+    "magnitude": 4.12
+  },
+  {
+    "hipId": 454,
+    "name": null,
+    "ra": 199.635,
+    "dec": -71.534,
+    "magnitude": 4.04
+  },
+  {
+    "hipId": 455,
+    "name": null,
+    "ra": 306.42,
+    "dec": -38.689,
+    "magnitude": 3.79
+  },
+  {
+    "hipId": 456,
+    "name": null,
+    "ra": 98.205,
+    "dec": 72.955,
+    "magnitude": 1.94
+  },
+  {
+    "hipId": 457,
+    "name": null,
+    "ra": 157.49,
+    "dec": 80.354,
+    "magnitude": 2.17
+  },
+  {
+    "hipId": 458,
+    "name": null,
+    "ra": 162.406,
+    "dec": -27.075,
+    "magnitude": 1.58
+  },
+  {
+    "hipId": 459,
+    "name": null,
+    "ra": 19.172,
+    "dec": 0.361,
+    "magnitude": 2.21
+  },
+  {
+    "hipId": 460,
+    "name": null,
+    "ra": 358.029,
+    "dec": -22.516,
+    "magnitude": 1.58
+  },
+  {
+    "hipId": 461,
+    "name": null,
+    "ra": 335.097,
+    "dec": 61.052,
+    "magnitude": 3.45
+  },
+  {
+    "hipId": 462,
+    "name": null,
+    "ra": 284.897,
+    "dec": -65.232,
+    "magnitude": 2.36
+  },
+  {
+    "hipId": 463,
+    "name": null,
+    "ra": 298.714,
+    "dec": 35.293,
+    "magnitude": 1.92
+  },
+  {
+    "hipId": 464,
+    "name": null,
+    "ra": 253.993,
+    "dec": -9.252,
+    "magnitude": 1.52
+  },
+  {
+    "hipId": 465,
+    "name": null,
+    "ra": 28.521,
+    "dec": -43.934,
+    "magnitude": 4.0
+  },
+  {
+    "hipId": 466,
+    "name": null,
+    "ra": 197.57,
+    "dec": 40.902,
+    "magnitude": 3.08
+  },
+  {
+    "hipId": 467,
+    "name": null,
+    "ra": 40.027,
+    "dec": -38.142,
+    "magnitude": 2.4
+  },
+  {
+    "hipId": 468,
+    "name": null,
+    "ra": 17.19,
+    "dec": -14.431,
+    "magnitude": 3.88
+  },
+  {
+    "hipId": 469,
+    "name": null,
+    "ra": 164.561,
+    "dec": -70.046,
+    "magnitude": 4.22
+  },
+  {
+    "hipId": 470,
+    "name": null,
+    "ra": 214.826,
+    "dec": -87.042,
+    "magnitude": 3.05
+  },
+  {
+    "hipId": 471,
+    "name": null,
+    "ra": 87.098,
+    "dec": -64.156,
+    "magnitude": 2.79
+  },
+  {
+    "hipId": 472,
+    "name": null,
+    "ra": 221.331,
+    "dec": -46.698,
+    "magnitude": 2.75
+  },
+  {
+    "hipId": 473,
+    "name": null,
+    "ra": 239.174,
+    "dec": -74.589,
+    "magnitude": 4.42
+  },
+  {
+    "hipId": 474,
+    "name": null,
+    "ra": 24.365,
+    "dec": 4.691,
+    "magnitude": 3.02
+  },
+  {
+    "hipId": 475,
+    "name": null,
+    "ra": 355.799,
+    "dec": 9.747,
+    "magnitude": 2.67
+  },
+  {
+    "hipId": 476,
+    "name": null,
+    "ra": 169.249,
+    "dec": 24.421,
+    "magnitude": 4.44
+  },
+  {
+    "hipId": 477,
+    "name": null,
+    "ra": 91.314,
+    "dec": -87.076,
+    "magnitude": 3.87
+  },
+  {
+    "hipId": 478,
+    "name": null,
+    "ra": 124.129,
+    "dec": 41.929,
+    "magnitude": 3.38
+  },
+  {
+    "hipId": 479,
+    "name": null,
+    "ra": 277.74,
+    "dec": 42.334,
+    "magnitude": 2.5
+  },
+  {
+    "hipId": 480,
+    "name": null,
+    "ra": 15.961,
+    "dec": 8.282,
+    "magnitude": 3.94
+  },
+  {
+    "hipId": 481,
+    "name": null,
+    "ra": 63.032,
+    "dec": 50.246,
+    "magnitude": 2.89
+  },
+  {
+    "hipId": 482,
+    "name": null,
+    "ra": 250.34,
+    "dec": 23.712,
+    "magnitude": 3.93
+  }
+]

@@ -2,6 +2,8 @@
     <string name="app_name">Adzan Notif</string>
     <string name="widget_name">Jadwal Sholat &amp; Countdown</string>
     <string name="widget_description">Widget jadwal sholat dan hitung mundur waktu sholat berikutnya secara realtime</string>
+    <string name="moon_widget_description">Widget fase bulan dan hitung mundur moonrise</string>
+    <string name="sun_widget_description">Widget fase matahari dan hitung mundur golden hour</string>
 
     <!-- Navigation -->
     <string name="nav_home">Beranda</string>
