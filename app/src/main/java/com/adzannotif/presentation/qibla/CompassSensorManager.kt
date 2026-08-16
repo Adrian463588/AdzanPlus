@@ -12,16 +12,36 @@ import kotlinx.coroutines.flow.callbackFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
+data class CompassSensorData(
+    val azimuthDegrees: Float,
+    val accuracy: Int,
+    val isSensorAvailable: Boolean,
+)
+
 @Singleton
 class CompassSensorManager @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
-    private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
 
-    fun getHeadingFlow(): Flow<Float> = callbackFlow {
+    fun getHeadingFlow(): Flow<CompassSensorData> = callbackFlow {
+        if (sensorManager == null) {
+            trySend(CompassSensorData(0f, SensorManager.SENSOR_STATUS_UNRELIABLE, false))
+            close()
+            return@callbackFlow
+        }
+
         val rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
         val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         val magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+
+        val hasSensors = rotationSensor != null || (accelerometer != null && magnetometer != null)
+
+        if (!hasSensors) {
+            trySend(CompassSensorData(0f, SensorManager.SENSOR_STATUS_UNRELIABLE, false))
+            awaitClose { }
+            return@callbackFlow
+        }
 
         val rotationMatrix = FloatArray(9)
         val orientationAngles = FloatArray(3)
@@ -29,41 +49,73 @@ class CompassSensorManager @Inject constructor(
         var lastMagnetometer = FloatArray(3)
         var lastAccelerometerSet = false
         var lastMagnetometerSet = false
+        var smoothedAzimuth = 0f
+        var isFirstReading = true
+
+        val alpha = 0.25f // Low-pass filter smoothing coefficient
 
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
+                var currentAzimuth = 0f
+
                 if (event.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
                     SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
                     SensorManager.getOrientation(rotationMatrix, orientationAngles)
                     val azimuthInRadians = orientationAngles[0]
-                    val azimuthInDegrees = ((Math.toDegrees(azimuthInRadians.toDouble()) + 360) % 360).toFloat()
-                    trySend(azimuthInDegrees)
+                    currentAzimuth = ((Math.toDegrees(azimuthInRadians.toDouble()) + 360) % 360).toFloat()
                 } else {
                     if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-                        System.arraycopy(event.values, 0, lastAccelerometer, 0, event.values.size)
+                        for (i in 0..2) {
+                            lastAccelerometer[i] = lastAccelerometer[i] + alpha * (event.values[i] - lastAccelerometer[i])
+                        }
                         lastAccelerometerSet = true
                     } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
-                        System.arraycopy(event.values, 0, lastMagnetometer, 0, event.values.size)
+                        for (i in 0..2) {
+                            lastMagnetometer[i] = lastMagnetometer[i] + alpha * (event.values[i] - lastMagnetometer[i])
+                        }
                         lastMagnetometerSet = true
                     }
+
                     if (lastAccelerometerSet && lastMagnetometerSet) {
-                        SensorManager.getRotationMatrix(rotationMatrix, null, lastAccelerometer, lastMagnetometer)
-                        SensorManager.getOrientation(rotationMatrix, orientationAngles)
-                        val azimuthInRadians = orientationAngles[0]
-                        val azimuthInDegrees = ((Math.toDegrees(azimuthInRadians.toDouble()) + 360) % 360).toFloat()
-                        trySend(azimuthInDegrees)
+                        val success = SensorManager.getRotationMatrix(rotationMatrix, null, lastAccelerometer, lastMagnetometer)
+                        if (success) {
+                            SensorManager.getOrientation(rotationMatrix, orientationAngles)
+                            val azimuthInRadians = orientationAngles[0]
+                            currentAzimuth = ((Math.toDegrees(azimuthInRadians.toDouble()) + 360) % 360).toFloat()
+                        } else {
+                            return
+                        }
+                    } else {
+                        return
                     }
                 }
+
+                // Smooth circular azimuth transition
+                if (isFirstReading) {
+                    smoothedAzimuth = currentAzimuth
+                    isFirstReading = false
+                } else {
+                    val diff = ((currentAzimuth - smoothedAzimuth + 180f) % 360f + 360f) % 360f - 180f
+                    smoothedAzimuth = (smoothedAzimuth + alpha * diff + 360f) % 360f
+                }
+
+                trySend(
+                    CompassSensorData(
+                        azimuthDegrees = smoothedAzimuth,
+                        accuracy = event.accuracy,
+                        isSensorAvailable = true
+                    )
+                )
             }
 
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
 
         if (rotationSensor != null) {
-            sensorManager.registerListener(listener, rotationSensor, SensorManager.SENSOR_DELAY_UI)
+            sensorManager.registerListener(listener, rotationSensor, SensorManager.SENSOR_DELAY_GAME)
         } else {
-            sensorManager.registerListener(listener, accelerometer, SensorManager.SENSOR_DELAY_UI)
-            sensorManager.registerListener(listener, magnetometer, SensorManager.SENSOR_DELAY_UI)
+            sensorManager.registerListener(listener, accelerometer, SensorManager.SENSOR_DELAY_GAME)
+            sensorManager.registerListener(listener, magnetometer, SensorManager.SENSOR_DELAY_GAME)
         }
 
         awaitClose {

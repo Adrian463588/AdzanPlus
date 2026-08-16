@@ -58,12 +58,16 @@ class HomeViewModel @Inject constructor(
 
     private val _countdownSeconds = MutableStateFlow(0L)
     private val _isRefreshingGps = MutableStateFlow(false)
+    private val _nextPrayerTarget = MutableStateFlow<Instant?>(null)
 
     private val prayerInfoFlow = combine(
         locationRepository.currentOrSelectedLocation,
         getTodayPrayerTimesUseCase(),
         getNextPrayerUseCase(),
     ) { location, todayRecord, nextInfo ->
+        val target = nextInfo?.targetTime ?: todayRecord.fajr
+        _nextPrayerTarget.value = target
+        updateCountdownNow(target)
         Triple(location, todayRecord, nextInfo)
     }
 
@@ -115,16 +119,18 @@ class HomeViewModel @Inject constructor(
         scheduleInitialAlarms()
     }
 
+    private fun updateCountdownNow(target: Instant?) {
+        if (target != null) {
+            val now = Clock.System.now()
+            val diff = (target.toEpochMilliseconds() - now.toEpochMilliseconds()) / 1000L
+            _countdownSeconds.value = if (diff > 0) diff else 0L
+        }
+    }
+
     private fun startCountdownTicker() {
         viewModelScope.launch {
             while (isActive) {
-                val state = uiState.value
-                val target = state.nextPrayerTarget
-                if (target != null) {
-                    val now = Clock.System.now()
-                    val diff = (target.toEpochMilliseconds() - now.toEpochMilliseconds()) / 1000L
-                    _countdownSeconds.value = if (diff > 0) diff else 0L
-                }
+                updateCountdownNow(_nextPrayerTarget.value)
                 delay(1000L)
             }
         }

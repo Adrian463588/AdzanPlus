@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -29,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.adzannotif.presentation.common.WindowWidthSizeClass
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,10 +51,19 @@ fun ScheduleScreen(
     viewModel: ScheduleViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val listState = rememberLazyListState()
+
     val monthNames = listOf(
         "", "Januari", "Februari", "Maret", "April", "Mei", "Juni",
         "Juli", "Agustus", "September", "Oktober", "November", "Desember"
     )
+
+    LaunchedEffect(state.monthlyRecords) {
+        val todayIndex = state.monthlyRecords.indexOfFirst { it.date == state.todayDate }
+        if (todayIndex >= 0) {
+            listState.animateScrollToItem(maxOf(0, todayIndex - 1))
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -85,7 +97,7 @@ fun ScheduleScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = if (widthSizeClass == WindowWidthSizeClass.EXPANDED) 32.dp else 16.dp)
             ) {
                 // Month Header Controller
                 Card(
@@ -94,7 +106,8 @@ fun ScheduleScreen(
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Row(
                         modifier = Modifier
@@ -117,9 +130,9 @@ fun ScheduleScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = state.location.name,
+                                text = "${state.location.name} • ${state.monthlyRecords.size} Hari",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
                             )
                         }
 
@@ -136,14 +149,14 @@ fun ScheduleScreen(
 
                 // Table Header
                 Surface(
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(10.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp, horizontal = 6.dp),
+                            .padding(vertical = 10.dp, horizontal = 6.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text("Tgl", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(0.8f), textAlign = TextAlign.Center)
@@ -160,6 +173,7 @@ fun ScheduleScreen(
                 // Monthly Table Rows
                 val tz = TimeZone.of(state.location.timeZoneId)
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
@@ -174,8 +188,13 @@ fun ScheduleScreen(
 
                         Surface(
                             shape = RoundedCornerShape(8.dp),
-                            color = if (isToday) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
-                            modifier = Modifier.fillMaxWidth()
+                            color = if (isToday) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shadowElevation = if (isToday) 2.dp else 0.dp
                         ) {
                             Row(
                                 modifier = Modifier
@@ -187,18 +206,22 @@ fun ScheduleScreen(
                                 Text(
                                     text = "${record.date.dayOfMonth}",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+                                    fontWeight = if (isToday) FontWeight.Bold else FontWeight.Medium,
                                     modifier = Modifier.weight(0.8f),
                                     textAlign = TextAlign.Center,
                                     color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                 )
-                                Text(String.format("%02d:%02d", fSubuh.hour, fSubuh.minute), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                                Text(String.format("%02d:%02d", fDzuhur.hour, fDzuhur.minute), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                                Text(String.format("%02d:%02d", fAshar.hour, fAshar.minute), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                                Text(String.format("%02d:%02d", fMaghrib.hour, fMaghrib.minute), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                                Text(String.format("%02d:%02d", fIsya.hour, fIsya.minute), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                                Text(String.format(Locale.US, "%02d:%02d", fSubuh.hour, fSubuh.minute), style = MaterialTheme.typography.bodyMedium, fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                                Text(String.format(Locale.US, "%02d:%02d", fDzuhur.hour, fDzuhur.minute), style = MaterialTheme.typography.bodyMedium, fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                                Text(String.format(Locale.US, "%02d:%02d", fAshar.hour, fAshar.minute), style = MaterialTheme.typography.bodyMedium, fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                                Text(String.format(Locale.US, "%02d:%02d", fMaghrib.hour, fMaghrib.minute), style = MaterialTheme.typography.bodyMedium, fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                                Text(String.format(Locale.US, "%02d:%02d", fIsya.hour, fIsya.minute), style = MaterialTheme.typography.bodyMedium, fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
                             }
                         }
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
             }

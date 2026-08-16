@@ -1,6 +1,10 @@
 package com.adzannotif.presentation.home
 
-import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,7 +19,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -23,9 +26,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -35,6 +39,7 @@ import com.adzannotif.domain.model.LocationInfo
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import java.util.Locale
 
 @Composable
 fun NextPrayerHeroCard(
@@ -46,25 +51,35 @@ fun NextPrayerHeroCard(
     modifier: Modifier = Modifier,
 ) {
     val targetLocal = targetInstant.toLocalDateTime(TimeZone.of(location.timeZoneId))
-    val targetFormatted = String.format("%02d:%02d", targetLocal.hour, targetLocal.minute)
+    val targetFormatted = String.format(Locale.US, "%02d:%02d", targetLocal.hour, targetLocal.minute)
 
-    val hours = countdownSecondsRemaining / 3600
-    val minutes = (countdownSecondsRemaining % 3600) / 60
-    val seconds = countdownSecondsRemaining % 60
-    val countdownFormatted = if (hours > 0) {
-        String.format("-%02d:%02d:%02d", hours, minutes, seconds)
-    } else {
-        String.format("-%02d:%02d", minutes, seconds)
-    }
+    val safeSeconds = maxOf(0L, countdownSecondsRemaining)
+    val hours = safeSeconds / 3600
+    val minutes = (safeSeconds % 3600) / 60
+    val seconds = safeSeconds % 60
+    val countdownFormatted = String.format(Locale.US, "-%02d:%02d:%02d", hours, minutes, seconds)
+
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse_hero")
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.02f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse"
+    )
 
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .scale(pulseScale),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Box(
             modifier = Modifier
@@ -91,7 +106,7 @@ fun NextPrayerHeroCard(
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.4f),
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     ) {
                         Row(
@@ -160,12 +175,13 @@ fun NextPrayerHeroCard(
                 // Large Countdown Display
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.45f)
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                    shadowElevation = 2.dp
                 ) {
                     Text(
                         text = countdownFormatted,
                         style = MaterialTheme.typography.displayLarge.copy(
-                            fontSize = 44.sp,
+                            fontSize = 42.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = (-0.5).sp
                         ),
