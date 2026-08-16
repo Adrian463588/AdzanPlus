@@ -1,4 +1,4 @@
-# 🕌 AdzanPlus — Modern, Offline-First Islamic Prayer Times & Adhan Reminder
+# 🕌 AdzanPlus — Modern, Offline-First Islamic Prayer Times & Astronomy Suite
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0+-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org/)
 [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
@@ -11,17 +11,23 @@
 
 ## 📱 Live App Previews (Tampilan Aplikasi Nyata)
 
+### Layanan Utama Sholat & Kiblat
 | Beranda (Home & Countdown) | Jadwal Bulanan (30-Day Schedule) | Kompas Arah Kiblat (Qibla) | Pengaturan & Hisab (Settings) |
 |:---:|:---:|:---:|:---:|
 | <img src="docs/screenshots/home.png" width="220" alt="Beranda AdzanPlus" /> | <img src="docs/screenshots/schedule.png" width="220" alt="Jadwal Bulanan" /> | <img src="docs/screenshots/qibla.png" width="220" alt="Kompas Arah Kiblat" /> | <img src="docs/screenshots/settings.png" width="220" alt="Pengaturan & Hisab" /> |
+
+### Suite Astronomi & Bintang (Sprint 2)
+| Dashboard Astronomi | Detail Bulan & Fase 30 Hari | Detail Matahari & Golden Hour | Peta Bintang & Rasi (500 Stars) | Kalender Hijriah & Masehi |
+|:---:|:---:|:---:|:---:|:---:|
+| <img src="docs/screenshots/astronomy_dashboard.png" width="180" alt="Dashboard Astronomi" /> | <img src="docs/screenshots/moon_detail.png" width="180" alt="Detail Bulan" /> | <img src="docs/screenshots/sun_detail.png" width="180" alt="Detail Matahari" /> | <img src="docs/screenshots/star_map.png" width="180" alt="Peta Bintang" /> | <img src="docs/screenshots/hijri_calendar.png" width="180" alt="Kalender Hijriah" /> |
 
 ---
 
 ## 📖 Overview
 
-**AdzanPlus** adalah aplikasi jadwal sholat dan pengingat adzan modern berbasis Android yang mengedepankan privasi pengguna, performa tinggi, efisiensi baterai, dan kemampuan **100% Offline-First**. 
+**AdzanPlus** adalah aplikasi jadwal sholat, pengingat adzan, dan suite observasi astronomi modern berbasis Android yang mengedepankan privasi pengguna, performa tinggi, efisiensi baterai, dan kemampuan **100% Offline-First**. 
 
-Berbeda dengan aplikasi konvensional yang bergantung pada REST API pihak ketiga, AdzanPlus menghitung seluruh waktu sholat astronomis langsung di perangkat menggunakan modul **Kotlin Multiplatform (KMP)** murni, sehingga tetap akurat tanpa memerlukan koneksi internet aktif.
+Berbeda dengan aplikasi konvensional yang bergantung pada REST API pihak ketiga, AdzanPlus menghitung seluruh waktu sholat dan posisi benda langit langsung di perangkat menggunakan dua modul **Kotlin Multiplatform (KMP)** murni (`:core-prayer` dan `:core-astronomy`), sehingga tetap akurat tanpa memerlukan koneksi internet aktif.
 
 ---
 
@@ -34,23 +40,24 @@ Berbeda dengan aplikasi konvensional yang bergantung pada REST API pihak ketiga,
   - Koreksi menit per-waktu sholat (*Per-Prayer Minute Adjustments*) untuk kalibrasi masjid lokal.
   - Waktu sholat komprehensif: Subuh, Terbit (Syuruq), Dzuhur, Ashar, Maghrib, Isya, Imsak, Tengah Malam (*Midnight*), dan Sepertiga Malam Terakhir (*Tahajjud*).
 
+- 🌌 **Suite Observasi Astronomi & Bintang (`:core-astronomy`)**:
+  - **Dashboard Astronomi**: Indikator fase matahari real-time dengan animasi pulsa dinamis, kartu rangkuman matahari & bulan, dan timeline pita senja 24 jam.
+  - **Detail Matahari & Fotografi**: Visualisasi Canvas busur elevasi matahari, perhitungan otomatis **Golden Hour** (-4° s/d +6°) dan **Blue Hour** (-6° s/d -4°) pagi & sore, serta jadwal senja sipil, nautikal, dan astronomis.
+  - **Detail Bulan & Fase 30 Hari**: Ilustrasi Canvas fase bulan resolusi tinggi, waktu terbit/transit/terbenam, jarak orbit bumi (apogee/perigee), dan mini kalender fase interaktif 30 hari.
+  - **Peta Bintang 2D Polar (Star Map)**: Proyeksi langit kutub berpusat Zenith dengan interaksi cubit-zoom (0.5x - 5.0x), pan geser, katalog 500 bintang Hipparcos (mag ≤ 4.5), 40 garis rasi bintang IAU, marker matahari/bulan, fitur ketuk-bintang untuk melihat info magnitudo/koordinat, dan slider simulasi waktu ±12 jam.
+  - **Kalender Hijriah & Masehi**: Grid kalender dual Masehi-Hijriah berbasis hisab Umm al-Qura dengan 5 dot waktu sholat harian, highlight hari ini, penanda golden hour, dan bottom sheet rincian astronomis.
+
 - ⏰ **Sistem Alarm & Notifikasi Presisi (Doze-Resistant)**:
   - Memanfaatkan `AlarmManager.setExactAndAllowWhileIdle()` untuk ketepatan waktu alarm bahkan saat perangkat dalam mode *Doze*.
   - Pemulihan otomatis setelah *reboot* (`BootReceiver`) dan deteksi pergantian zona waktu (`TimeChangeReceiver`).
+  - Penjadwalan alarm benda langit (`CelestialAlarmReceiver`) untuk Golden Hour pagi dan Moonrise.
   - Rekonsiliasi harian mandiri via `WorkManager`.
   - Audio playback adzan autentik (Makkah, Madinah, Al-Aqsa, Mesir, Subuh) dengan fitur pratinjau suara langsung di Pengaturan.
-  - Layar fullscreen dismiss/snooze ketika alarm berbunyi dalam keadaan layar terkunci.
 
 - 📱 **Real-Time Home Screen Widget (Jetpack Compose Glance & Pin Widget)**:
   - Menampilkan hitung mundur waktu sholat berikutnya secara *live* tanpa menguras baterai menggunakan `RemoteViews.Chronometer`.
   - Pasang widget langsung 1-klik dari menu Pengaturan (*In-App Pin Widget*) atau menu launcher.
-  - Tersedia varian *Compact* (2x2), *Detailed* (4x2 / 4x3), serta widget fase *Moon* & *Sun*.
-
-- 🌌 **Modul Astronomi & Kalender Hijriah Murni (`:core-astronomy`)**:
-  - Pelacakan posisi Bulan & Matahari presisi (ketinggian, azimut, iluminasi, dan fase bulan komplit).
-  - Peta Bintang (*Star Map*) kutub 2D dengan katalog 500 bintang dan 40 konstelasi.
-  - Kalender Hijriah Umm al-Qura terintegrasi dengan fase bulan dan jadwal sholat.
-  - Deteksi waktu fotografi *Golden Hour* & *Blue Hour* secara otomatis.
+  - Tersedia varian **Prayer Widget** (Compact 2x2, Detailed 4x2 / 4x3), **Moon Widget** (fase, iluminasi, countdown moonrise), dan **Sun Widget** (fase surya, countdown golden hour).
 
 - 🧭 **Kompas Kiblat Presisi & Haptic Feedback**:
   - Perhitungan arah Ka'bah (21.4225° N, 39.8262° E) menggunakan algoritma *Great-Circle Bearing*.
@@ -59,7 +66,7 @@ Berbeda dengan aplikasi konvensional yang bergantung pada REST API pihak ketiga,
   - Informasi jarak langsung ke Ka'bah dalam kilometer.
 
 - 🎨 **Modern Islamic Elegance (Material 3)**:
-  - Palet warna eksklusif *Deep Emerald & Warm Gold* dengan dukungan tema Terang (*Light*) dan Gelap (*Dark*).
+  - Palet warna eksklusif *Deep Emerald & Warm Gold* untuk sholat dan *Deep Night Sky & Celestial Amber* untuk astronomi.
   - Tata letak responsif (*Adaptive Layouts*) yang dioptimalkan untuk smartphone compact, perangkat lipat (*foldables*), dan tablet.
 
 ---
@@ -69,32 +76,32 @@ Berbeda dengan aplikasi konvensional yang bergantung pada REST API pihak ketiga,
 AdzanPlus dibangun dengan prinsip **Clean Architecture**, **SOLID**, **DRY**, dan **Unidirectional Data Flow (UDF)**:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      :app (Android)                         │
-│  ┌────────────────────────┐    ┌──────────────────────────┐ │
-│  │   Jetpack Compose M3   │    │  Jetpack Glance Widgets  │ │
-│  │      (Presentation)    │    │      (Home Screen)       │ │
-│  └───────────┬────────────┘    └────────────┬─────────────┘ │
-│              │                              │               │
-│              ▼                              ▼               │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │             ViewModels & UI State Holders              │ │
-│  └───────────────────────────┬────────────────────────────┘ │
-│                              │                              │
-│                              ▼                              │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │     Data Layer (Room DB, DataStore, AlarmManager)      │ │
-│  └───────────┬──────────────────────────────┬─────────────┘ │
-└──────────────┼──────────────────────────────┼───────────────┘
-               │                              │
-               ▼                              ▼
-┌──────────────────────────────┐┌──────────────────────────────┐
-│  :core-prayer (KMP Shared)   ││:core-astronomy (KMP Shared)  │
-│ ┌──────────────────────────┐ ││ ┌──────────────────────────┐ │
-│ │ Pure Kotlin Prayer Times │ ││ │ Pure Kotlin Sun, Moon,   │ │
-│ │ Astronomical Calculation │ ││ │ Star Map & Hijri Math    │ │
-│ └──────────────────────────┘ ││ └──────────────────────────┘ │
-└──────────────────────────────┘└──────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          :app (Android)                                 │
+│  ┌────────────────────────────┐    ┌──────────────────────────────────┐ │
+│  │     Jetpack Compose M3     │    │   Jetpack Glance AppWidgets      │ │
+│  │  (Prayer & Astronomy UI)   │    │  (Prayer, Moon, and Sun Widgets) │ │
+│  └─────────────┬──────────────┘    └────────────────┬─────────────────┘ │
+│                │                                    │                   │
+│                ▼                                    ▼                   │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │                 ViewModels & UI State Holders                      │ │
+│  └─────────────────────────────┬──────────────────────────────────────┘ │
+│                                │                                        │
+│                                ▼                                        │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │  Data Layer (Room DB, DataStore, AlarmManager, WorkManager, Exo)   │ │
+│  └─────────────┬────────────────────────────────────┬─────────────────┘ │
+└────────────────┼────────────────────────────────────┼───────────────────┘
+                 │                                    │
+                 ▼                                    ▼
+┌────────────────────────────────┐  ┌───────────────────────────────────┐
+│   :core-prayer (KMP Shared)    │  │   :core-astronomy (KMP Shared)    │
+│ ┌────────────────────────────┐ │  │ ┌───────────────────────────────┐ │
+│ │ Pure Kotlin Prayer Times   │ │  │ │ Pure Kotlin Sun, Moon, Star   │ │
+│ │ Astronomical Calculations  │ │  │ │ Map (500 Stars), & Hijri Math │ │
+│ └────────────────────────────┘ │  │ └───────────────────────────────┘ │
+└────────────────────────────────┘  └───────────────────────────────────┘
 ```
 
 ### Komponen Teknologi:
@@ -116,13 +123,19 @@ AdzanPlus/
 ├── app/                                 # Modul Android Application
 │   ├── src/main/
 │   │   ├── java/com/adzannotif/
-│   │   │   ├── data/                    # Repositories, DAOs, DataStore Preferences
+│   │   │   ├── data/                    # Repositories, Room DAOs, DataStore Preferences
 │   │   │   ├── di/                      # Hilt DI Dependency Injection Modules
 │   │   │   ├── domain/                  # UseCases & Business Contracts
 │   │   │   ├── platform/                # AlarmManager, Receivers, Audio & Notifications
 │   │   │   ├── presentation/            # Compose Screens (Home, Schedule, Astronomy, Qibla, Settings)
-│   │   │   ├── ui/                      # Material 3 Theme, Typography, Colors
+│   │   │   │   ├── astronomy/           # Astronomy Dashboard, Sun, Moon, Star Map, Hijri Calendar
+│   │   │   │   ├── home/                # Home screen & countdown ticker
+│   │   │   │   ├── qibla/               # Qibla compass & sensor fusion
+│   │   │   │   ├── schedule/            # Monthly schedule & prayer time details
+│   │   │   │   └── settings/            # Prayer adjustments & audio picker
+│   │   │   ├── theme/                   # Material 3 Theme, Typography, Night Sky Colors
 │   │   │   └── widget/                  # Jetpack Compose Glance & AppWidget Providers
+│   │   ├── assets/                      # Bundled star catalog & constellation JSON
 │   │   └── res/                         # Vector drawables, Authentic Audio assets, Layouts
 │   └── build.gradle.kts
 │
@@ -135,6 +148,7 @@ AdzanPlus/
 ├── core-astronomy/                      # Modul KMP Pure Celestial Engine (Zero android.*)
 │   ├── src/
 │   │   ├── commonMain/                  # SunMath, MoonMath, StarMath, HijriCalendar, GoldenHour
+│   │   │   └── resources/               # star_catalog.json (500 stars), constellation_lines.json
 │   │   └── commonTest/                  # Unit Tests (>90% coverage hisab astronomi & bintang)
 │   └── build.gradle.kts
 │
@@ -172,8 +186,11 @@ AdzanPlus/
 
 3. **Build & Jalankan via Terminal / CLI**:
    ```bash
-   # Menjalankan unit test modul kalkulasi
+   # Menjalankan unit test modul sholat
    ./gradlew :core-prayer:test
+
+   # Menjalankan unit test modul astronomi
+   ./gradlew :core-astronomy:test
 
    # Menjalankan seluruh test suite aplikasi
    ./gradlew testDebugUnitTest
@@ -192,8 +209,8 @@ AdzanPlus/
 Proyek ini menerapkan standar keamanan **DevSecOps** dan **Anti-Credential Leakage**:
 1. **Zero Secret Policy**: Seluruh file konfigurasi lokal (`local.properties`, `key.properties`, `secrets.properties`) dikecualikan dari version control melalui [`.gitignore`](.gitignore).
 2. **Keystore Protection**: Kunci tanda tangan aplikasi (`*.jks`, `*.keystore`, `*.p12`) tidak pernah disimpan di dalam repositori publik.
-3. **Pure Domain Isolation**: Modul perhitungan waktu sholat (`:core-prayer`) diisolasi penuh dari dependensi eksternal untuk menjamin integritas data astronomis.
-4. **Privacy-First**: Aplikasi tidak memerlukan izin akses internet wajib untuk menghitung waktu sholat.
+3. **Pure Domain Isolation**: Modul perhitungan waktu sholat (`:core-prayer`) dan astronomi (`:core-astronomy`) diisolasi penuh dari dependensi platform untuk menjamin keaslian dan portabilitas hisab.
+4. **Privacy-First**: Aplikasi tidak memerlukan izin akses internet wajib untuk menghitung waktu sholat dan benda langit.
 
 ---
 

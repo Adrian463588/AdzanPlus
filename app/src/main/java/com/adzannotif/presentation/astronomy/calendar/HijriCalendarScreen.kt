@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -16,9 +17,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -45,42 +49,79 @@ fun HijriCalendarScreen(
         containerColor = AstronomyBackgroundDeep,
         topBar = {
             TopAppBar(
-                title = { Text("Kalender Hijriah & Masehi", color = AstronomyStarWhite) },
+                title = {
+                    Column {
+                        Text("Kalender Hijriah & Masehi", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = AstronomyStarWhite)
+                        Text("Waktu Shalat & Fase Bulan Harian", style = MaterialTheme.typography.bodySmall, color = AstronomyTwilightCivil)
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Kembali",
+                            tint = AstronomyStarWhite
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = AstronomyBackgroundDeep)
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-            // Header Row
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .background(AstronomyBackgroundDeep)
+        ) {
+            // Month Header Selector Card
+            Card(
+                colors = CardDefaults.cardColors(containerColor = AstronomySurface),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
             ) {
-                IconButton(onClick = { viewModel.previousMonth() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, tint = AstronomyStarWhite, contentDescription = "Bulan Sebelumnya")
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    val mName = if (uiState.month in 0..11) monthNamesIndo[uiState.month] else ""
-                    Text("$mName ${uiState.year}", color = AstronomyStarWhite, style = MaterialTheme.typography.titleLarge)
-                    val hijriSummary = uiState.days.firstOrNull()?.let { "${it.hijriMonthName} ${it.hijriYear} H" } ?: "Kalender Hijriah"
-                    Text(hijriSummary, color = AstronomyGoldenHour, style = MaterialTheme.typography.bodyMedium)
-                }
-                IconButton(onClick = { viewModel.nextMonth() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowForward, tint = AstronomyStarWhite, contentDescription = "Bulan Berikutnya")
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { viewModel.previousMonth() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, tint = AstronomyStarWhite, contentDescription = "Bulan Sebelumnya")
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        val mName = if (uiState.month in 0..11) monthNamesIndo[uiState.month] else ""
+                        Text(
+                            "$mName ${uiState.year}",
+                            color = AstronomyStarWhite,
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                        )
+                        val hijriSummary = uiState.days.firstOrNull()?.let { "${it.hijriMonthName} ${it.hijriYear} H" } ?: "Kalender Hijriah"
+                        Text(hijriSummary, color = AstronomyGoldenHour, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
+                    }
+                    IconButton(onClick = { viewModel.nextMonth() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowForward, tint = AstronomyStarWhite, contentDescription = "Bulan Berikutnya")
+                    }
                 }
             }
 
-            // Weekday labels
+            // Weekday labels header
             val weekdays = listOf("Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab")
-            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
                 weekdays.forEach {
                     Text(
                         text = it,
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.Center,
-                        color = AstronomyStarWhite,
-                        style = MaterialTheme.typography.labelMedium
+                        color = AstronomyTwilightCivil,
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
                     )
                 }
             }
@@ -88,13 +129,15 @@ fun HijriCalendarScreen(
 
             if (uiState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = AstronomyStarWhite)
+                    CircularProgressIndicator(color = AstronomyMoonGold)
                 }
             } else {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(7),
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(8.dp)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 8.dp),
+                    contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
                     items(uiState.days) { day ->
                         CalendarCell(day = day, onClick = { viewModel.selectDay(day) })
@@ -116,29 +159,74 @@ fun HijriCalendarScreen(
                         .padding(horizontal = 24.dp, vertical = 16.dp)
                         .fillMaxWidth()
                 ) {
-                    Text(
-                        "${day.gregorianDay} ${if (day.gregorianMonth in 1..12) monthNamesIndo[day.gregorianMonth - 1] else ""} ${day.gregorianYear}",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = AstronomyStarWhite
-                    )
-                    Text(
-                        "${day.hijriDay} ${day.hijriMonthName} ${day.hijriYear} H",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = AstronomyGoldenHour
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                "${day.gregorianDay} ${if (day.gregorianMonth in 1..12) monthNamesIndo[day.gregorianMonth - 1] else ""} ${day.gregorianYear}",
+                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                color = AstronomyStarWhite
+                            )
+                            Text(
+                                "${day.hijriDay} ${day.hijriMonthName} ${day.hijriYear} H",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                                color = AstronomyGoldenHour
+                            )
+                        }
+                        Surface(
+                            color = AstronomyBackgroundMid,
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                day.moonPhaseName,
+                                color = AstronomyMoonGold,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    HorizontalDivider(color = AstronomyConstellationLine.copy(alpha = 0.3f))
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Text("Fase Bulan: ${day.moonPhaseName} (Iluminasi: ${String.format("%.1f%%", day.moonIlluminationPercent)})", color = AstronomyStarWhite, style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        "Informasi Astronomis & Waktu",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = AstronomyStarWhite
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
                     if (day.sunriseMillis != null) {
-                        Text("Matahari Terbit: ${fmt.format(Date(day.sunriseMillis))}", color = AstronomyStarWhite, style = MaterialTheme.typography.bodyMedium)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Matahari Terbit", color = AstronomyTwilightCivil)
+                            Text(fmt.format(Date(day.sunriseMillis)), color = AstronomyStarWhite, fontWeight = FontWeight.SemiBold)
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
                     if (day.sunsetMillis != null) {
-                        Text("Matahari Terbenam: ${fmt.format(Date(day.sunsetMillis))}", color = AstronomyStarWhite, style = MaterialTheme.typography.bodyMedium)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Matahari Terbenam", color = AstronomyTwilightCivil)
+                            Text(fmt.format(Date(day.sunsetMillis)), color = AstronomyStarWhite, fontWeight = FontWeight.SemiBold)
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
                     if (day.goldenHourMorningStartMillis != null) {
-                        Text("Golden Hour Pagi: ${fmt.format(Date(day.goldenHourMorningStartMillis))}", color = AstronomyGoldenHour, style = MaterialTheme.typography.bodyMedium)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Golden Hour Pagi", color = AstronomyGoldenHour)
+                            Text(fmt.format(Date(day.goldenHourMorningStartMillis)), color = AstronomyGoldenHour, fontWeight = FontWeight.SemiBold)
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Iluminasi Bulan", color = AstronomyTwilightCivil)
+                        Text(String.format("%.1f%%", day.moonIlluminationPercent), color = AstronomyMoonGold, fontWeight = FontWeight.SemiBold)
+                    }
+
+                    Spacer(modifier = Modifier.height(28.dp))
                 }
             }
         }
@@ -150,11 +238,13 @@ fun CalendarCell(day: CalendarDay, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .aspectRatio(1f)
-            .padding(2.dp)
+            .padding(3.dp)
+            .clip(RoundedCornerShape(10.dp))
             .clickable(onClick = onClick)
             .border(
                 width = if (day.goldenHourMorningStartMillis != null) 1.5.dp else 0.dp,
-                color = if (day.goldenHourMorningStartMillis != null) AstronomyGoldenHour.copy(alpha = 0.6f) else Color.Transparent
+                color = if (day.goldenHourMorningStartMillis != null) AstronomyGoldenHour.copy(alpha = 0.6f) else Color.Transparent,
+                shape = RoundedCornerShape(10.dp)
             )
             .background(if (day.isToday) MaterialTheme.colorScheme.primaryContainer else AstronomySurface),
         contentAlignment = Alignment.Center
@@ -163,11 +253,11 @@ fun CalendarCell(day: CalendarDay, onClick: () -> Unit) {
             Text(
                 "${day.gregorianDay}",
                 color = if (day.isToday) MaterialTheme.colorScheme.onPrimaryContainer else AstronomyStarWhite,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
             )
             Text(
                 "${day.hijriDay}",
-                color = AstronomyTwilightCivil,
+                color = if (day.isToday) MaterialTheme.colorScheme.primary else AstronomyTwilightCivil,
                 style = MaterialTheme.typography.labelSmall
             )
         }
@@ -177,19 +267,26 @@ fun CalendarCell(day: CalendarDay, onClick: () -> Unit) {
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(2.dp)
+                    .padding(4.dp)
                     .size(6.dp)
                     .background(AstronomyMoonGold, CircleShape)
             )
         }
 
-        // Prayer dots
+        // 5 Prayer dots indicator
         Row(
-            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 2.dp),
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 3.dp),
             horizontalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             repeat(5) {
-                Box(modifier = Modifier.size(2.dp).background(AstronomyStarWhite.copy(alpha = 0.7f), CircleShape))
+                Box(
+                    modifier = Modifier
+                        .size(2.5.dp)
+                        .background(
+                            if (day.isToday) MaterialTheme.colorScheme.primary else AstronomyTwilightCivil.copy(alpha = 0.7f),
+                            CircleShape
+                        )
+                )
             }
         }
     }
