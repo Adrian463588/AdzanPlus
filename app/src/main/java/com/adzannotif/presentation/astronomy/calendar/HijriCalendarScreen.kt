@@ -242,22 +242,22 @@ fun CalendarCell(day: CalendarDay, onClick: () -> Unit) {
             .clip(RoundedCornerShape(10.dp))
             .clickable(onClick = onClick)
             .border(
-                width = if (day.goldenHourMorningStartMillis != null) 1.5.dp else 0.dp,
-                color = if (day.goldenHourMorningStartMillis != null) AstronomyGoldenHour.copy(alpha = 0.6f) else Color.Transparent,
+                width = if (day.isToday) 1.5.dp else if (day.goldenHourMorningStartMillis != null) 1.dp else 0.dp,
+                color = if (day.isToday) AstronomyMoonGold else if (day.goldenHourMorningStartMillis != null) AstronomyGoldenHour.copy(alpha = 0.5f) else Color.Transparent,
                 shape = RoundedCornerShape(10.dp)
             )
-            .background(if (day.isToday) MaterialTheme.colorScheme.primaryContainer else AstronomySurface),
+            .background(if (day.isToday) AstronomyMoonGold.copy(alpha = 0.25f) else AstronomySurface),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 "${day.gregorianDay}",
-                color = if (day.isToday) MaterialTheme.colorScheme.onPrimaryContainer else AstronomyStarWhite,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                color = if (day.isToday) AstronomyMoonGold else AstronomyStarWhite,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
             )
             Text(
                 "${day.hijriDay}",
-                color = if (day.isToday) MaterialTheme.colorScheme.primary else AstronomyTwilightCivil,
+                color = if (day.isToday) AstronomyStarWhite else AstronomyTwilightCivil,
                 style = MaterialTheme.typography.labelSmall
             )
         }

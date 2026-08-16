@@ -92,56 +92,66 @@ class PrayerTimes(
             dateComponents: DateComponents,
             calculationParameters: CalculationParameters
         ): PrayerTimes {
+            return when (val result = calculate(coordinates, dateComponents, calculationParameters)) {
+                is PrayerTimesResult.Available -> result.value
+                is PrayerTimesResult.Unavailable -> throw PrayerTimesUnavailableException(result.reason)
+            }
+        }
+
+        /**
+         * Calculates prayer times without inventing values when a solar event
+         * cannot be observed or derived from the configured high-latitude rule.
+         */
+        fun calculate(
+            coordinates: Coordinates,
+            dateComponents: DateComponents,
+            calculationParameters: CalculationParameters
+        ): PrayerTimesResult {
             val solarTime = SolarTime(coordinates, dateComponents)
 
             // Dhuhr: solar transit
             val dhuhrHours = solarTime.transit
 
             // Sunrise & Sunset
-            val sunriseHours = solarTime.sunrise ?: (dhuhrHours - 6.0)
-            val sunsetHours = solarTime.sunset ?: (dhuhrHours + 6.0)
+            val sunriseHours = solarTime.sunrise
+                ?: return PrayerTimesResult.Unavailable(PrayerTimesUnavailableReason.SUNRISE_NOT_VISIBLE)
+            val sunsetHours = solarTime.sunset
+                ?: return PrayerTimesResult.Unavailable(PrayerTimesUnavailableReason.SUNSET_NOT_VISIBLE)
 
             // Fajr
-            var fajrHours = solarTime.hourAngleForTwilight(calculationParameters.fajrAngle, isAfterTransit = false)
-            if (fajrHours == null) {
-                // High latitude fallback
-                val nightPortion = when (calculationParameters.highLatitudeRule) {
-                    HighLatitudeRule.MIDDLE_OF_THE_NIGHT -> 0.5
-                    HighLatitudeRule.SEVENTH_OF_THE_NIGHT -> 1.0 / 7.0
-                    HighLatitudeRule.TWILIGHT_ANGLE -> calculationParameters.fajrAngle / 60.0
-                }
-                val nightLength = (24.0 + sunriseHours - sunsetHours) % 24.0
-                fajrHours = (sunriseHours - (nightLength * nightPortion) + 24.0) % 24.0
-            }
+            val fajrHours = highLatitudeAdjustedTime(
+                solarTime = solarTime,
+                angle = calculationParameters.fajrAngle,
+                isAfterTransit = false,
+                sunriseHours = sunriseHours,
+                sunsetHours = sunsetHours,
+                rule = calculationParameters.highLatitudeRule,
+            ) ?: return PrayerTimesResult.Unavailable(PrayerTimesUnavailableReason.FAJR_NOT_COMPUTABLE)
 
             // Asr
-            val asrHours = solarTime.timeForAsr(calculationParameters.madhab.shadowFactor) ?: (dhuhrHours + 3.0)
+            val asrHours = solarTime.timeForAsr(calculationParameters.madhab.shadowFactor)
+                ?: return PrayerTimesResult.Unavailable(PrayerTimesUnavailableReason.ASR_NOT_COMPUTABLE)
 
             // Maghrib
             val maghribHours = if (calculationParameters.maghribAngle > 0.0) {
-                solarTime.hourAngleForTwilight(calculationParameters.maghribAngle, isAfterTransit = true) ?: sunsetHours
+                solarTime.hourAngleForTwilight(calculationParameters.maghribAngle, isAfterTransit = true)
+                    ?: return PrayerTimesResult.Unavailable(PrayerTimesUnavailableReason.MAGHRIB_NOT_COMPUTABLE)
             } else {
                 sunsetHours
             }
 
             // Isha
-            var ishaHours: Double
-            if (calculationParameters.ishaInterval > 0) {
-                ishaHours = (maghribHours + (calculationParameters.ishaInterval / 60.0)) % 24.0
+            val ishaHours = if (calculationParameters.ishaInterval > 0) {
+                (maghribHours + (calculationParameters.ishaInterval / 60.0)) % 24.0
             } else {
-                val computedIsha = solarTime.hourAngleForTwilight(calculationParameters.ishaAngle, isAfterTransit = true)
-                if (computedIsha != null) {
-                    ishaHours = computedIsha
-                } else {
-                    // High latitude fallback
-                    val nightPortion = when (calculationParameters.highLatitudeRule) {
-                        HighLatitudeRule.MIDDLE_OF_THE_NIGHT -> 0.5
-                        HighLatitudeRule.SEVENTH_OF_THE_NIGHT -> 1.0 / 7.0
-                        HighLatitudeRule.TWILIGHT_ANGLE -> calculationParameters.ishaAngle / 60.0
-                    }
-                    val nightLength = (24.0 + sunriseHours - sunsetHours) % 24.0
-                    ishaHours = (sunsetHours + (nightLength * nightPortion)) % 24.0
-                }
+                highLatitudeAdjustedTime(
+                    solarTime = solarTime,
+                    angle = calculationParameters.ishaAngle,
+                    isAfterTransit = true,
+                    sunriseHours = sunriseHours,
+                    sunsetHours = sunsetHours,
+                    rule = calculationParameters.highLatitudeRule,
+                ) ?: return PrayerTimesResult.Unavailable(PrayerTimesUnavailableReason.ISHA_NOT_COMPUTABLE)
             }
 
             // Convert decimal UTC hours to Instant
@@ -173,37 +183,64 @@ class PrayerTimes(
             val nextDateComponents = DateComponents.from(baseDate.plus(DatePeriod(days = 1)))
             val nextDaySolarTime = SolarTime(coordinates, nextDateComponents)
             val nextDhuhrHours = nextDaySolarTime.transit
-            var nextDayFajrHours = nextDaySolarTime.hourAngleForTwilight(calculationParameters.fajrAngle, isAfterTransit = false)
-            if (nextDayFajrHours == null) {
-                val nightPortion = when (calculationParameters.highLatitudeRule) {
-                    HighLatitudeRule.MIDDLE_OF_THE_NIGHT -> 0.5
-                    HighLatitudeRule.SEVENTH_OF_THE_NIGHT -> 1.0 / 7.0
-                    HighLatitudeRule.TWILIGHT_ANGLE -> calculationParameters.fajrAngle / 60.0
-                }
-                val nextSunrise = nextDaySolarTime.sunrise ?: (nextDhuhrHours - 6.0)
-                val nextSunset = nextDaySolarTime.sunset ?: (nextDhuhrHours + 6.0)
-                val nightLength = (24.0 + nextSunrise - nextSunset) % 24.0
-                nextDayFajrHours = (nextSunrise - (nightLength * nightPortion) + 24.0) % 24.0
-            }
+            val nextSunrise = nextDaySolarTime.sunrise
+                ?: return PrayerTimesResult.Unavailable(PrayerTimesUnavailableReason.NEXT_DAY_SUNRISE_NOT_VISIBLE)
+            val nextSunset = nextDaySolarTime.sunset
+                ?: return PrayerTimesResult.Unavailable(PrayerTimesUnavailableReason.NEXT_DAY_SUNSET_NOT_VISIBLE)
+            val nextDayFajrHours = highLatitudeAdjustedTime(
+                solarTime = nextDaySolarTime,
+                angle = calculationParameters.fajrAngle,
+                isAfterTransit = false,
+                sunriseHours = nextSunrise,
+                sunsetHours = nextSunset,
+                rule = calculationParameters.highLatitudeRule,
+            ) ?: return PrayerTimesResult.Unavailable(PrayerTimesUnavailableReason.NEXT_DAY_FAJR_NOT_COMPUTABLE)
             val nextDayBaseDate = nextDateComponents.toLocalDate()
             val nextDayFajrDate = if (nextDayFajrHours > nextDhuhrHours) nextDayBaseDate.minus(DatePeriod(days = 1)) else nextDayBaseDate
             val nextDayFajrInstant = toInstantWithAdjustments(nextDayFajrDate, nextDayFajrHours, calculationParameters.prayerAdjustments.fajr, calculationParameters.rounding)
 
             val sunnahTimes = SunnahTimes.from(maghribInstant, nextDayFajrInstant)
 
-            return PrayerTimes(
-                coordinates = coordinates,
-                dateComponents = dateComponents,
-                calculationParameters = calculationParameters,
-                fajr = fajrInstant,
-                sunrise = sunriseInstant,
-                dhuhr = dhuhrInstant,
-                asr = asrInstant,
-                maghrib = maghribInstant,
-                isha = ishaInstant,
-                imsak = imsakInstant,
-                sunnahTimes = sunnahTimes
+            return PrayerTimesResult.Available(
+                PrayerTimes(
+                    coordinates = coordinates,
+                    dateComponents = dateComponents,
+                    calculationParameters = calculationParameters,
+                    fajr = fajrInstant,
+                    sunrise = sunriseInstant,
+                    dhuhr = dhuhrInstant,
+                    asr = asrInstant,
+                    maghrib = maghribInstant,
+                    isha = ishaInstant,
+                    imsak = imsakInstant,
+                    sunnahTimes = sunnahTimes
+                )
             )
+        }
+
+        private fun highLatitudeAdjustedTime(
+            solarTime: SolarTime,
+            angle: Double,
+            isAfterTransit: Boolean,
+            sunriseHours: Double,
+            sunsetHours: Double,
+            rule: HighLatitudeRule,
+        ): Double? {
+            solarTime.hourAngleForTwilight(angle, isAfterTransit)?.let { return it }
+
+            val nightLength = (24.0 + sunriseHours - sunsetHours) % 24.0
+            if (nightLength <= 0.0) return null
+
+            val nightPortion = when (rule) {
+                HighLatitudeRule.MIDDLE_OF_THE_NIGHT -> 0.5
+                HighLatitudeRule.SEVENTH_OF_THE_NIGHT -> 1.0 / 7.0
+                HighLatitudeRule.TWILIGHT_ANGLE -> angle / 60.0
+            }
+            return if (isAfterTransit) {
+                (sunsetHours + (nightLength * nightPortion)) % 24.0
+            } else {
+                (sunriseHours - (nightLength * nightPortion) + 24.0) % 24.0
+            }
         }
 
         private fun toInstantWithAdjustments(
@@ -247,4 +284,3 @@ class PrayerTimes(
         }
     }
 }
-

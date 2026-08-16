@@ -2,6 +2,7 @@ package com.adzannotif.presentation.astronomy.sun
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.adzannotif.domain.model.LocationInfo
 import com.adzannotif.domain.model.astronomy.SunInfo
 import com.adzannotif.domain.repository.LocationRepository
 import com.adzannotif.domain.usecase.GetSunInfoUseCase
@@ -23,6 +24,8 @@ class SunDetailViewModel @Inject constructor(
 
     data class UiState(
         val sunInfo: SunInfo? = null,
+        val location: LocationInfo? = null,
+        val scrubbedTimeMillis: Long? = null,
         val isLoading: Boolean = true,
         val error: String? = null
     )
@@ -34,6 +37,10 @@ class SunDetailViewModel @Inject constructor(
         startSunUpdates()
     }
 
+    fun setScrubbedTime(millis: Long?) {
+        _uiState.value = _uiState.value.copy(scrubbedTimeMillis = millis)
+    }
+
     private fun startSunUpdates() {
         viewModelScope.launch {
             while (isActive) {
@@ -41,9 +48,10 @@ class SunDetailViewModel @Inject constructor(
                     val loc = locationRepository.currentOrSelectedLocation.firstOrNull()
                     if (loc != null) {
                         val sunInfo = getSunInfoUseCase(loc, System.currentTimeMillis()).firstOrNull()
-                        
+
                         _uiState.value = _uiState.value.copy(
                             sunInfo = sunInfo,
+                            location = loc,
                             isLoading = false,
                             error = null
                         )

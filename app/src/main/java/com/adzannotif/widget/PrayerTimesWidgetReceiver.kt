@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.util.Log
 import com.adzannotif.domain.repository.LocationRepository
 import com.adzannotif.domain.usecase.GetNextPrayerUseCase
-import com.adzannotif.domain.usecase.GetTodayPrayerTimesUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,9 +22,6 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class PrayerTimesWidgetReceiver : AppWidgetProvider() {
-
-    @Inject
-    lateinit var getTodayPrayerTimesUseCase: GetTodayPrayerTimesUseCase
 
     @Inject
     lateinit var getNextPrayerUseCase: GetNextPrayerUseCase
@@ -69,11 +65,16 @@ class PrayerTimesWidgetReceiver : AppWidgetProvider() {
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.Default).launch {
             try {
-                val todayRecord = getTodayPrayerTimesUseCase().first()
                 val location = locationRepository.currentOrSelectedLocation.first()
                 val nextInfo = getNextPrayerUseCase().first()
-                val nextName = nextInfo?.nextPrayer?.displayNameId ?: "Subuh"
-                val nextTarget = nextInfo?.targetTime ?: todayRecord.fajr
+                if (nextInfo == null) {
+                    updateUnavailableWidgets(context, appWidgetManager, appWidgetIds)
+                    return@launch
+                }
+
+                val nextName = nextInfo.nextPrayer.displayNameId
+                val nextTarget = nextInfo.targetTime
+                val todayRecord = nextInfo.todayRecord
 
                 for (appWidgetId in appWidgetIds) {
                     val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
@@ -100,9 +101,25 @@ class PrayerTimesWidgetReceiver : AppWidgetProvider() {
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error updating prayer widgets", e)
+                updateUnavailableWidgets(context, appWidgetManager, appWidgetIds)
             } finally {
                 pendingResult.finish()
             }
+        }
+    }
+
+    private fun updateUnavailableWidgets(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetIds: IntArray,
+    ) {
+        appWidgetIds.forEach { appWidgetId ->
+            val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+            val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 110)
+            appWidgetManager.updateAppWidget(
+                appWidgetId,
+                WidgetRenderer.buildUnavailableWidget(context, detailed = minWidth >= 220),
+            )
         }
     }
 

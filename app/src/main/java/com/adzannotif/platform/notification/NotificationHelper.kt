@@ -31,6 +31,7 @@ class NotificationHelper @Inject constructor(
         const val NOTIFICATION_ID_PERSISTENT = 3001
 
         private const val TAG = "NotificationHelper"
+        private val ADHAN_VIBRATION_PATTERN = longArrayOf(0, 500, 250, 500, 250, 1000)
     }
 
     init {
@@ -50,7 +51,7 @@ class NotificationHelper @Inject constructor(
             ).apply {
                 description = "Notifikasi adzan waktu sholat tiba dengan suara penuh dan layar bangun"
                 enableVibration(true)
-                vibrationPattern = longArrayOf(0, 500, 250, 500, 250, 1000)
+                vibrationPattern = ADHAN_VIBRATION_PATTERN
                 setSound(null, null)
                 lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
             }
@@ -92,6 +93,7 @@ class NotificationHelper @Inject constructor(
         prayer: Prayer,
         prayerTitle: String,
         locationName: String,
+        vibrate: Boolean = true,
     ) {
         val contentIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -139,22 +141,16 @@ class NotificationHelper @Inject constructor(
             .setContentIntent(contentPendingIntent)
             .setFullScreenIntent(fullScreenPendingIntent, true)
             .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Hentikan Suara", stopPendingIntent)
-            .setVibrate(longArrayOf(0, 500, 250, 500, 250, 1000))
+            .setVibrate(if (vibrate) ADHAN_VIBRATION_PATTERN else longArrayOf(0))
 
-        try {
-            NotificationManagerCompat.from(context).notify(
-                NOTIFICATION_ID_ADHAN + prayer.ordinal,
-                builder.build()
-            )
-        } catch (e: SecurityException) {
-            Log.w(TAG, "Notification permission not granted for Adhan alert", e)
-        }
+        postNotification(NOTIFICATION_ID_ADHAN + prayer.ordinal, builder)
     }
 
     fun showPreReminderNotification(
         prayer: Prayer,
         minutesBefore: Int,
         locationName: String,
+        vibrate: Boolean = true,
     ) {
         val contentIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -173,32 +169,54 @@ class NotificationHelper @Inject constructor(
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
+            .setVibrate(if (vibrate) ADHAN_VIBRATION_PATTERN else longArrayOf(0))
 
-        try {
-            NotificationManagerCompat.from(context).notify(
-                NOTIFICATION_ID_REMINDER + prayer.ordinal,
-                builder.build()
-            )
-        } catch (e: SecurityException) {
-            Log.w(TAG, "Notification permission not granted for pre-reminder", e)
-        }
+        postNotification(NOTIFICATION_ID_REMINDER + prayer.ordinal, builder)
     }
 
     fun showCelestialEventNotification(eventType: String, label: String) {
+        if (eventType.isBlank() || label.isBlank()) return
+
+        val contentIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val contentPendingIntent = PendingIntent.getActivity(
+            context,
+            stableNotificationId(eventType),
+            contentIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
         val builder = NotificationCompat.Builder(context, CELESTIAL_CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle("Peristiwa Langit: $label")
             .setContentText("Waktu $eventType telah tiba")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
+            .setContentIntent(contentPendingIntent)
+
+        postNotification(stableNotificationId(eventType), builder)
+    }
+
+    fun areNotificationsEnabled(): Boolean =
+        NotificationManagerCompat.from(context).areNotificationsEnabled()
+
+    private fun postNotification(
+        notificationId: Int,
+        builder: NotificationCompat.Builder,
+    ) {
+        if (!areNotificationsEnabled()) {
+            Log.i(TAG, "Notifications are disabled; notificationId=$notificationId was not posted")
+            return
+        }
 
         try {
-            NotificationManagerCompat.from(context).notify(
-                eventType.hashCode(),
-                builder.build()
-            )
+            NotificationManagerCompat.from(context).notify(notificationId, builder.build())
         } catch (e: SecurityException) {
-            Log.w(TAG, "Notification permission not granted for celestial event", e)
+            Log.w(TAG, "Notification permission was revoked before posting notificationId=$notificationId", e)
         }
     }
+
+    private fun stableNotificationId(eventType: String): Int =
+        (eventType.hashCode() and Int.MAX_VALUE).coerceAtLeast(1)
 }

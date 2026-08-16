@@ -35,4 +35,19 @@
     <string name="dismiss">Tutup</string>
     <string name="snooze">Tunda 5 Menit</string>
     <string name="adhan_call_msg">Waktu Sholat Telah Tiba</string>
+
+    <!-- Compose presentation states -->
+    <string name="location_gps_auto">%1$s (GPS otomatis)</string>
+    <string name="location_unavailable">Lokasi belum tersedia</string>
+    <string name="status_online">Online</string>
+    <string name="status_offline">Offline</string>
+    <string name="refresh_location">Perbarui lokasi</string>
+    <string name="prayer_schedule_today">Jadwal sholat hari ini</string>
+    <string name="hijri_unavailable">Tanggal Hijriah belum tersedia</string>
+    <string name="prayer_time">Pukul %1$s</string>
+    <string name="prayer_time_with_zone">Pukul %1$s %2$s</string>
+    <string name="next_prayer_countdown_description">Menuju %1$s dalam %2$s</string>
+    <string name="prayer_data_unavailable">Data waktu sholat belum tersedia</string>
+    <string name="prayer_data_unavailable_detail">Perhitungan belum dapat ditampilkan untuk lokasi ini.</string>
+    <string name="retry">Coba lagi</string>
 </resources>

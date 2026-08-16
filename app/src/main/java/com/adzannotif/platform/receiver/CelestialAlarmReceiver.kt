@@ -12,8 +12,11 @@ class CelestialAlarmReceiver : BroadcastReceiver() {
     @Inject lateinit var notificationHelper: NotificationHelper
 
     override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action != ACTION_CELESTIAL_ALARM) return
+
         val eventTypeStr = intent.getStringExtra(EXTRA_EVENT_TYPE) ?: return
         val eventLabel = intent.getStringExtra(EXTRA_EVENT_LABEL) ?: return
+        if (eventLabel.isBlank()) return
         notificationHelper.showCelestialEventNotification(eventTypeStr, eventLabel)
     }
 

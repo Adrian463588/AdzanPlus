@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
-import com.adzannotif.domain.usecase.SchedulePrayerAlarmsUseCase
+import com.adzannotif.platform.alarm.AdhanScheduler
 import com.adzannotif.platform.worker.PrayerSyncWorker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -22,21 +22,27 @@ import javax.inject.Inject
 class BootReceiver : BroadcastReceiver() {
 
     @Inject
-    lateinit var schedulePrayerAlarmsUseCase: SchedulePrayerAlarmsUseCase
+    lateinit var adhanScheduler: AdhanScheduler
 
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
-        if (action == Intent.ACTION_BOOT_COMPLETED ||
-            action == Intent.ACTION_LOCKED_BOOT_COMPLETED ||
-            action == Intent.ACTION_MY_PACKAGE_REPLACED
-        ) {
+        if (action == Intent.ACTION_LOCKED_BOOT_COMPLETED) {
+            // Room/DataStore are credential-protected. Do not touch them before the
+            // user unlocks the device; the normal BOOT_COMPLETED broadcast follows.
+            Log.i("BootReceiver", "Locked boot received; deferring reconciliation until user unlock")
+            return
+        }
+
+        if (action == Intent.ACTION_BOOT_COMPLETED || action == Intent.ACTION_MY_PACKAGE_REPLACED) {
             Log.d("BootReceiver", "Received $action, rescheduling alarms & enqueuing sync worker")
             PrayerSyncWorker.enqueuePeriodicWork(context)
 
             val pendingResult = goAsync()
             CoroutineScope(Dispatchers.Default).launch {
                 try {
-                    schedulePrayerAlarmsUseCase()
+                    adhanScheduler.schedule().onFailure { error ->
+                        Log.e("BootReceiver", "Prayer alarm reconciliation was not completed", error)
+                    }
                 } catch (e: Exception) {
                     Log.e("BootReceiver", "Failed to reschedule alarms on boot", e)
                 } finally {
@@ -55,7 +61,7 @@ class BootReceiver : BroadcastReceiver() {
 class TimeChangeReceiver : BroadcastReceiver() {
 
     @Inject
-    lateinit var schedulePrayerAlarmsUseCase: SchedulePrayerAlarmsUseCase
+    lateinit var adhanScheduler: AdhanScheduler
 
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
@@ -67,7 +73,9 @@ class TimeChangeReceiver : BroadcastReceiver() {
             val pendingResult = goAsync()
             CoroutineScope(Dispatchers.Default).launch {
                 try {
-                    schedulePrayerAlarmsUseCase()
+                    adhanScheduler.schedule().onFailure { error ->
+                        Log.e("TimeChangeReceiver", "Prayer alarm reconciliation was not completed", error)
+                    }
                 } catch (e: Exception) {
                     Log.e("TimeChangeReceiver", "Failed to reschedule alarms on time change", e)
                 } finally {
@@ -86,7 +94,7 @@ class TimeChangeReceiver : BroadcastReceiver() {
 class ExactAlarmPermissionReceiver : BroadcastReceiver() {
 
     @Inject
-    lateinit var schedulePrayerAlarmsUseCase: SchedulePrayerAlarmsUseCase
+    lateinit var adhanScheduler: AdhanScheduler
 
     override fun onReceive(context: Context, intent: Intent) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -95,7 +103,9 @@ class ExactAlarmPermissionReceiver : BroadcastReceiver() {
                 val pendingResult = goAsync()
                 CoroutineScope(Dispatchers.Default).launch {
                     try {
-                        schedulePrayerAlarmsUseCase()
+                        adhanScheduler.schedule().onFailure { error ->
+                            Log.e("ExactAlarmPermissionReceiver", "Prayer alarm reconciliation was not completed", error)
+                        }
                     } catch (e: Exception) {
                         Log.e("ExactAlarmPermissionReceiver", "Failed to reschedule alarms on permission change", e)
                     } finally {
@@ -133,4 +143,3 @@ class StopAdhanReceiver : BroadcastReceiver() {
         }
     }
 }
-

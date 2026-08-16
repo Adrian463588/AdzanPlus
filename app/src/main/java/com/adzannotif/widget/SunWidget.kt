@@ -2,6 +2,7 @@ package com.adzannotif.widget
 
 import android.content.Context
 import android.os.SystemClock
+import android.util.Log
 import android.widget.RemoteViews
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -16,8 +17,10 @@ import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
+import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.text.FontWeight
@@ -28,55 +31,89 @@ import com.adzannotif.R
 import com.adzannotif.domain.model.astronomy.SunInfo
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun SunWidgetContent(sunInfo: SunInfo?) {
     val context = LocalContext.current
-    
+    val fmt = SimpleDateFormat("HH:mm", Locale.getDefault())
+
+    fun formatWindow(start: Long?, end: Long?): String {
+        return if (start != null && end != null) {
+            "${fmt.format(Date(start))} - ${fmt.format(Date(end))}"
+        } else {
+            "Belum tersedia"
+        }
+    }
+
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(Color(0xFF0B1525))
-            .padding(16.dp),
+            .padding(14.dp),
         horizontalAlignment = Alignment.Horizontal.Start
     ) {
         if (sunInfo != null) {
             Text(
                 text = "☀️ ${sunInfo.currentPhase}",
                 style = TextStyle(
-                    color = ColorProvider(Color.White), 
-                    fontSize = 16.sp, 
+                    color = ColorProvider(Color.White),
+                    fontSize = 15.sp,
                     fontWeight = FontWeight.Bold
                 )
             )
-            Spacer(modifier = GlanceModifier.height(8.dp))
-            
-            // For SunWidget, let's just pick golden hour or next event.
-            // If we are before morning golden hour, show that.
+            Spacer(modifier = GlanceModifier.height(4.dp))
+
+            // Golden Hour Window
+            val goldenMorning = formatWindow(sunInfo.morningGoldenHourStartMillis, sunInfo.morningGoldenHourEndMillis)
+            val goldenEvening = formatWindow(sunInfo.eveningGoldenHourStartMillis, sunInfo.eveningGoldenHourEndMillis)
+            Text(
+                text = "Golden Hour: $goldenMorning | $goldenEvening",
+                style = TextStyle(
+                    color = ColorProvider(Color(0xFFFFB347)),
+                    fontSize = 11.sp
+                )
+            )
+
+            // Blue Hour Window
+            val blueMorning = formatWindow(sunInfo.morningBlueHourStartMillis, sunInfo.morningBlueHourEndMillis)
+            val blueEvening = formatWindow(sunInfo.eveningBlueHourStartMillis, sunInfo.eveningBlueHourEndMillis)
+            Text(
+                text = "Blue Hour: $blueMorning | $blueEvening",
+                style = TextStyle(
+                    color = ColorProvider(Color(0xFF5B8FD4)),
+                    fontSize = 11.sp
+                )
+            )
+
+            Spacer(modifier = GlanceModifier.height(6.dp))
+
             val now = System.currentTimeMillis()
             val nextEventMillis = listOfNotNull(
+                sunInfo.morningBlueHourStartMillis,
                 sunInfo.morningGoldenHourStartMillis,
-                sunInfo.eveningGoldenHourStartMillis,
                 sunInfo.riseMillis,
+                sunInfo.eveningGoldenHourStartMillis,
+                sunInfo.eveningBlueHourStartMillis,
                 sunInfo.setMillis
             ).filter { it > now }.minOrNull()
-            
+
             val eventName = when (nextEventMillis) {
-                sunInfo.morningGoldenHourStartMillis -> "Morning Golden Hour"
-                sunInfo.eveningGoldenHourStartMillis -> "Evening Golden Hour"
-                sunInfo.riseMillis -> "Sunrise"
-                sunInfo.setMillis -> "Sunset"
-                else -> "Next Event"
+                sunInfo.morningBlueHourStartMillis -> "Blue Hour Pagi"
+                sunInfo.morningGoldenHourStartMillis -> "Golden Hour Pagi"
+                sunInfo.riseMillis -> "Matahari Terbit"
+                sunInfo.eveningGoldenHourStartMillis -> "Golden Hour Sore"
+                sunInfo.eveningBlueHourStartMillis -> "Blue Hour Sore"
+                sunInfo.setMillis -> "Matahari Terbenam"
+                else -> "Acara Berikutnya"
             }
 
             if (nextEventMillis != null) {
                 Text(
-                    text = eventName,
-                    style = TextStyle(color = ColorProvider(Color.White), fontSize = 14.sp)
-                )
-                Text(
-                    text = "Mulai dalam",
-                    style = TextStyle(color = ColorProvider(Color(0xFFAAAAAA)), fontSize = 12.sp)
+                    text = "$eventName:",
+                    style = TextStyle(color = ColorProvider(Color(0xFFE1E3DF)), fontSize = 12.sp)
                 )
                 val baseChronometerMillis = SystemClock.elapsedRealtime() + (nextEventMillis - System.currentTimeMillis())
                 AndroidRemoteViews(
@@ -91,27 +128,23 @@ fun SunWidgetContent(sunInfo: SunInfo?) {
                 )
             } else {
                 Text(
-                    text = "No Upcoming Event Today",
-                    style = TextStyle(color = ColorProvider(Color(0xFFAAAAAA)), fontSize = 14.sp)
+                    text = "Matahari Terbenam Selesai",
+                    style = TextStyle(color = ColorProvider(Color(0xFFAAAAAA)), fontSize = 12.sp)
                 )
             }
         } else {
             Text(
-                text = "☀️ --", 
-                style = TextStyle(color = ColorProvider(Color.White), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                text = "Data matahari belum tersedia",
+                style = TextStyle(color = ColorProvider(Color.White), fontSize = 15.sp, fontWeight = FontWeight.Bold)
             )
-            Spacer(modifier = GlanceModifier.height(8.dp))
+            Spacer(modifier = GlanceModifier.height(4.dp))
             Text(
-                text = "Next Event: --", 
-                style = TextStyle(color = ColorProvider(Color.White), fontSize = 14.sp)
-            )
-            Text(
-                text = "Mulai dalam",
-                style = TextStyle(color = ColorProvider(Color(0xFFAAAAAA)), fontSize = 12.sp)
+                text = "Golden Hour belum tersedia",
+                style = TextStyle(color = ColorProvider(Color(0xFFFFB347)), fontSize = 11.sp)
             )
             Text(
-                text = "--",
-                style = TextStyle(color = ColorProvider(Color(0xFFFAC248)), fontSize = 20.sp)
+                text = "Blue Hour belum tersedia",
+                style = TextStyle(color = ColorProvider(Color(0xFF5B8FD4)), fontSize = 11.sp)
             )
         }
     }
@@ -128,11 +161,15 @@ class SunWidget : GlanceAppWidget() {
 
         val location = locationRepository.currentOrSelectedLocation.first()
         val epochMillis = System.currentTimeMillis()
-        val sunInfo = astronomyRepository.getSunInfo(
-            location.latitude,
-            location.longitude,
-            epochMillis
-        ).first()
+        val sunInfo = runCatching {
+            astronomyRepository.getSunInfo(
+                location.latitude,
+                location.longitude,
+                epochMillis,
+            ).first()
+        }.onFailure { error ->
+            Log.w("SunWidget", "Sun data is unavailable for widget update", error)
+        }.getOrNull()
 
         provideContent {
             SunWidgetContent(sunInfo = sunInfo)

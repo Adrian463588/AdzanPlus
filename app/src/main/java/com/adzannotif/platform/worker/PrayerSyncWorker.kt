@@ -10,11 +10,11 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.adzannotif.domain.repository.AstronomyRepository
 import com.adzannotif.domain.repository.LocationRepository
 import com.adzannotif.domain.repository.PrayerTimesRepository
 import com.adzannotif.domain.repository.SettingsRepository
-import com.adzannotif.domain.usecase.SchedulePrayerAlarmsUseCase
+import com.adzannotif.platform.alarm.AdhanScheduler
+import com.adzannotif.platform.alarm.CelestialAlarmScheduler
 import com.adzannotif.widget.MoonWidget
 import com.adzannotif.widget.SunWidget
 import dagger.assisted.Assisted
@@ -37,8 +37,8 @@ class PrayerSyncWorker @AssistedInject constructor(
     private val prayerTimesRepository: PrayerTimesRepository,
     private val settingsRepository: SettingsRepository,
     private val locationRepository: LocationRepository,
-    private val schedulePrayerAlarmsUseCase: SchedulePrayerAlarmsUseCase,
-    private val astronomyRepository: AstronomyRepository,
+    private val adhanScheduler: AdhanScheduler,
+    private val celestialAlarmScheduler: CelestialAlarmScheduler,
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
@@ -56,8 +56,11 @@ class PrayerSyncWorker @AssistedInject constructor(
                 settings = settings
             )
 
-            // Reconcile and schedule upcoming alarms
-            schedulePrayerAlarmsUseCase()
+            // Reconcile prayer alarms only when exact alarm access is available.
+            // A denied permission is actionable but not a transient worker failure.
+            adhanScheduler.schedule().onFailure { error ->
+                Log.w(TAG, "Prayer alarms were not scheduled during sync", error)
+            }
 
             // Update Glance Widgets
             try {
@@ -67,12 +70,16 @@ class PrayerSyncWorker @AssistedInject constructor(
                 Log.w(TAG, "Failed to update glance widgets", e)
             }
 
-            // Schedule CelestialAlarmReceiver alarms
             val epochMillis = System.currentTimeMillis()
-            val sunInfo = astronomyRepository.getSunInfo(location.latitude, location.longitude, epochMillis).first()
-            val moonInfo = astronomyRepository.getMoonInfo(location.latitude, location.longitude, epochMillis).first()
-            scheduleCelestialAlarm(applicationContext, sunInfo.morningGoldenHourStartMillis, "golden_hour", "Morning Golden Hour")
-            scheduleCelestialAlarm(applicationContext, moonInfo.riseMillis, "moonrise", "Moonrise")
+            celestialAlarmScheduler.reconcile(
+                location = location,
+                fromMillis = epochMillis,
+                days = CELESTIAL_RECONCILIATION_DAYS,
+            ).onSuccess { scheduledCount ->
+                Log.d(TAG, "Reconciled $scheduledCount celestial alarms")
+            }.onFailure { error ->
+                Log.w(TAG, "Celestial alarms were not scheduled during sync", error)
+            }
 
             Log.d(TAG, "Daily prayer sync completed successfully")
             Result.success()
@@ -88,6 +95,7 @@ class PrayerSyncWorker @AssistedInject constructor(
 
     companion object {
         const val WORK_NAME = "PrayerSyncDailyWorker"
+        const val CELESTIAL_RECONCILIATION_DAYS = 7
         private const val TAG = "PrayerSyncWorker"
 
         fun enqueuePeriodicWork(context: Context) {
@@ -101,7 +109,7 @@ class PrayerSyncWorker @AssistedInject constructor(
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 WORK_NAME,
-                ExistingPeriodicWorkPolicy.KEEP,
+                ExistingPeriodicWorkPolicy.UPDATE,
                 request
             )
         }
@@ -122,25 +130,5 @@ class PrayerSyncWorker @AssistedInject constructor(
             return calendar.timeInMillis - now
         }
 
-        private fun scheduleCelestialAlarm(context: Context, timeMillis: Long?, eventType: String, eventLabel: String) {
-            if (timeMillis == null || timeMillis <= System.currentTimeMillis()) return
-            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
-            val intent = android.content.Intent(context, com.adzannotif.platform.receiver.CelestialAlarmReceiver::class.java).apply {
-                action = com.adzannotif.platform.receiver.CelestialAlarmReceiver.ACTION_CELESTIAL_ALARM
-                putExtra(com.adzannotif.platform.receiver.CelestialAlarmReceiver.EXTRA_EVENT_TYPE, eventType)
-                putExtra(com.adzannotif.platform.receiver.CelestialAlarmReceiver.EXTRA_EVENT_LABEL, eventLabel)
-            }
-            val pendingIntent = android.app.PendingIntent.getBroadcast(
-                context,
-                eventType.hashCode(),
-                intent,
-                android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
-            )
-            try {
-                alarmManager.setExactAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, timeMillis, pendingIntent)
-            } catch (e: SecurityException) {
-                alarmManager.set(android.app.AlarmManager.RTC_WAKEUP, timeMillis, pendingIntent)
-            }
-        }
     }
 }

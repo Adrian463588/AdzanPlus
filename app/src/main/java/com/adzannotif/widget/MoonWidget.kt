@@ -2,6 +2,7 @@ package com.adzannotif.widget
 
 import android.content.Context
 import android.os.SystemClock
+import android.util.Log
 import android.widget.RemoteViews
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -78,7 +79,7 @@ fun MoonWidgetContent(moonInfo: MoonInfo?) {
             Spacer(modifier = GlanceModifier.height(8.dp))
             
             val moonriseMillis = moonInfo.riseMillis
-            if (moonriseMillis != null) {
+            if (moonriseMillis != null && moonriseMillis > System.currentTimeMillis()) {
                 Text(
                     text = "Moonrise",
                     style = TextStyle(color = ColorProvider(Color.White), fontSize = 14.sp)
@@ -96,23 +97,23 @@ fun MoonWidgetContent(moonInfo: MoonInfo?) {
                 )
             } else {
                 Text(
-                    text = "No Moonrise Today",
+                    text = if (moonriseMillis == null) "Moonrise belum tersedia" else "Moonrise hari ini sudah berlalu",
                     style = TextStyle(color = ColorProvider(Color(0xFFAAAAAA)), fontSize = 14.sp)
                 )
             }
         } else {
             Text(
-                text = "🌑 --", 
+                text = "Data bulan belum tersedia",
                 style = TextStyle(color = ColorProvider(Color.White), fontSize = 16.sp, fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = GlanceModifier.height(4.dp))
             Text(
-                text = "Illum: -- • Dist: --", 
+                text = "Detail bulan belum tersedia",
                 style = TextStyle(color = ColorProvider(Color(0xFFAAAAAA)), fontSize = 12.sp)
             )
             Spacer(modifier = GlanceModifier.height(8.dp))
             Text(
-                text = "Moonrise: --", 
+                text = "Moonrise belum tersedia",
                 style = TextStyle(color = ColorProvider(Color.White), fontSize = 14.sp)
             )
         }
@@ -137,11 +138,15 @@ class MoonWidget : GlanceAppWidget() {
 
         val location = locationRepository.currentOrSelectedLocation.first()
         val epochMillis = System.currentTimeMillis()
-        val moonInfo = astronomyRepository.getMoonInfo(
-            location.latitude,
-            location.longitude,
-            epochMillis
-        ).first()
+        val moonInfo = runCatching {
+            astronomyRepository.getMoonInfo(
+                location.latitude,
+                location.longitude,
+                epochMillis,
+            ).first()
+        }.onFailure { error ->
+            Log.w("MoonWidget", "Moon data is unavailable for widget update", error)
+        }.getOrNull()
 
         provideContent {
             MoonWidgetContent(moonInfo = moonInfo)

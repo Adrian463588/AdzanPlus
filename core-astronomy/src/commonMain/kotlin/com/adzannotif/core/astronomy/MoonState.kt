@@ -5,7 +5,7 @@ data class MoonState(
     val riseMillis: Long?,
     val setMillis: Long?,
     val transitMillis: Long?,
-    val azimuthAtRise: Double,
+    val azimuthAtRise: Double?,
     val phase: MoonPhase,
     val illuminationFraction: Double,
     val ageInDays: Double,

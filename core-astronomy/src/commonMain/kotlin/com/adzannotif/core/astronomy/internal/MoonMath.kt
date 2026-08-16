@@ -10,8 +10,13 @@ import kotlin.math.asin
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atTime
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 
-internal object MoonMath {
+public object MoonMath {
     private fun julianDay(epochMillis: Long): Double {
         return epochMillis / 86400000.0 + 2440587.5
     }
@@ -36,7 +41,7 @@ internal object MoonMath {
         val mPrimeRad = mPrime.toRadians()
         val fRad = f.toRadians()
 
-        var sumL = 22640.0 * sin(mPrimeRad) - 4586.0 * sin(mPrimeRad - 2 * dRad) +
+        val sumL = 22640.0 * sin(mPrimeRad) - 4586.0 * sin(mPrimeRad - 2 * dRad) +
                 2370.0 * sin(2 * dRad) + 192.0 * sin(mPrimeRad + 2 * dRad) -
                 110.0 * sin(mPrimeRad + mRad) - 148.0 * sin(mPrimeRad - mRad) -
                 206.0 * sin(mPrimeRad + mRad - 2 * dRad) -
@@ -45,7 +50,7 @@ internal object MoonMath {
 
         val lambda = lPrime + sumL / 1000000.0
 
-        var sumB = 5128.0 * sin(fRad) + 280.0 * sin(mPrimeRad + fRad) + 277.0 * sin(mPrimeRad - fRad) +
+        val sumB = 5128.0 * sin(fRad) + 280.0 * sin(mPrimeRad + fRad) + 277.0 * sin(mPrimeRad - fRad) +
                 173.0 * sin(fRad - 2 * dRad) + 55.0 * sin(mPrimeRad + fRad - 2 * dRad) +
                 46.0 * sin(mPrimeRad - fRad + 2 * dRad) + 32.0 * sin(fRad + 2 * dRad) +
                 15.0 * sin(mPrimeRad + fRad + 2 * dRad)
@@ -78,21 +83,17 @@ internal object MoonMath {
     fun computeMoonPhase(epochMillis: Long): MoonPhase {
         val jd = julianDay(epochMillis)
         val t = julianCentury(jd)
-        val sunPos = SunMath.computeSunPosition(0.0, 0.0, 0.0, epochMillis)
         val d = (297.8501921 + 445267.1114034 * t - 0.0018819 * t * t).unwindAngle()
-        
-        val phaseAngle = d.unwindAngle()
-        val illumination = (1.0 - cos(phaseAngle.toRadians())) / 2.0
-        
-        val fraction = phaseAngle / 360.0
+
+        val fraction = d / 360.0
         return when {
-            fraction < 0.02 || fraction >= 0.98 -> MoonPhase.NEW_MOON
-            fraction < 0.25 -> MoonPhase.WAXING_CRESCENT
-            fraction < 0.27 -> MoonPhase.FIRST_QUARTER
-            fraction < 0.48 -> MoonPhase.WAXING_GIBBOUS
-            fraction < 0.52 -> MoonPhase.FULL_MOON
-            fraction < 0.75 -> MoonPhase.WANING_GIBBOUS
-            fraction < 0.77 -> MoonPhase.LAST_QUARTER
+            fraction < 1.0 / 16.0 || fraction >= 15.0 / 16.0 -> MoonPhase.NEW_MOON
+            fraction < 3.0 / 16.0 -> MoonPhase.WAXING_CRESCENT
+            fraction < 5.0 / 16.0 -> MoonPhase.FIRST_QUARTER
+            fraction < 7.0 / 16.0 -> MoonPhase.WAXING_GIBBOUS
+            fraction < 9.0 / 16.0 -> MoonPhase.FULL_MOON
+            fraction < 11.0 / 16.0 -> MoonPhase.WANING_GIBBOUS
+            fraction < 13.0 / 16.0 -> MoonPhase.LAST_QUARTER
             else -> MoonPhase.WANING_CRESCENT
         }
     }
@@ -119,17 +120,32 @@ internal object MoonMath {
         return 385000.56 - 20905.0 * cos(mPrime.toRadians()) - 3699.0 * cos((2 * d - mPrime).toRadians())
     }
 
-    fun computeMoonRise(lat: Double, lon: Double, dateMillis: Long): Long? {
-        return findMoonEvent(lat, lon, dateMillis, isRising = true)
+    fun computeMoonRise(
+        lat: Double,
+        lon: Double,
+        dateMillis: Long,
+        timeZone: TimeZone = TimeZone.UTC,
+    ): Long? {
+        return findMoonEvent(lat, lon, dateMillis, isRising = true, timeZone = timeZone)
     }
 
-    fun computeMoonSet(lat: Double, lon: Double, dateMillis: Long): Long? {
-        return findMoonEvent(lat, lon, dateMillis, isRising = false)
+    fun computeMoonSet(
+        lat: Double,
+        lon: Double,
+        dateMillis: Long,
+        timeZone: TimeZone = TimeZone.UTC,
+    ): Long? {
+        return findMoonEvent(lat, lon, dateMillis, isRising = false, timeZone = timeZone)
     }
 
-    fun computeMoonTransit(lat: Double, lon: Double, dateMillis: Long): Long? {
+    fun computeMoonTransit(
+        lat: Double,
+        lon: Double,
+        dateMillis: Long,
+        timeZone: TimeZone = TimeZone.UTC,
+    ): Long? {
         // Approximate transit time by finding max altitude in 24h
-        val startOfDay = (dateMillis / 86400000L) * 86400000L
+        val startOfDay = startOfDay(dateMillis, timeZone)
         var maxAlt = -90.0
         var transitTime = startOfDay
         for (i in 0..24) {
@@ -143,8 +159,14 @@ internal object MoonMath {
         return transitTime
     }
     
-    private fun findMoonEvent(lat: Double, lon: Double, dateMillis: Long, isRising: Boolean): Long? {
-        val startOfDay = (dateMillis / 86400000L) * 86400000L
+    private fun findMoonEvent(
+        lat: Double,
+        lon: Double,
+        dateMillis: Long,
+        isRising: Boolean,
+        timeZone: TimeZone,
+    ): Long? {
+        val startOfDay = startOfDay(dateMillis, timeZone)
         var prevAlt = computeMoonPosition(lat, lon, 0.0, startOfDay).altitude
         for (i in 1..144) { // 10-minute intervals
             val ms = startOfDay + i * 600000L
@@ -158,5 +180,10 @@ internal object MoonMath {
             prevAlt = currAlt
         }
         return null
+    }
+
+    private fun startOfDay(millis: Long, timeZone: TimeZone): Long {
+        val localDate = Instant.fromEpochMilliseconds(millis).toLocalDateTime(timeZone).date
+        return localDate.atTime(0, 0).toInstant(timeZone).toEpochMilliseconds()
     }
 }

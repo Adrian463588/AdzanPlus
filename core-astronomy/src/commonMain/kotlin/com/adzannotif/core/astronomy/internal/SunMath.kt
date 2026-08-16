@@ -10,8 +10,13 @@ import kotlin.math.asin
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atTime
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 
-internal object SunMath {
+public object SunMath {
     fun julianDay(epochMillis: Long): Double {
         return epochMillis / 86400000.0 + 2440587.5
     }
@@ -73,16 +78,31 @@ internal object SunMath {
         return (sinDec / cosDec) * cosLat
     }
 
-    fun computeSunRise(lat: Double, lon: Double, dateMillis: Long): Long? {
-        return findSolarEvent(lat, lon, dateMillis, -0.833, true)
+    fun computeSunRise(
+        lat: Double,
+        lon: Double,
+        dateMillis: Long,
+        timeZone: TimeZone = TimeZone.UTC,
+    ): Long? {
+        return findSolarEvent(lat, lon, dateMillis, -0.833, true, timeZone)
     }
 
-    fun computeSunSet(lat: Double, lon: Double, dateMillis: Long): Long? {
-        return findSolarEvent(lat, lon, dateMillis, -0.833, false)
+    fun computeSunSet(
+        lat: Double,
+        lon: Double,
+        dateMillis: Long,
+        timeZone: TimeZone = TimeZone.UTC,
+    ): Long? {
+        return findSolarEvent(lat, lon, dateMillis, -0.833, false, timeZone)
     }
 
-    fun computeSolarNoon(lat: Double, lon: Double, dateMillis: Long): Long {
-        var approx = startOfDay(dateMillis) + 43200000L - (lon * 240000L).toLong()
+    fun computeSolarNoon(
+        lat: Double,
+        lon: Double,
+        dateMillis: Long,
+        timeZone: TimeZone = TimeZone.UTC,
+    ): Long {
+        var approx = startOfDay(dateMillis, timeZone) + 43200000L - (lon * 240000L).toLong()
         // Simple convergence
         for (i in 0..2) {
             val jd = julianDay(approx)
@@ -101,24 +121,35 @@ internal object SunMath {
                          1.25 * e * e * sin(2.0 * m.toRadians())
                          
             val eqTimeMins = eqTime.toDegrees() * 4.0
-            approx = startOfDay(dateMillis) + 43200000L - (lon * 240000L).toLong() - (eqTimeMins * 60000L).toLong()
+            approx = startOfDay(dateMillis, timeZone) + 43200000L - (lon * 240000L).toLong() - (eqTimeMins * 60000L).toLong()
         }
         return approx
     }
 
-    fun computeTwilightTimes(lat: Double, lon: Double, dateMillis: Long): TwilightTimes {
-        val civilDawn = findSolarEvent(lat, lon, dateMillis, -6.0, true)
-        val nauticalDawn = findSolarEvent(lat, lon, dateMillis, -12.0, true)
-        val astroDawn = findSolarEvent(lat, lon, dateMillis, -18.0, true)
-        val civilDusk = findSolarEvent(lat, lon, dateMillis, -6.0, false)
-        val nauticalDusk = findSolarEvent(lat, lon, dateMillis, -12.0, false)
-        val astroDusk = findSolarEvent(lat, lon, dateMillis, -18.0, false)
+    fun computeTwilightTimes(
+        lat: Double,
+        lon: Double,
+        dateMillis: Long,
+        timeZone: TimeZone = TimeZone.UTC,
+    ): TwilightTimes {
+        val civilDawn = findSolarEvent(lat, lon, dateMillis, -6.0, true, timeZone)
+        val nauticalDawn = findSolarEvent(lat, lon, dateMillis, -12.0, true, timeZone)
+        val astroDawn = findSolarEvent(lat, lon, dateMillis, -18.0, true, timeZone)
+        val civilDusk = findSolarEvent(lat, lon, dateMillis, -6.0, false, timeZone)
+        val nauticalDusk = findSolarEvent(lat, lon, dateMillis, -12.0, false, timeZone)
+        val astroDusk = findSolarEvent(lat, lon, dateMillis, -18.0, false, timeZone)
         return TwilightTimes(civilDawn, nauticalDawn, astroDawn, astroDusk, nauticalDusk, civilDusk)
     }
 
-    private fun findSolarEvent(lat: Double, lon: Double, dateMillis: Long, targetAlt: Double, isRising: Boolean): Long? {
-        val startOfDay = startOfDay(dateMillis)
-        val noon = computeSolarNoon(lat, lon, dateMillis)
+    private fun findSolarEvent(
+        lat: Double,
+        lon: Double,
+        dateMillis: Long,
+        targetAlt: Double,
+        isRising: Boolean,
+        timeZone: TimeZone,
+    ): Long? {
+        val noon = computeSolarNoon(lat, lon, dateMillis, timeZone)
         
         val jdNoon = julianDay(noon)
         val t = julianCentury(jdNoon)
@@ -142,9 +173,8 @@ internal object SunMath {
         return if (isRising) noon - offset else noon + offset
     }
 
-    private fun startOfDay(millis: Long): Long {
-        val tzOffset = 0L // Assuming UTC input or we align to roughly local day
-        // To be simpler, just round to nearest day in UTC
-        return (millis / 86400000L) * 86400000L
+    private fun startOfDay(millis: Long, timeZone: TimeZone): Long {
+        val localDate = Instant.fromEpochMilliseconds(millis).toLocalDateTime(timeZone).date
+        return localDate.atTime(0, 0).toInstant(timeZone).toEpochMilliseconds()
     }
 }

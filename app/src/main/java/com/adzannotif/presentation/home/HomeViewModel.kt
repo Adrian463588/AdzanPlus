@@ -8,6 +8,7 @@ import com.adzannotif.domain.model.LocationInfo
 import com.adzannotif.domain.model.PrayerTimeRecord
 import com.adzannotif.domain.model.UserSettings
 import com.adzannotif.domain.repository.LocationRepository
+import com.adzannotif.domain.repository.AstronomyRepository
 import com.adzannotif.domain.repository.SettingsRepository
 import com.adzannotif.domain.usecase.GetNextPrayerUseCase
 import com.adzannotif.domain.usecase.GetTodayPrayerTimesUseCase
@@ -30,17 +31,18 @@ import kotlinx.datetime.Instant
 import javax.inject.Inject
 
 data class HomeUiState(
-    val location: LocationInfo = LocationInfo.JAKARTA,
+    val location: LocationInfo? = null,
     val prayerTimes: PrayerTimeRecord? = null,
-    val nextPrayer: Prayer = Prayer.FAJR,
+    val nextPrayer: Prayer? = null,
     val nextPrayerTarget: Instant? = null,
     val currentPrayer: Prayer? = null,
     val countdownSeconds: Long = 0L,
-    val hijriDateFormatted: String = "29 Shafar 1448 H",
+    val hijriDateFormatted: String? = null,
     val alarmSettings: AllAlarmSettings = AllAlarmSettings(),
     val userSettings: UserSettings = UserSettings(),
-    val isOnline: Boolean = true,
+    val isOnline: Boolean = false,
     val isRefreshingGps: Boolean = false,
+    val locationError: String? = null,
     val isLoading: Boolean = false,
 )
 
@@ -55,6 +57,7 @@ class HomeViewModel @Inject constructor(
     private val getTodayPrayerTimesUseCase: GetTodayPrayerTimesUseCase,
     private val getNextPrayerUseCase: GetNextPrayerUseCase,
     private val settingsRepository: SettingsRepository,
+    private val astronomyRepository: AstronomyRepository,
     private val locationRepository: LocationRepository,
     private val schedulePrayerAlarmsUseCase: SchedulePrayerAlarmsUseCase,
     private val networkMonitor: NetworkMonitor,
@@ -63,13 +66,15 @@ class HomeViewModel @Inject constructor(
     private val _countdownSeconds = MutableStateFlow(0L)
     private val _isRefreshingGps = MutableStateFlow(false)
     private val _nextPrayerTarget = MutableStateFlow<Instant?>(null)
+    private val _hijriDateFormatted = MutableStateFlow<String?>(null)
+    private val _locationError = MutableStateFlow<String?>(null)
 
     private val prayerInfoFlow = combine(
         locationRepository.currentOrSelectedLocation,
         getTodayPrayerTimesUseCase(),
         getNextPrayerUseCase(),
     ) { location, todayRecord, nextInfo ->
-        val target = nextInfo?.targetTime ?: todayRecord.fajr
+        val target = nextInfo?.targetTime
         _nextPrayerTarget.value = target
         updateCountdownNow(target)
         Triple(location, todayRecord, nextInfo)
@@ -79,37 +84,39 @@ class HomeViewModel @Inject constructor(
         settingsRepository.alarmSettings,
         settingsRepository.userSettings,
         _countdownSeconds,
-    ) { alarmSettings, userSettings, countdown ->
-        Triple(alarmSettings, userSettings, countdown)
+        _hijriDateFormatted,
+    ) { alarmSettings, userSettings, countdown, hijriDateFormatted ->
+        HomeSettingsSnapshot(alarmSettings, userSettings, countdown, hijriDateFormatted)
     }
 
     private val connectivityFlow = combine(
         networkMonitor.isOnline,
         _isRefreshingGps,
-        ::Pair
-    )
+        _locationError,
+    ) { isOnline, isRefreshing, locationError ->
+        HomeConnectivitySnapshot(isOnline, isRefreshing, locationError)
+    }
 
     val uiState: StateFlow<HomeUiState> = combine(
         prayerInfoFlow,
         settingsStateFlow,
         connectivityFlow
-    ) { (location, todayRecord, nextInfo), (alarmSettings, userSettings, countdown), (isOnline, isRefreshing) ->
-        val nextPrayer = nextInfo?.nextPrayer ?: Prayer.FAJR
-        val nextTarget = nextInfo?.targetTime ?: todayRecord.fajr
+    ) { (location, todayRecord, nextInfo), settings, connectivity ->
         val current = nextInfo?.currentPrayer ?: todayRecord.findCurrentPrayer(Clock.System.now())
 
         HomeUiState(
             location = location,
             prayerTimes = todayRecord,
-            nextPrayer = nextPrayer,
-            nextPrayerTarget = nextTarget,
+            nextPrayer = nextInfo?.nextPrayer,
+            nextPrayerTarget = nextInfo?.targetTime,
             currentPrayer = current,
-            countdownSeconds = countdown,
-            hijriDateFormatted = "29 Shafar 1448 H",
-            alarmSettings = alarmSettings,
-            userSettings = userSettings,
-            isOnline = isOnline,
-            isRefreshingGps = isRefreshing,
+            countdownSeconds = settings.countdown,
+            hijriDateFormatted = settings.hijriDateFormatted,
+            alarmSettings = settings.alarmSettings,
+            userSettings = settings.userSettings,
+            isOnline = connectivity.isOnline,
+            isRefreshingGps = connectivity.isRefreshing,
+            locationError = connectivity.locationError,
             isLoading = false
         )
     }.stateIn(
@@ -120,7 +127,21 @@ class HomeViewModel @Inject constructor(
 
     init {
         startCountdownTicker()
+        refreshHijriDate()
         scheduleInitialAlarms()
+    }
+
+    private fun refreshHijriDate() {
+        viewModelScope.launch {
+            runCatching {
+                astronomyRepository.getHijriDate(Clock.System.now().toEpochMilliseconds())
+            }.onSuccess { hijriDate ->
+                _hijriDateFormatted.value =
+                    "${hijriDate.day} ${hijriDate.monthName} ${hijriDate.year} H"
+            }.onFailure {
+                _hijriDateFormatted.value = null
+            }
+        }
     }
 
     private fun updateCountdownNow(target: Instant?) {
@@ -160,15 +181,21 @@ class HomeViewModel @Inject constructor(
             is HomeUiAction.RefreshLocation -> {
                 viewModelScope.launch {
                     _isRefreshingGps.value = true
+                    _locationError.value = null
                     try {
-                        locationRepository.getDeviceLocation().onSuccess { loc ->
-                            locationRepository.saveLocation(loc)
-                            settingsRepository.updateUserSettings {
-                                it.copy(selectedLocation = loc, useAutoLocation = true)
+                        locationRepository.getDeviceLocation()
+                            .onSuccess { loc ->
+                                locationRepository.saveLocation(loc)
+                                settingsRepository.updateUserSettings {
+                                    it.copy(selectedLocation = loc, useAutoLocation = true)
+                                }
+                                schedulePrayerAlarmsUseCase()
+                                PrayerTimesWidgetReceiver.updateAll(context)
                             }
-                            schedulePrayerAlarmsUseCase()
-                            PrayerTimesWidgetReceiver.updateAll(context)
-                        }
+                            .onFailure { error ->
+                                _locationError.value = error.message
+                                    ?.takeIf(String::isNotBlank)
+                            }
                     } finally {
                         _isRefreshingGps.value = false
                     }
@@ -176,4 +203,17 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+    private data class HomeSettingsSnapshot(
+        val alarmSettings: AllAlarmSettings,
+        val userSettings: UserSettings,
+        val countdown: Long,
+        val hijriDateFormatted: String?,
+    )
+
+    private data class HomeConnectivitySnapshot(
+        val isOnline: Boolean,
+        val isRefreshing: Boolean,
+        val locationError: String?,
+    )
 }

@@ -1,6 +1,5 @@
 package com.adzannotif.presentation.astronomy.sun
 
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -25,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.adzannotif.core.astronomy.internal.SunMath
+import com.adzannotif.domain.model.LocationInfo
 import com.adzannotif.domain.model.astronomy.SunInfo
 import com.adzannotif.presentation.theme.*
 import java.text.SimpleDateFormat
@@ -43,7 +44,12 @@ fun SunDetailScreen(
         containerColor = AstronomyBackgroundDeep,
         topBar = {
             TopAppBar(
-                title = { Text("Detail Matahari & Fotografi", color = AstronomyStarWhite) },
+                title = {
+                    Column {
+                        Text("Detail Matahari & Fotografi", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = AstronomyStarWhite)
+                        Text("Elevasi Fisik & Hisab Cahaya", style = MaterialTheme.typography.bodySmall, color = AstronomyTwilightCivil)
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
@@ -75,19 +81,29 @@ fun SunDetailScreen(
                 item { Text(text = uiState.error!!, color = MaterialTheme.colorScheme.error) }
             } else {
                 val sunInfo = uiState.sunInfo
+                val location = uiState.location ?: LocationInfo.JAKARTA
 
                 item {
-                    SunArcVisualization(sunInfo)
+                    PhysicallyAccurateSunArc(
+                        sunInfo = sunInfo,
+                        location = location,
+                        scrubbedTime = uiState.scrubbedTimeMillis,
+                        onScrubTime = { viewModel.setScrubbedTime(it) }
+                    )
                 }
+
                 item {
                     GoldenBlueHourDetailCards(sunInfo)
                 }
+
                 item {
                     PhotographyTipsCard(sunInfo)
                 }
+
                 item {
                     TwilightBandTimeline()
                 }
+
                 item {
                     KeyTimesList(sunInfo)
                 }
@@ -97,15 +113,39 @@ fun SunDetailScreen(
 }
 
 @Composable
-fun SunArcVisualization(sunInfo: SunInfo?) {
-    var selectedHourFraction by remember { mutableFloatStateOf(0.5f) } // 0.0 to 1.0 (0h to 24h)
+fun PhysicallyAccurateSunArc(
+    sunInfo: SunInfo?,
+    location: LocationInfo,
+    scrubbedTime: Long?,
+    onScrubTime: (Long?) -> Unit
+) {
+    val currentTime = System.currentTimeMillis()
+    val activeTime = scrubbedTime ?: currentTime
 
-    val altitude = sunInfo?.altitude ?: 0.0
-    val azimuth = sunInfo?.azimuth ?: 0.0
+    // Compute active real solar coordinates
+    val activePos = remember(activeTime, location) {
+        SunMath.computeSunPosition(location.latitude, location.longitude, 0.0, activeTime)
+    }
+
+    val noonMillis = sunInfo?.noonMillis ?: currentTime
+    val dayStart = noonMillis - 43200000L // 12 hours before noon
+    val dayEnd = noonMillis + 43200000L   // 12 hours after noon
+
+    // Sample 48 real points across 24h
+    val sampledPoints = remember(location, noonMillis) {
+        (0..48).map { step ->
+            val t = dayStart + step * 1800000L // 30 min step
+            val pos = SunMath.computeSunPosition(location.latitude, location.longitude, 0.0, t)
+            t to pos.altitude
+        }
+    }
+
+    val fmt = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     Card(
         colors = CardDefaults.cardColors(containerColor = AstronomySurface),
         shape = RoundedCornerShape(16.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, AstronomySunAmber.copy(alpha = 0.3f)),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -116,14 +156,14 @@ fun SunArcVisualization(sunInfo: SunInfo?) {
             ) {
                 Column {
                     Text(
-                        "Busur Elevasi Matahari",
+                        "Busur Elevasi Matahari Fisik (24 Jam)",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = AstronomyStarWhite
                     )
                     Text(
-                        "Posisi saat ini: Alt ${String.format("%.1f°", altitude)}, Az ${String.format("%.1f°", azimuth)}",
+                        "Waktu: ${fmt.format(Date(activeTime))} • Alt: ${String.format("%.1f°", activePos.altitude)} • Az: ${String.format("%.1f°", activePos.azimuth)}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = AstronomySunAmber
+                        color = if (activePos.altitude >= 0) AstronomySunAmber else AstronomyTwilightCivil
                     )
                 }
                 Box(
@@ -132,54 +172,129 @@ fun SunArcVisualization(sunInfo: SunInfo?) {
                         .background(AstronomySunAmber.copy(alpha = 0.2f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Filled.WbSunny, contentDescription = null, tint = AstronomySunAmber, modifier = Modifier.size(20.dp))
+                    Icon(
+                        Icons.Filled.WbSunny,
+                        contentDescription = null,
+                        tint = if (activePos.altitude >= 0) AstronomySunAmber else AstronomyTwilightCivil,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Canvas(modifier = Modifier.fillMaxWidth().height(160.dp)) {
-                val baselineY = size.height * 0.75f
+            Canvas(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+            ) {
                 val w = size.width
+                val h = size.height
+                val horizonY = h * 0.65f // Horizon baseline (0 deg altitude)
+                val peakY = h * 0.10f    // Max zenith altitude (90 deg)
 
-                // Horizon line
+                // 1. Draw Horizon Line (0 deg)
                 drawLine(
-                    color = AstronomyHorizon.copy(alpha = 0.7f),
-                    start = Offset(0f, baselineY),
-                    end = Offset(w, baselineY),
+                    color = AstronomyHorizon.copy(alpha = 0.8f),
+                    start = Offset(0f, horizonY),
+                    end = Offset(w, horizonY),
                     strokeWidth = 2f
                 )
 
-                // Sun Arc Parabola
-                val path = Path().apply {
-                    moveTo(w * 0.1f, baselineY)
-                    quadraticTo(w * 0.5f, size.height * 0.1f, w * 0.9f, baselineY)
+                // 2. Draw Civil Twilight line (-6 deg)
+                val civilTwilightY = horizonY + (horizonY - peakY) * (6f / 90f)
+                drawLine(
+                    color = AstronomyTwilightCivil.copy(alpha = 0.3f),
+                    start = Offset(0f, civilTwilightY),
+                    end = Offset(w, civilTwilightY),
+                    strokeWidth = 1f
+                )
+
+                // 3. Draw Continuous Real Astronomical Curve
+                val curvePath = Path()
+                sampledPoints.forEachIndexed { index, (time, alt) ->
+                    val fraction = index / 48f
+                    val x = w * fraction
+                    // Map altitude: alt = 90 -> peakY, alt = 0 -> horizonY, alt = -90 -> below
+                    val y = horizonY - (horizonY - peakY) * (alt.toFloat() / 90f)
+                    if (index == 0) {
+                        curvePath.moveTo(x, y.coerceIn(0f, h))
+                    } else {
+                        curvePath.lineTo(x, y.coerceIn(0f, h))
+                    }
                 }
 
                 drawPath(
-                    path = path,
-                    color = AstronomySunAmber.copy(alpha = 0.6f),
-                    style = Stroke(width = 3f)
+                    path = curvePath,
+                    color = AstronomySunAmber.copy(alpha = 0.85f),
+                    style = Stroke(width = 3.5f)
                 )
 
-                // Current Sun Dot position
-                val normAlt = (altitude.coerceIn(-10.0, 90.0) / 90.0).toFloat()
-                val dotY = (baselineY - (baselineY - size.height * 0.1f) * normAlt).coerceIn(size.height * 0.05f, baselineY + 20f)
-                val dotX = w * 0.5f // Solar noon centered
+                // 4. Draw Current / Scrubbed Sun Marker
+                val activeFraction = ((activeTime - dayStart).toFloat() / 86400000f).coerceIn(0f, 1f)
+                val markerX = w * activeFraction
+                val markerY = (horizonY - (horizonY - peakY) * (activePos.altitude.toFloat() / 90f)).coerceIn(0f, h)
 
-                // Glow circle
-                drawCircle(color = AstronomySunAmber.copy(alpha = 0.25f), radius = 18f, center = Offset(dotX, dotY))
-                drawCircle(color = AstronomySunAmber, radius = 8f, center = Offset(dotX, dotY))
-                drawCircle(color = Color.White, radius = 3f, center = Offset(dotX, dotY))
+                // Marker Glow
+                drawCircle(
+                    color = (if (activePos.altitude >= 0) AstronomySunAmber else AstronomyTwilightCivil).copy(alpha = 0.25f),
+                    radius = 20f,
+                    center = Offset(markerX, markerY)
+                )
+                drawCircle(
+                    color = if (activePos.altitude >= 0) AstronomySunAmber else AstronomyTwilightCivil,
+                    radius = 9f,
+                    center = Offset(markerX, markerY)
+                )
+                drawCircle(
+                    color = Color.White,
+                    radius = 3.5f,
+                    center = Offset(markerX, markerY)
+                )
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Time Scrubber Slider
+            var sliderProgress by remember(activeTime) {
+                mutableFloatStateOf(((activeTime - dayStart).toFloat() / 86400000f).coerceIn(0f, 1f))
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Simulasi Waktu: ${fmt.format(Date(activeTime))}", color = AstronomyStarWhite, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold))
+                if (scrubbedTime != null) {
+                    TextButton(onClick = { onScrubTime(null) }, contentPadding = PaddingValues(0.dp)) {
+                        Text("Reset Sekarang", color = AstronomySunAmber, style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+            }
+
+            Slider(
+                value = sliderProgress,
+                onValueChange = {
+                    sliderProgress = it
+                    val newTime = dayStart + (it * 86400000f).toLong()
+                    onScrubTime(newTime)
+                },
+                valueRange = 0f..1f,
+                colors = SliderDefaults.colors(
+                    thumbColor = AstronomySunAmber,
+                    activeTrackColor = AstronomyGoldenHour,
+                    inactiveTrackColor = AstronomySurface
+                )
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Timur (Terbit)", style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
-                Text("Zenith (Puncak)", style = MaterialTheme.typography.labelSmall, color = AstronomySunAmber)
-                Text("Barat (Terbenam)", style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
+                Text("00:00 (Malam)", style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
+                Text("12:00 (Siang)", style = MaterialTheme.typography.labelSmall, color = AstronomySunAmber)
+                Text("24:00 (Malam)", style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
             }
         }
     }
@@ -263,7 +378,7 @@ fun PhotographyTipsCard(sunInfo: SunInfo?) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    "Golden Hour menghasilkan bayangan lembut dan warna emas hangat, sangat ideal untuk portrait dan landscape. Blue Hour memberikan kontras dramatis antara langit biru pekat dan lampu kota.",
+                    "Golden Hour (-4° s/d +6°) menghasilkan bayangan lembut dan warna emas hangat. Blue Hour (-6° s/d -4°) memberikan kontras biru pekat dan gradasi langit senja/fajar yang kaya.",
                     style = MaterialTheme.typography.bodySmall,
                     color = AstronomyTwilightCivil
                 )
@@ -319,13 +434,15 @@ fun KeyTimesList(sunInfo: SunInfo?) {
             )
             times.forEach { (label, time) ->
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(label, color = AstronomyStarWhite, style = MaterialTheme.typography.bodyMedium)
                     Text(time, color = AstronomySunAmber, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
                 }
-                HorizontalDivider(color = AstronomySurface.copy(alpha = 0.5f), thickness = 0.5.dp)
+                HorizontalDivider(color = AstronomyConstellationLine.copy(alpha = 0.2f), thickness = 0.5.dp)
             }
         }
     }

@@ -10,7 +10,7 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
-internal object StarMath {
+public object StarMath {
     fun computeStarPosition(star: Star, lat: Double, lon: Double, epochMillis: Long): StarPosition {
         val lst = computeLST(lon, epochMillis)
         val (alt, az) = raDecToAltAz(star.ra, star.dec, lat, lst)

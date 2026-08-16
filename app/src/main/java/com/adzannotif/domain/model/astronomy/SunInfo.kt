@@ -7,8 +7,8 @@ data class SunInfo(
     val noonMillis: Long?,
     val azimuth: Double,
     val altitude: Double,
-    val azimuthAtRise: Double,
-    val azimuthAtSet: Double,
+    val azimuthAtRise: Double?,
+    val azimuthAtSet: Double?,
     val currentPhase: String,  // SolarPhase.displayName
     val civilDawnMillis: Long?,
     val civilDuskMillis: Long?,

@@ -31,6 +31,7 @@ data class UserSettings(
     val selectedLocation: LocationInfo = LocationInfo.JAKARTA,
 ) {
     fun toPrayerAdjustments(): PrayerAdjustments = PrayerAdjustments(
+        imsak = ihtiyatMinutes,
         fajr = fajrAdjustment,
         sunrise = 0,
         dhuhr = dhuhrAdjustment,

@@ -5,8 +5,8 @@ data class SunState(
     val riseMillis: Long?,
     val setMillis: Long?,
     val noonMillis: Long?,
-    val azimuthAtRise: Double,
-    val azimuthAtSet: Double,
+    val azimuthAtRise: Double?,
+    val azimuthAtSet: Double?,
     val twilight: TwilightTimes,
     val goldenBlueHour: GoldenBlueHour,
     val currentPhase: SolarPhase

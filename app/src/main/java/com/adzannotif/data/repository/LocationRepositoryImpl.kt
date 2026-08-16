@@ -46,11 +46,7 @@ class LocationRepositoryImpl @Inject constructor(
     }
 
     override val favoriteLocations: Flow<List<LocationInfo>> = savedLocationDao.getAllLocations().map { list ->
-        if (list.isEmpty()) {
-            listOf(LocationInfo.JAKARTA)
-        } else {
-            list.map { it.toDomain() }
-        }
+        list.map { it.toDomain() }
     }
 
     @SuppressLint("MissingPermission")
@@ -99,14 +95,17 @@ class LocationRepositoryImpl @Inject constructor(
                     )
                     Result.success(locationInfo)
                 } else {
-                    // Fallback to Jakarta
-                    Result.success(LocationInfo.JAKARTA)
+                    Result.failure(LocationUnavailableException())
                 }
             } catch (e: Exception) {
                 Result.failure(e)
             }
         }
     }
+
+    class LocationUnavailableException : IllegalStateException(
+        "Device location is unavailable; choose an offline city or enter coordinates manually",
+    )
 
     private data class ResolvedName(val name: String, val country: String)
 

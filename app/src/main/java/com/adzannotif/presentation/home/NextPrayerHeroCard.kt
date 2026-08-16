@@ -1,10 +1,5 @@
 package com.adzannotif.presentation.home
 
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,16 +21,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.adzannotif.R
 import com.adzannotif.core.prayer.Prayer
 import com.adzannotif.domain.model.LocationInfo
+import com.adzannotif.presentation.common.localizedName
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -47,7 +47,7 @@ fun NextPrayerHeroCard(
     targetInstant: Instant,
     countdownSecondsRemaining: Long,
     location: LocationInfo,
-    hijriDateFormatted: String,
+    hijriDateFormatted: String?,
     modifier: Modifier = Modifier,
 ) {
     val targetLocal = targetInstant.toLocalDateTime(TimeZone.of(location.timeZoneId))
@@ -59,21 +59,9 @@ fun NextPrayerHeroCard(
     val seconds = safeSeconds % 60
     val countdownFormatted = String.format(Locale.US, "-%02d:%02d:%02d", hours, minutes, seconds)
 
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse_hero")
-    val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.02f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1500),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulse"
-    )
-
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .scale(pulseScale),
+            .fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -129,7 +117,7 @@ fun NextPrayerHeroCard(
                     }
 
                     Text(
-                        text = hijriDateFormatted,
+                        text = hijriDateFormatted ?: stringResource(R.string.hijri_unavailable),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                     )
@@ -139,7 +127,7 @@ fun NextPrayerHeroCard(
 
                 // Center: Next Prayer Title
                 Text(
-                    text = "MENUJU SHOLAT",
+                    text = stringResource(R.string.remaining_time).uppercase(),
                     style = MaterialTheme.typography.labelMedium,
                     letterSpacing = 2.sp,
                     color = MaterialTheme.colorScheme.primary,
@@ -149,7 +137,7 @@ fun NextPrayerHeroCard(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = nextPrayer.displayNameId.uppercase(),
+                    text = nextPrayer.localizedName().uppercase(),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -162,7 +150,11 @@ fun NextPrayerHeroCard(
                     "Asia/Riyadh" -> "AST"
                     else -> ""
                 }
-                val timeLabel = if (tzSuffix.isNotEmpty()) "Pukul $targetFormatted $tzSuffix" else "Pukul $targetFormatted"
+                val timeLabel = if (tzSuffix.isNotEmpty()) {
+                    stringResource(R.string.prayer_time_with_zone, targetFormatted, tzSuffix)
+                } else {
+                    stringResource(R.string.prayer_time, targetFormatted)
+                }
 
                 Text(
                     text = timeLabel,
@@ -171,6 +163,13 @@ fun NextPrayerHeroCard(
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
+
+                val prayerName = nextPrayer.localizedName()
+                val countdownDesc = stringResource(
+                    R.string.next_prayer_countdown_description,
+                    prayerName,
+                    countdownFormatted
+                )
 
                 // Large Countdown Display
                 Surface(
@@ -186,7 +185,12 @@ fun NextPrayerHeroCard(
                             letterSpacing = (-0.5).sp
                         ),
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                        modifier = Modifier
+                            .padding(horizontal = 20.dp, vertical = 8.dp)
+                            .semantics {
+                                contentDescription = countdownDesc
+                                liveRegion = LiveRegionMode.Polite
+                            },
                     )
                 }
             }

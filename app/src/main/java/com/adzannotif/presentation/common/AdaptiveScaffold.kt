@@ -1,5 +1,7 @@
 package com.adzannotif.presentation.common
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -16,8 +18,13 @@ import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.adzannotif.presentation.theme.AstronomyBackgroundDeep
+import com.adzannotif.presentation.theme.AstronomyMoonGold
+import com.adzannotif.presentation.theme.AstronomyStarWhite
+import com.adzannotif.presentation.theme.AstronomyTwilightCivil
 
 enum class WindowWidthSizeClass {
     COMPACT,
@@ -31,6 +38,18 @@ fun AdaptiveScaffold(
     onNavigate: (Screen) -> Unit,
     content: @Composable (WindowWidthSizeClass) -> Unit
 ) {
+    val isAstronomyRoute = currentRoute == Screen.AstronomyDashboard.route ||
+            currentRoute == Screen.MoonDetail.route ||
+            currentRoute == Screen.SunDetail.route ||
+            currentRoute == Screen.StarMap.route ||
+            currentRoute == Screen.HijriCalendar.route
+
+    val navBarContainerColor by animateColorAsState(
+        targetValue = if (isAstronomyRoute) AstronomyBackgroundDeep else MaterialTheme.colorScheme.surface,
+        animationSpec = tween(300),
+        label = "navBarContainerColor"
+    )
+
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val widthClass = when {
             maxWidth < 600.dp -> WindowWidthSizeClass.COMPACT
@@ -42,11 +61,11 @@ fun AdaptiveScaffold(
             Scaffold(
                 bottomBar = {
                     NavigationBar(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        containerColor = navBarContainerColor,
+                        contentColor = if (isAstronomyRoute) AstronomyStarWhite else MaterialTheme.colorScheme.onSurface,
                     ) {
                         Screen.items.forEach { screen ->
-                            val selected = currentRoute == screen.route
+                            val selected = screen.matchesRoute(currentRoute)
                             NavigationBarItem(
                                 selected = selected,
                                 onClick = { onNavigate(screen) },
@@ -57,11 +76,23 @@ fun AdaptiveScaffold(
                                     )
                                 },
                                 label = { Text(screen.title) },
-                                colors = NavigationBarItemDefaults.colors(
-                                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                                    selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                                )
+                                colors = if (isAstronomyRoute) {
+                                    NavigationBarItemDefaults.colors(
+                                        indicatorColor = AstronomyMoonGold.copy(alpha = 0.2f),
+                                        selectedIconColor = AstronomyMoonGold,
+                                        selectedTextColor = AstronomyMoonGold,
+                                        unselectedIconColor = AstronomyTwilightCivil,
+                                        unselectedTextColor = AstronomyTwilightCivil
+                                    )
+                                } else {
+                                    NavigationBarItemDefaults.colors(
+                                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             )
                         }
                     }
@@ -76,15 +107,15 @@ fun AdaptiveScaffold(
                 }
             }
         } else {
-            // Medium / Expanded: Navigation Rail for Tablets / Foldables / Landscape
+            // Medium / Expanded: Navigation Rail for tablets, foldables, and landscape.
             Row(modifier = Modifier.fillMaxSize()) {
                 NavigationRail(
                     modifier = Modifier.fillMaxHeight(),
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    containerColor = navBarContainerColor,
+                    contentColor = if (isAstronomyRoute) AstronomyStarWhite else MaterialTheme.colorScheme.onSurface,
                 ) {
                     Screen.items.forEach { screen ->
-                        val selected = currentRoute == screen.route
+                        val selected = screen.matchesRoute(currentRoute)
                         NavigationRailItem(
                             selected = selected,
                             onClick = { onNavigate(screen) },
@@ -95,11 +126,24 @@ fun AdaptiveScaffold(
                                 )
                             },
                             label = { Text(screen.title) },
-                            colors = NavigationRailItemDefaults.colors(
-                                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                                selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                selectedTextColor = MaterialTheme.colorScheme.primary,
-                            )
+                            alwaysShowLabel = widthClass == WindowWidthSizeClass.EXPANDED,
+                            colors = if (isAstronomyRoute) {
+                                NavigationRailItemDefaults.colors(
+                                    indicatorColor = AstronomyMoonGold.copy(alpha = 0.2f),
+                                    selectedIconColor = AstronomyMoonGold,
+                                    selectedTextColor = AstronomyMoonGold,
+                                    unselectedIconColor = AstronomyTwilightCivil,
+                                    unselectedTextColor = AstronomyTwilightCivil
+                                )
+                            } else {
+                                NavigationRailItemDefaults.colors(
+                                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         )
                     }
                 }

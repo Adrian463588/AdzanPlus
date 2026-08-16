@@ -1,18 +1,24 @@
 package com.adzannotif.presentation.common
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.CompassCalibration
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.NightsStay
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Stars
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.NightsStay
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Stars
+import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(
@@ -21,6 +27,18 @@ sealed class Screen(
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
 ) {
+    fun matchesRoute(currentRoute: String): Boolean = when (this) {
+        AstronomyDashboard, MoonDetail, SunDetail, StarMap, HijriCalendar -> {
+            currentRoute == AstronomyDashboard.route ||
+                currentRoute == MoonDetail.route ||
+                currentRoute == SunDetail.route ||
+                currentRoute == StarMap.route ||
+                currentRoute == HijriCalendar.route
+        }
+
+        else -> currentRoute == route
+    }
+
     data object Home : Screen(
         route = "home",
         title = "Beranda",
@@ -59,29 +77,29 @@ sealed class Screen(
     data object MoonDetail : Screen(
         route = "moon_detail",
         title = "Bulan",
-        selectedIcon = Icons.Filled.AutoAwesome,
-        unselectedIcon = Icons.Outlined.AutoAwesome,
+        selectedIcon = Icons.Filled.NightsStay,
+        unselectedIcon = Icons.Outlined.NightsStay,
     )
 
     data object SunDetail : Screen(
         route = "sun_detail",
         title = "Matahari",
-        selectedIcon = Icons.Filled.AutoAwesome,
-        unselectedIcon = Icons.Outlined.AutoAwesome,
+        selectedIcon = Icons.Filled.WbSunny,
+        unselectedIcon = Icons.Outlined.WbSunny,
     )
 
     data object StarMap : Screen(
         route = "star_map",
         title = "Peta Bintang",
-        selectedIcon = Icons.Filled.AutoAwesome,
-        unselectedIcon = Icons.Outlined.AutoAwesome,
+        selectedIcon = Icons.Filled.Stars,
+        unselectedIcon = Icons.Outlined.Stars,
     )
 
     data object HijriCalendar : Screen(
         route = "hijri_calendar",
         title = "Kalender Hijriah",
-        selectedIcon = Icons.Filled.AutoAwesome,
-        unselectedIcon = Icons.Outlined.AutoAwesome,
+        selectedIcon = Icons.Filled.Event,
+        unselectedIcon = Icons.Outlined.Event,
     )
 
     companion object {

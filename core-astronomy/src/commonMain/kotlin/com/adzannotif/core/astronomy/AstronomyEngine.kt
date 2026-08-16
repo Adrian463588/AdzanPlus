@@ -5,6 +5,7 @@ import com.adzannotif.core.astronomy.internal.MoonMath
 import com.adzannotif.core.astronomy.internal.PhotoPhasePolicy
 import com.adzannotif.core.astronomy.internal.StarMath
 import com.adzannotif.core.astronomy.internal.SunMath
+import kotlinx.datetime.TimeZone
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -81,17 +82,18 @@ class AstronomyEngine(
         val lon = location.longitude
         val el = location.elevationMeters
         val pos = SunMath.computeSunPosition(lat, lon, el, epochMillis)
-        val riseMs = SunMath.computeSunRise(lat, lon, epochMillis)
-        val setMs = SunMath.computeSunSet(lat, lon, epochMillis)
+        val timeZone = TimeZone.of(location.timeZoneId)
+        val riseMs = SunMath.computeSunRise(lat, lon, epochMillis, timeZone)
+        val setMs = SunMath.computeSunSet(lat, lon, epochMillis, timeZone)
         return SunState(
             position = pos,
             riseMillis = riseMs,
             setMillis = setMs,
-            noonMillis = SunMath.computeSolarNoon(lat, lon, epochMillis),
-            azimuthAtRise = riseMs?.let { SunMath.computeSunPosition(lat, lon, el, it).azimuth } ?: 90.0,
-            azimuthAtSet = setMs?.let { SunMath.computeSunPosition(lat, lon, el, it).azimuth } ?: 270.0,
-            twilight = SunMath.computeTwilightTimes(lat, lon, epochMillis),
-            goldenBlueHour = PhotoPhasePolicy.computeGoldenBlueHour(lat, lon, epochMillis),
+            noonMillis = SunMath.computeSolarNoon(lat, lon, epochMillis, timeZone),
+            azimuthAtRise = riseMs?.let { SunMath.computeSunPosition(lat, lon, el, it).azimuth },
+            azimuthAtSet = setMs?.let { SunMath.computeSunPosition(lat, lon, el, it).azimuth },
+            twilight = SunMath.computeTwilightTimes(lat, lon, epochMillis, timeZone),
+            goldenBlueHour = PhotoPhasePolicy.computeGoldenBlueHour(lat, lon, epochMillis, timeZone),
             currentPhase = PhotoPhasePolicy.classifySolarPhase(pos.altitude)
         )
     }
@@ -100,14 +102,15 @@ class AstronomyEngine(
         val lat = location.latitude
         val lon = location.longitude
         val el = location.elevationMeters
-        val riseMillis = MoonMath.computeMoonRise(lat, lon, epochMillis)
+        val timeZone = TimeZone.of(location.timeZoneId)
+        val riseMillis = MoonMath.computeMoonRise(lat, lon, epochMillis, timeZone)
         val dist = MoonMath.computeMoonDistanceKm(epochMillis)
         return MoonState(
             position = MoonMath.computeMoonPosition(lat, lon, el, epochMillis),
             riseMillis = riseMillis,
-            setMillis = MoonMath.computeMoonSet(lat, lon, epochMillis),
-            transitMillis = MoonMath.computeMoonTransit(lat, lon, epochMillis),
-            azimuthAtRise = riseMillis?.let { MoonMath.computeMoonPosition(lat, lon, el, it).azimuth } ?: 0.0,
+            setMillis = MoonMath.computeMoonSet(lat, lon, epochMillis, timeZone),
+            transitMillis = MoonMath.computeMoonTransit(lat, lon, epochMillis, timeZone),
+            azimuthAtRise = riseMillis?.let { MoonMath.computeMoonPosition(lat, lon, el, it).azimuth },
             phase = MoonMath.computeMoonPhase(epochMillis),
             illuminationFraction = MoonMath.computeMoonIllumination(epochMillis),
             ageInDays = MoonMath.computeMoonAgeInDays(epochMillis),
@@ -117,8 +120,11 @@ class AstronomyEngine(
         )
     }
 
-    fun getHijriDate(gregorianEpochMillis: Long): HijriDate {
-        return HijriCalendar.toHijri(gregorianEpochMillis)
+    fun getHijriDate(
+        gregorianEpochMillis: Long,
+        timeZone: TimeZone = TimeZone.UTC,
+    ): HijriDate {
+        return HijriCalendar.toHijri(gregorianEpochMillis, timeZone)
     }
 
     /**
@@ -143,10 +149,10 @@ class AstronomyEngine(
         val sun = getSunState(location, dateEpochMillis)
         val moon = getMoonState(location, dateEpochMillis)
 
-        sun.riseMillis?.let { events.add(AstronomyEvent.Sunrise(it, sun.azimuthAtRise)) }
-        sun.setMillis?.let { events.add(AstronomyEvent.Sunset(it, sun.azimuthAtSet)) }
+        sun.riseMillis?.let { events.add(AstronomyEvent.Sunrise(it, sun.azimuthAtRise ?: 0.0)) }
+        sun.setMillis?.let { events.add(AstronomyEvent.Sunset(it, sun.azimuthAtSet ?: 0.0)) }
 
-        moon.riseMillis?.let { events.add(AstronomyEvent.Moonrise(it, moon.azimuthAtRise)) }
+        moon.riseMillis?.let { events.add(AstronomyEvent.Moonrise(it, moon.azimuthAtRise ?: 0.0)) }
         moon.setMillis?.let { events.add(AstronomyEvent.Moonset(it)) }
 
         sun.goldenBlueHour.morningGoldenHour?.startMillis?.let { events.add(AstronomyEvent.GoldenHourStart(it, true)) }
@@ -158,9 +164,6 @@ class AstronomyEngine(
         sun.goldenBlueHour.morningBlueHour?.endMillis?.let { events.add(AstronomyEvent.BlueHourEnd(it, true)) }
         sun.goldenBlueHour.eveningBlueHour?.startMillis?.let { events.add(AstronomyEvent.BlueHourStart(it, false)) }
         sun.goldenBlueHour.eveningBlueHour?.endMillis?.let { events.add(AstronomyEvent.BlueHourEnd(it, false)) }
-
-        if (moon.phase == MoonPhase.FULL_MOON) events.add(AstronomyEvent.FullMoon(dateEpochMillis))
-        if (moon.phase == MoonPhase.NEW_MOON) events.add(AstronomyEvent.NewMoon(dateEpochMillis))
 
         return events.sortedBy { it.epochMillis }
     }

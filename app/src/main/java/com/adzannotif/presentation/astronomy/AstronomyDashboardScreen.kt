@@ -321,6 +321,34 @@ fun SunCard(sunInfo: SunInfo?, onClick: () -> Unit) {
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(color = AstronomyConstellationLine.copy(alpha = 0.2f), thickness = 0.5.dp)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            val goldenMorning = if (sunInfo?.morningGoldenHourStartMillis != null && sunInfo.morningGoldenHourEndMillis != null) {
+                "${fmt.format(Date(sunInfo.morningGoldenHourStartMillis))} - ${fmt.format(Date(sunInfo.morningGoldenHourEndMillis))}"
+            } else "--:--"
+            val goldenEvening = if (sunInfo?.eveningGoldenHourStartMillis != null && sunInfo.eveningGoldenHourEndMillis != null) {
+                "${fmt.format(Date(sunInfo.eveningGoldenHourStartMillis))} - ${fmt.format(Date(sunInfo.eveningGoldenHourEndMillis))}"
+            } else "--:--"
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(modifier = Modifier.size(8.dp).background(AstronomyGoldenHour, CircleShape))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Golden Hour", style = MaterialTheme.typography.labelSmall, color = AstronomyGoldenHour)
+                }
+                Text(
+                    "Pagi: $goldenMorning • Sore: $goldenEvening",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = AstronomyStarWhite
+                )
+            }
         }
     }
 }
