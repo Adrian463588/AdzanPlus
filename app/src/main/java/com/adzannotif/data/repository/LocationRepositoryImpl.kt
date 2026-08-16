@@ -1,20 +1,30 @@
 package com.adzannotif.data.repository
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
+import android.os.Build
 import com.adzannotif.data.datastore.AppDataStore
 import com.adzannotif.data.local.city.OfflineCityDatabase
 import com.adzannotif.data.local.dao.SavedLocationDao
 import com.adzannotif.data.local.entity.SavedLocationEntity
 import com.adzannotif.domain.model.LocationInfo
 import com.adzannotif.domain.repository.LocationRepository
+import com.adzannotif.platform.network.NetworkMonitor
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.Task
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import java.util.Locale
 import java.util.TimeZone
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -23,10 +33,12 @@ import kotlin.coroutines.resumeWithException
 
 @Singleton
 class LocationRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val appDataStore: AppDataStore,
     private val savedLocationDao: SavedLocationDao,
     private val offlineCityDatabase: OfflineCityDatabase,
     private val fusedLocationClient: FusedLocationProviderClient,
+    private val networkMonitor: NetworkMonitor,
 ) : LocationRepository {
 
     override val currentOrSelectedLocation: Flow<LocationInfo> = appDataStore.userSettingsFlow.map { settings ->
@@ -43,60 +55,162 @@ class LocationRepositoryImpl @Inject constructor(
 
     @SuppressLint("MissingPermission")
     override suspend fun getDeviceLocation(): Result<LocationInfo> {
-        return try {
-            val cts = CancellationTokenSource()
-            val location: Location? = awaitTask(
-                fusedLocationClient.getCurrentLocation(
-                    Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-                    cts.token
-                )
-            )
+        return withContext(Dispatchers.IO) {
+            try {
+                // 1. Try High Accuracy first with timeout
+                val highAccuracyLocation = withTimeoutOrNull(6000L) {
+                    val cts = CancellationTokenSource()
+                    awaitTask(
+                        fusedLocationClient.getCurrentLocation(
+                            Priority.PRIORITY_HIGH_ACCURACY,
+                            cts.token
+                        )
+                    )
+                }
 
-            if (location != null) {
-                val tzId = TimeZone.getDefault().id
-                val locationInfo = LocationInfo(
-                    id = "current_gps",
-                    name = "Lokasi Saya",
-                    country = "Indonesia",
-                    latitude = location.latitude,
-                    longitude = location.longitude,
-                    elevation = location.altitude,
-                    timeZoneId = tzId,
-                    isAutoDetected = true
-                )
-                Result.success(locationInfo)
-            } else {
-                // Fallback to last known location or Jakarta
-                val lastLoc: Location? = awaitTask(fusedLocationClient.lastLocation)
-                if (lastLoc != null) {
+                val finalLocation: Location? = highAccuracyLocation ?: withTimeoutOrNull(3000L) {
+                    val cts = CancellationTokenSource()
+                    awaitTask(
+                        fusedLocationClient.getCurrentLocation(
+                            Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                            cts.token
+                        )
+                    )
+                } ?: awaitTask(fusedLocationClient.lastLocation)
+
+                if (finalLocation != null) {
+                    val lat = finalLocation.latitude
+                    val lng = finalLocation.longitude
+                    val elevation = finalLocation.altitude
+                    val timeZoneId = TimeZone.getDefault().id
+
+                    // Try geocoding online if connected
+                    val addressName = resolveLocationName(lat, lng)
+
                     val locationInfo = LocationInfo(
-                        id = "last_known_gps",
-                        name = "Lokasi Terakhir",
-                        country = "Indonesia",
-                        latitude = lastLoc.latitude,
-                        longitude = lastLoc.longitude,
-                        elevation = lastLoc.altitude,
-                        timeZoneId = TimeZone.getDefault().id,
+                        id = "gps_${lat.hashCode()}_${lng.hashCode()}",
+                        name = addressName.name,
+                        country = addressName.country,
+                        latitude = lat,
+                        longitude = lng,
+                        elevation = elevation,
+                        timeZoneId = timeZoneId,
                         isAutoDetected = true
                     )
                     Result.success(locationInfo)
                 } else {
+                    // Fallback to Jakarta
                     Result.success(LocationInfo.JAKARTA)
                 }
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 
-    private suspend fun <T> awaitTask(task: Task<T>): T? = suspendCancellableCoroutine { cont ->
-        task.addOnSuccessListener { result ->
-            cont.resume(result)
-        }.addOnFailureListener { exception ->
-            cont.resumeWithException(exception)
-        }.addOnCanceledListener {
-            cont.cancel()
+    private data class ResolvedName(val name: String, val country: String)
+
+    private suspend fun resolveLocationName(lat: Double, lng: Double): ResolvedName {
+        if (networkMonitor.isCurrentlyOnline() && Geocoder.isPresent()) {
+            try {
+                val geocoder = Geocoder(context, Locale.getDefault())
+                val addresses = withTimeoutOrNull(4000L) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        suspendCancellableCoroutine<List<Address>> { cont ->
+                            geocoder.getFromLocation(lat, lng, 1) { resultList ->
+                                cont.resume(resultList)
+                            }
+                        }
+                    } else {
+                        @Suppress("DEPRECATION")
+                        geocoder.getFromLocation(lat, lng, 1) ?: emptyList()
+                    }
+                }
+
+                if (!addresses.isNullOrEmpty()) {
+                    val addr = addresses[0]
+                    val locality = addr.subLocality ?: addr.locality ?: addr.subAdminArea ?: addr.adminArea ?: "Lokasi GPS"
+                    val country = addr.countryName ?: "Indonesia"
+                    return ResolvedName(locality, country)
+                }
+            } catch (_: Exception) {
+                // Fallback to offline proximity
+            }
         }
+
+        // Offline spatial proximity fallback
+        val closest = offlineCityDatabase.findClosestCity(lat, lng)
+        return ResolvedName("${closest.name} (GPS)", closest.country)
+    }
+
+    override suspend fun searchLocations(query: String): List<LocationInfo> = withContext(Dispatchers.IO) {
+        val trimmed = query.trim()
+        if (trimmed.isEmpty()) {
+            return@withContext offlineCityDatabase.allCities
+        }
+
+        // 1. Search Offline Database first
+        val offlineMatches = offlineCityDatabase.searchCities(trimmed).toMutableList()
+
+        // 2. If online and geocoder available, search online
+        if (networkMonitor.isCurrentlyOnline() && Geocoder.isPresent()) {
+            try {
+                val geocoder = Geocoder(context, Locale.getDefault())
+                val addresses = withTimeoutOrNull(4000L) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        suspendCancellableCoroutine<List<Address>> { cont ->
+                            geocoder.getFromLocationName(trimmed, 8) { resultList ->
+                                cont.resume(resultList)
+                            }
+                        }
+                    } else {
+                        @Suppress("DEPRECATION")
+                        geocoder.getFromLocationName(trimmed, 8) ?: emptyList()
+                    }
+                }
+
+                if (!addresses.isNullOrEmpty()) {
+                    for (addr in addresses) {
+                        val name = addr.locality ?: addr.subAdminArea ?: addr.adminArea ?: addr.featureName ?: trimmed
+                        val country = addr.countryName ?: ""
+                        val lat = addr.latitude
+                        val lng = addr.longitude
+
+                        // Determine approximate timezone based on longitude if in Indonesia
+                        val tz = when {
+                            country.contains("Indonesia", ignoreCase = true) -> {
+                                when {
+                                    lng < 110.0 -> "Asia/Jakarta"
+                                    lng < 125.0 -> "Asia/Makassar"
+                                    else -> "Asia/Jayapura"
+                                }
+                            }
+                            else -> TimeZone.getDefault().id
+                        }
+
+                        val onlineLoc = LocationInfo(
+                            id = "online_${lat.hashCode()}_${lng.hashCode()}",
+                            name = name,
+                            country = country,
+                            latitude = lat,
+                            longitude = lng,
+                            elevation = 10.0,
+                            timeZoneId = tz,
+                            isAutoDetected = false
+                        )
+
+                        // Avoid exact duplicate
+                        if (offlineMatches.none { it.name.equals(name, ignoreCase = true) && it.country.equals(country, ignoreCase = true) }) {
+                            offlineMatches.add(onlineLoc)
+                        }
+                    }
+                }
+            } catch (_: Exception) {
+                // Keep offline matches
+            }
+        }
+
+        offlineMatches
     }
 
     override suspend fun searchOfflineCities(query: String): List<LocationInfo> {
@@ -113,5 +227,21 @@ class LocationRepositoryImpl @Inject constructor(
 
     override suspend fun deleteLocation(locationId: String) {
         savedLocationDao.deleteLocationById(locationId)
+    }
+
+    override suspend fun setSelectedLocation(location: LocationInfo) {
+        appDataStore.updateUserSettings { current ->
+            current.copy(selectedLocation = location)
+        }
+    }
+
+    private suspend fun <T> awaitTask(task: Task<T>): T? = suspendCancellableCoroutine { cont ->
+        task.addOnSuccessListener { result ->
+            cont.resume(result)
+        }.addOnFailureListener { exception ->
+            cont.resumeWithException(exception)
+        }.addOnCanceledListener {
+            cont.cancel()
+        }
     }
 }

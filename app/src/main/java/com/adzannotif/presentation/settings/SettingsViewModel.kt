@@ -15,6 +15,7 @@ import com.adzannotif.domain.repository.LocationRepository
 import com.adzannotif.domain.repository.SettingsRepository
 import com.adzannotif.domain.usecase.SchedulePrayerAlarmsUseCase
 import com.adzannotif.platform.audio.AdhanAudioPlayer
+import com.adzannotif.platform.network.NetworkMonitor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,9 +29,13 @@ data class SettingsUiState(
     val userSettings: UserSettings = UserSettings(),
     val alarmSettings: AllAlarmSettings = AllAlarmSettings(),
     val allOfflineCities: List<LocationInfo> = emptyList(),
+    val favoriteLocations: List<LocationInfo> = emptyList(),
     val searchQuery: String = "",
-    val filteredCities: List<LocationInfo> = emptyList(),
-    val isCityPickerVisible: Boolean = false,
+    val searchResults: List<LocationInfo> = emptyList(),
+    val isLocationPickerVisible: Boolean = false,
+    val isSearching: Boolean = false,
+    val isRefreshingGps: Boolean = false,
+    val isOnline: Boolean = true,
     val currentlyPlayingVoice: AdhanVoice? = null,
     val isLoading: Boolean = false,
 )
@@ -45,9 +50,18 @@ sealed interface SettingsUiAction {
     data class ToggleAdhanPreview(val voice: AdhanVoice) : SettingsUiAction
     data class SetPreReminder(val prayer: Prayer, val minutesBefore: Int) : SettingsUiAction
     data class SetDndSilenceMinutes(val minutes: Int) : SettingsUiAction
-    data class SearchCity(val query: String) : SettingsUiAction
-    data class SelectCity(val city: LocationInfo) : SettingsUiAction
-    data class SetCityPickerVisible(val visible: Boolean) : SettingsUiAction
+    data class SearchLocation(val query: String) : SettingsUiAction
+    data class SelectLocation(val location: LocationInfo) : SettingsUiAction
+    data class DeleteSavedLocation(val locationId: String) : SettingsUiAction
+    data class SaveCustomCoordinates(
+        val name: String,
+        val latitude: Double,
+        val longitude: Double,
+        val elevation: Double = 0.0,
+        val timeZoneId: String = "Asia/Jakarta"
+    ) : SettingsUiAction
+    data object RefreshGpsLocation : SettingsUiAction
+    data class SetLocationPickerVisible(val visible: Boolean) : SettingsUiAction
 }
 
 @HiltViewModel
@@ -56,35 +70,44 @@ class SettingsViewModel @Inject constructor(
     private val locationRepository: LocationRepository,
     private val schedulePrayerAlarmsUseCase: SchedulePrayerAlarmsUseCase,
     private val audioPlayer: AdhanAudioPlayer,
+    private val networkMonitor: NetworkMonitor,
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
-    private val _isCityPickerVisible = MutableStateFlow(false)
-    private val _allCities = MutableStateFlow<List<LocationInfo>>(emptyList())
+    private val _isLocationPickerVisible = MutableStateFlow(false)
+    private val _allOfflineCities = MutableStateFlow<List<LocationInfo>>(emptyList())
+    private val _searchResults = MutableStateFlow<List<LocationInfo>>(emptyList())
+    private val _isSearching = MutableStateFlow(false)
+    private val _isRefreshingGps = MutableStateFlow(false)
     private val _currentlyPlayingVoice = MutableStateFlow<AdhanVoice?>(null)
 
     val uiState: StateFlow<SettingsUiState> = combine(
         combine(settingsRepository.userSettings, settingsRepository.alarmSettings, ::Pair),
-        combine(_allCities, _searchQuery, _isCityPickerVisible) { cities, query, isPickerOpen ->
-            Triple(cities, query, isPickerOpen)
+        combine(
+            _allOfflineCities,
+            locationRepository.favoriteLocations,
+            _searchQuery,
+            _searchResults,
+            _isLocationPickerVisible
+        ) { cities, favorites, query, results, isPickerOpen ->
+            LocationStateTuple(cities, favorites, query, results, isPickerOpen)
         },
-        _currentlyPlayingVoice
-    ) { (userSettings, alarmSettings), (cities, query, isPickerOpen), playingVoice ->
-        val filtered = if (query.isEmpty()) {
-            cities
-        } else {
-            cities.filter {
-                it.name.contains(query, ignoreCase = true) || it.country.contains(query, ignoreCase = true)
-            }
+        combine(_isSearching, _isRefreshingGps, networkMonitor.isOnline, _currentlyPlayingVoice) { isSearching, isRefreshing, isOnline, voice ->
+            ExtraStateTuple(isSearching, isRefreshing, isOnline, voice)
         }
+    ) { (userSettings, alarmSettings), locTuple, extraTuple ->
         SettingsUiState(
             userSettings = userSettings,
             alarmSettings = alarmSettings,
-            allOfflineCities = cities,
-            searchQuery = query,
-            filteredCities = filtered,
-            isCityPickerVisible = isPickerOpen,
-            currentlyPlayingVoice = playingVoice,
+            allOfflineCities = locTuple.cities,
+            favoriteLocations = locTuple.favorites,
+            searchQuery = locTuple.query,
+            searchResults = if (locTuple.query.isEmpty()) locTuple.cities else locTuple.results,
+            isLocationPickerVisible = locTuple.isPickerOpen,
+            isSearching = extraTuple.isSearching,
+            isRefreshingGps = extraTuple.isRefreshing,
+            isOnline = extraTuple.isOnline,
+            currentlyPlayingVoice = extraTuple.voice,
             isLoading = false
         )
     }.stateIn(
@@ -94,13 +117,14 @@ class SettingsViewModel @Inject constructor(
     )
 
     init {
-        loadCities()
+        loadOfflineCities()
     }
 
-    private fun loadCities() {
+    private fun loadOfflineCities() {
         viewModelScope.launch {
             val list = locationRepository.getAllOfflineCities()
-            _allCities.value = list
+            _allOfflineCities.value = list
+            _searchResults.value = list
         }
     }
 
@@ -179,21 +203,76 @@ class SettingsViewModel @Inject constructor(
                     settingsRepository.updateAlarmSettings { it.copy(dndAutoSilenceMinutes = action.minutes) }
                 }
             }
-            is SettingsUiAction.SearchCity -> {
+            is SettingsUiAction.SearchLocation -> {
                 _searchQuery.value = action.query
-            }
-            is SettingsUiAction.SelectCity -> {
                 viewModelScope.launch {
-                    locationRepository.saveLocation(action.city)
-                    settingsRepository.updateUserSettings {
-                        it.copy(selectedLocation = action.city, useAutoLocation = false)
+                    _isSearching.value = true
+                    try {
+                        val results = locationRepository.searchLocations(action.query)
+                        _searchResults.value = results
+                    } finally {
+                        _isSearching.value = false
                     }
-                    _isCityPickerVisible.value = false
+                }
+            }
+            is SettingsUiAction.SelectLocation -> {
+                viewModelScope.launch {
+                    locationRepository.saveLocation(action.location)
+                    settingsRepository.updateUserSettings {
+                        it.copy(selectedLocation = action.location, useAutoLocation = action.location.isAutoDetected)
+                    }
+                    _isLocationPickerVisible.value = false
                     schedulePrayerAlarmsUseCase()
                 }
             }
-            is SettingsUiAction.SetCityPickerVisible -> {
-                _isCityPickerVisible.value = action.visible
+            is SettingsUiAction.DeleteSavedLocation -> {
+                viewModelScope.launch {
+                    locationRepository.deleteLocation(action.locationId)
+                }
+            }
+            is SettingsUiAction.SaveCustomCoordinates -> {
+                viewModelScope.launch {
+                    val customLoc = LocationInfo(
+                        id = "custom_${action.latitude.hashCode()}_${action.longitude.hashCode()}",
+                        name = action.name.ifBlank { "Koordinat Kustom" },
+                        country = "Kustom",
+                        latitude = action.latitude,
+                        longitude = action.longitude,
+                        elevation = action.elevation,
+                        timeZoneId = action.timeZoneId,
+                        isAutoDetected = false
+                    )
+                    locationRepository.saveLocation(customLoc)
+                    settingsRepository.updateUserSettings {
+                        it.copy(selectedLocation = customLoc, useAutoLocation = false)
+                    }
+                    _isLocationPickerVisible.value = false
+                    schedulePrayerAlarmsUseCase()
+                }
+            }
+            is SettingsUiAction.RefreshGpsLocation -> {
+                viewModelScope.launch {
+                    _isRefreshingGps.value = true
+                    try {
+                        locationRepository.getDeviceLocation().onSuccess { loc ->
+                            locationRepository.saveLocation(loc)
+                            settingsRepository.updateUserSettings {
+                                it.copy(selectedLocation = loc, useAutoLocation = true)
+                            }
+                            _isLocationPickerVisible.value = false
+                            schedulePrayerAlarmsUseCase()
+                        }
+                    } finally {
+                        _isRefreshingGps.value = false
+                    }
+                }
+            }
+            is SettingsUiAction.SetLocationPickerVisible -> {
+                _isLocationPickerVisible.value = action.visible
+                if (action.visible && _searchQuery.value.isNotEmpty()) {
+                    _searchQuery.value = ""
+                    _searchResults.value = _allOfflineCities.value
+                }
             }
         }
     }
@@ -202,4 +281,19 @@ class SettingsViewModel @Inject constructor(
         super.onCleared()
         audioPlayer.stop()
     }
+
+    private data class LocationStateTuple(
+        val cities: List<LocationInfo>,
+        val favorites: List<LocationInfo>,
+        val query: String,
+        val results: List<LocationInfo>,
+        val isPickerOpen: Boolean,
+    )
+
+    private data class ExtraStateTuple(
+        val isSearching: Boolean,
+        val isRefreshing: Boolean,
+        val isOnline: Boolean,
+        val voice: AdhanVoice?,
+    )
 }

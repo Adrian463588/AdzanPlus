@@ -8,8 +8,10 @@ interface LocationRepository {
     val favoriteLocations: Flow<List<LocationInfo>>
     
     suspend fun getDeviceLocation(): Result<LocationInfo>
+    suspend fun searchLocations(query: String): List<LocationInfo>
     suspend fun searchOfflineCities(query: String): List<LocationInfo>
     suspend fun getAllOfflineCities(): List<LocationInfo>
     suspend fun saveLocation(location: LocationInfo)
     suspend fun deleteLocation(locationId: String)
+    suspend fun setSelectedLocation(location: LocationInfo)
 }

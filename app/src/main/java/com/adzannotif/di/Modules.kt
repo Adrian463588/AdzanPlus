@@ -15,6 +15,8 @@ import com.adzannotif.domain.repository.AlarmRepository
 import com.adzannotif.domain.repository.LocationRepository
 import com.adzannotif.domain.repository.PrayerTimesRepository
 import com.adzannotif.domain.repository.SettingsRepository
+import com.adzannotif.platform.network.NetworkMonitor
+import com.adzannotif.platform.network.NetworkMonitorImpl
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import dagger.Binds
@@ -77,4 +79,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindAlarmRepository(impl: AlarmRepositoryImpl): AlarmRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindNetworkMonitor(impl: NetworkMonitorImpl): NetworkMonitor
 }

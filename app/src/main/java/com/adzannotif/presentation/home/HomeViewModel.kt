@@ -1,5 +1,7 @@
 package com.adzannotif.presentation.home
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.adzannotif.core.prayer.Prayer
 import com.adzannotif.domain.model.AllAlarmSettings
 import com.adzannotif.domain.model.LocationInfo
@@ -10,8 +12,7 @@ import com.adzannotif.domain.repository.SettingsRepository
 import com.adzannotif.domain.usecase.GetNextPrayerUseCase
 import com.adzannotif.domain.usecase.GetTodayPrayerTimesUseCase
 import com.adzannotif.domain.usecase.SchedulePrayerAlarmsUseCase
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.adzannotif.platform.network.NetworkMonitor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,9 +33,11 @@ data class HomeUiState(
     val nextPrayerTarget: Instant? = null,
     val currentPrayer: Prayer? = null,
     val countdownSeconds: Long = 0L,
-    val hijriDateFormatted: String = "1 Safar 1448 H",
+    val hijriDateFormatted: String = "29 Shafar 1448 H",
     val alarmSettings: AllAlarmSettings = AllAlarmSettings(),
     val userSettings: UserSettings = UserSettings(),
+    val isOnline: Boolean = true,
+    val isRefreshingGps: Boolean = false,
     val isLoading: Boolean = false,
 )
 
@@ -50,9 +53,11 @@ class HomeViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val locationRepository: LocationRepository,
     private val schedulePrayerAlarmsUseCase: SchedulePrayerAlarmsUseCase,
+    private val networkMonitor: NetworkMonitor,
 ) : ViewModel() {
 
     private val _countdownSeconds = MutableStateFlow(0L)
+    private val _isRefreshingGps = MutableStateFlow(false)
 
     private val prayerInfoFlow = combine(
         locationRepository.currentOrSelectedLocation,
@@ -70,10 +75,17 @@ class HomeViewModel @Inject constructor(
         Triple(alarmSettings, userSettings, countdown)
     }
 
+    private val connectivityFlow = combine(
+        networkMonitor.isOnline,
+        _isRefreshingGps,
+        ::Pair
+    )
+
     val uiState: StateFlow<HomeUiState> = combine(
         prayerInfoFlow,
-        settingsStateFlow
-    ) { (location, todayRecord, nextInfo), (alarmSettings, userSettings, countdown) ->
+        settingsStateFlow,
+        connectivityFlow
+    ) { (location, todayRecord, nextInfo), (alarmSettings, userSettings, countdown), (isOnline, isRefreshing) ->
         val nextPrayer = nextInfo?.nextPrayer ?: Prayer.FAJR
         val nextTarget = nextInfo?.targetTime ?: todayRecord.fajr
         val current = nextInfo?.currentPrayer ?: todayRecord.findCurrentPrayer(Clock.System.now())
@@ -88,6 +100,8 @@ class HomeViewModel @Inject constructor(
             hijriDateFormatted = "29 Shafar 1448 H",
             alarmSettings = alarmSettings,
             userSettings = userSettings,
+            isOnline = isOnline,
+            isRefreshingGps = isRefreshing,
             isLoading = false
         )
     }.stateIn(
@@ -134,10 +148,17 @@ class HomeViewModel @Inject constructor(
             }
             is HomeUiAction.RefreshLocation -> {
                 viewModelScope.launch {
-                    locationRepository.getDeviceLocation().onSuccess { loc ->
-                        locationRepository.saveLocation(loc)
-                        settingsRepository.updateUserSettings { it.copy(selectedLocation = loc) }
-                        schedulePrayerAlarmsUseCase()
+                    _isRefreshingGps.value = true
+                    try {
+                        locationRepository.getDeviceLocation().onSuccess { loc ->
+                            locationRepository.saveLocation(loc)
+                            settingsRepository.updateUserSettings {
+                                it.copy(selectedLocation = loc, useAutoLocation = true)
+                            }
+                            schedulePrayerAlarmsUseCase()
+                        }
+                    } finally {
+                        _isRefreshingGps.value = false
                     }
                 }
             }
