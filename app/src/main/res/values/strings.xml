@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">Adzan Notif</string>
+    <string name="widget_name">Jadwal Sholat &amp; Countdown</string>
+    <string name="widget_description">Widget jadwal sholat dan hitung mundur waktu sholat berikutnya secara realtime</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Beranda</string>
+    <string name="nav_schedule">Jadwal</string>
+    <string name="nav_qibla">Kiblat</string>
+    <string name="nav_settings">Pengaturan</string>
+
+    <!-- Prayers -->
+    <string name="prayer_imsak">Imsak</string>
+    <string name="prayer_fajr">Subuh</string>
+    <string name="prayer_sunrise">Terbit</string>
+    <string name="prayer_dhuhr">Dzuhur</string>
+    <string name="prayer_asr">Ashar</string>
+    <string name="prayer_maghrib">Maghrib</string>
+    <string name="prayer_isha">Isya</string>
+    <string name="prayer_midnight">Tengah Malam</string>
+    <string name="prayer_tahajjud">Tahajjud</string>
+
+    <!-- UI Labels -->
+    <string name="next_prayer">Sholat Berikutnya</string>
+    <string name="remaining_time">Menuju Waktu Sholat</string>
+    <string name="qibla_heading">Arah Kiblat</string>
+    <string name="current_location">Lokasi Saat Ini</string>
+    <string name="select_city">Pilih Kota</string>
+    <string name="calculation_method">Metode Perhitungan Hisab</string>
+    <string name="madhab">Madhab (Ashar)</string>
+    <string name="adhan_tone">Suara Adzan</string>
+    <string name="pre_adhan_reminder">Pengingat Sebelum Adzan</string>
+    <string name="dismiss">Tutup</string>
+    <string name="snooze">Tunda 5 Menit</string>
+    <string name="adhan_call_msg">Waktu Sholat Telah Tiba</string>
+</resources>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.AdzanNotif" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#F8FAF8</item>
+        <item name="android:navigationBarColor">#F8FAF8</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <style name="Theme.AdzanNotif.FullscreenAlarm" parent="android:Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+</resources>
