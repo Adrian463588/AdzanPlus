@@ -16,6 +16,9 @@ import com.adzannotif.domain.repository.SettingsRepository
 import com.adzannotif.domain.usecase.SchedulePrayerAlarmsUseCase
 import com.adzannotif.platform.audio.AdhanAudioPlayer
 import com.adzannotif.platform.network.NetworkMonitor
+import android.content.Context
+import com.adzannotif.widget.PrayerTimesWidgetReceiver
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -66,6 +69,7 @@ sealed interface SettingsUiAction {
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
     private val locationRepository: LocationRepository,
     private val schedulePrayerAlarmsUseCase: SchedulePrayerAlarmsUseCase,
@@ -134,18 +138,21 @@ class SettingsViewModel @Inject constructor(
                 viewModelScope.launch {
                     settingsRepository.updateUserSettings { it.copy(calculationMethod = action.method) }
                     schedulePrayerAlarmsUseCase()
+                    PrayerTimesWidgetReceiver.updateAll(context)
                 }
             }
             is SettingsUiAction.SetMadhab -> {
                 viewModelScope.launch {
                     settingsRepository.updateUserSettings { it.copy(madhab = action.madhab) }
                     schedulePrayerAlarmsUseCase()
+                    PrayerTimesWidgetReceiver.updateAll(context)
                 }
             }
             is SettingsUiAction.SetHighLatitudeRule -> {
                 viewModelScope.launch {
                     settingsRepository.updateUserSettings { it.copy(highLatitudeRule = action.rule) }
                     schedulePrayerAlarmsUseCase()
+                    PrayerTimesWidgetReceiver.updateAll(context)
                 }
             }
             is SettingsUiAction.SetThemeMode -> {
@@ -166,6 +173,7 @@ class SettingsViewModel @Inject constructor(
                         }
                     }
                     schedulePrayerAlarmsUseCase()
+                    PrayerTimesWidgetReceiver.updateAll(context)
                 }
             }
             is SettingsUiAction.SetAdhanVoice -> {
@@ -196,6 +204,7 @@ class SettingsViewModel @Inject constructor(
                     val updated = currentConfig.copy(preReminderMinutes = action.minutesBefore)
                     settingsRepository.updateAlarmSettings { it.updateConfig(updated) }
                     schedulePrayerAlarmsUseCase()
+                    PrayerTimesWidgetReceiver.updateAll(context)
                 }
             }
             is SettingsUiAction.SetDndSilenceMinutes -> {
@@ -223,6 +232,7 @@ class SettingsViewModel @Inject constructor(
                     }
                     _isLocationPickerVisible.value = false
                     schedulePrayerAlarmsUseCase()
+                    PrayerTimesWidgetReceiver.updateAll(context)
                 }
             }
             is SettingsUiAction.DeleteSavedLocation -> {
@@ -248,6 +258,7 @@ class SettingsViewModel @Inject constructor(
                     }
                     _isLocationPickerVisible.value = false
                     schedulePrayerAlarmsUseCase()
+                    PrayerTimesWidgetReceiver.updateAll(context)
                 }
             }
             is SettingsUiAction.RefreshGpsLocation -> {
@@ -261,6 +272,7 @@ class SettingsViewModel @Inject constructor(
                             }
                             _isLocationPickerVisible.value = false
                             schedulePrayerAlarmsUseCase()
+                            PrayerTimesWidgetReceiver.updateAll(context)
                         }
                     } finally {
                         _isRefreshingGps.value = false

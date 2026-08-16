@@ -15,6 +15,7 @@ enum class AdhanVoice(val title: String, val rawResName: String) {
     MADINAH("Adzan Madinah", "adhan_madinah"),
     AL_AQSA("Adzan Al-Aqsa", "adhan_alaqsa"),
     EGYPT("Adzan Mesir", "adhan_egypt"),
+    KUWAIT("Adzan Kuwait (Misyari)", "adhan_kuwait"),
     FAJR_SPECIAL("Adzan Subuh Khusus", "adhan_fajr"),
     SYSTEM_DEFAULT("Nada Dering Sistem", "system_default")
 }

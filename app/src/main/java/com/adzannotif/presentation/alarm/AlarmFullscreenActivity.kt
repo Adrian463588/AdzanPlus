@@ -48,17 +48,27 @@ import androidx.compose.ui.unit.sp
 import com.adzannotif.domain.model.ThemeMode
 import com.adzannotif.platform.audio.AdhanAudioPlayer
 import com.adzannotif.presentation.theme.AdzanNotifTheme
+import com.adzannotif.core.prayer.Prayer
+import com.adzannotif.domain.repository.AlarmRepository
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.minutes
 
 @AndroidEntryPoint
 class AlarmFullscreenActivity : ComponentActivity() {
 
     @Inject
     lateinit var audioPlayer: AdhanAudioPlayer
+
+    @Inject
+    lateinit var alarmRepository: AlarmRepository
 
     companion object {
         const val EXTRA_PRAYER_NAME = "extra_prayer_name"
@@ -85,6 +95,16 @@ class AlarmFullscreenActivity : ComponentActivity() {
                     },
                     onSnooze = {
                         audioPlayer.stop()
+                        val prayer = try { Prayer.valueOf(prayerName) } catch (e: Exception) { Prayer.DHUHR }
+                        CoroutineScope(Dispatchers.Default).launch {
+                            val snoozeInstant = Clock.System.now().plus(10.minutes)
+                            alarmRepository.scheduleExactAlarm(
+                                prayer = prayer,
+                                targetInstant = snoozeInstant,
+                                title = "Tunda: $prayerTitle",
+                                isPreReminder = false
+                            )
+                        }
                         finish()
                     }
                 )

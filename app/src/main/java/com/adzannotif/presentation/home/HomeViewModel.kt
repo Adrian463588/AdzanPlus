@@ -13,6 +13,9 @@ import com.adzannotif.domain.usecase.GetNextPrayerUseCase
 import com.adzannotif.domain.usecase.GetTodayPrayerTimesUseCase
 import com.adzannotif.domain.usecase.SchedulePrayerAlarmsUseCase
 import com.adzannotif.platform.network.NetworkMonitor
+import android.content.Context
+import com.adzannotif.widget.PrayerTimesWidgetReceiver
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,6 +51,7 @@ sealed interface HomeUiAction {
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val getTodayPrayerTimesUseCase: GetTodayPrayerTimesUseCase,
     private val getNextPrayerUseCase: GetNextPrayerUseCase,
     private val settingsRepository: SettingsRepository,
@@ -150,6 +154,7 @@ class HomeViewModel @Inject constructor(
                     val updated = currentConfig.copy(isEnabled = !currentConfig.isEnabled)
                     settingsRepository.updateAlarmSettings { it.updateConfig(updated) }
                     schedulePrayerAlarmsUseCase()
+                    PrayerTimesWidgetReceiver.updateAll(context)
                 }
             }
             is HomeUiAction.RefreshLocation -> {
@@ -162,6 +167,7 @@ class HomeViewModel @Inject constructor(
                                 it.copy(selectedLocation = loc, useAutoLocation = true)
                             }
                             schedulePrayerAlarmsUseCase()
+                            PrayerTimesWidgetReceiver.updateAll(context)
                         }
                     } finally {
                         _isRefreshingGps.value = false

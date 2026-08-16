@@ -27,7 +27,9 @@ import com.adzannotif.presentation.home.HomeScreen
 import com.adzannotif.presentation.qibla.QiblaScreen
 import com.adzannotif.presentation.schedule.ScheduleScreen
 import com.adzannotif.presentation.settings.SettingsScreen
+import com.adzannotif.platform.alarm.AdhanScheduler
 import com.adzannotif.presentation.theme.AdzanNotifTheme
+import com.adzannotif.widget.PrayerTimesWidgetReceiver
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -37,9 +39,15 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var settingsRepository: SettingsRepository
 
+    @Inject
+    lateinit var adhanScheduler: AdhanScheduler
+
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { _ -> }
+    ) { _ ->
+        adhanScheduler.rescheduleAllAlarms()
+        PrayerTimesWidgetReceiver.updateAll(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,6 +85,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        adhanScheduler.rescheduleAllAlarms()
+        PrayerTimesWidgetReceiver.updateAll(this)
     }
 
     private fun requestAppPermissions() {
