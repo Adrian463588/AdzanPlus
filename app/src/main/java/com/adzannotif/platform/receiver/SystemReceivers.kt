@@ -7,8 +7,10 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import com.adzannotif.platform.alarm.AlarmScheduler
+import com.adzannotif.platform.alarm.CelestialAlarmScheduler
 import com.adzannotif.platform.audio.AudioGateway
 import com.adzannotif.platform.worker.PrayerSyncWorker
+import com.adzannotif.widget.AstronomyWidgetUpdater
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +27,9 @@ class BootReceiver : BroadcastReceiver() {
     @Inject
     lateinit var alarmScheduler: AlarmScheduler
 
+    @Inject
+    lateinit var celestialAlarmScheduler: CelestialAlarmScheduler
+
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
         if (action == Intent.ACTION_LOCKED_BOOT_COMPLETED) {
@@ -34,7 +39,10 @@ class BootReceiver : BroadcastReceiver() {
             return
         }
 
-        if (action == Intent.ACTION_BOOT_COMPLETED || action == Intent.ACTION_MY_PACKAGE_REPLACED) {
+        if (action == Intent.ACTION_BOOT_COMPLETED ||
+            action == Intent.ACTION_MY_PACKAGE_REPLACED ||
+            action == Intent.ACTION_USER_UNLOCKED
+        ) {
             Log.d("BootReceiver", "Received $action, rescheduling alarms & enqueuing sync worker")
             PrayerSyncWorker.enqueuePeriodicWork(context)
 
@@ -44,6 +52,8 @@ class BootReceiver : BroadcastReceiver() {
                     alarmScheduler.schedule().onFailure { error ->
                         Log.e("BootReceiver", "Prayer alarm reconciliation was not completed", error)
                     }
+                    AstronomyWidgetUpdater.updateAll(context)
+                    celestialAlarmScheduler.rescheduleAllAlarms()
                 } catch (e: Exception) {
                     Log.e("BootReceiver", "Failed to reschedule alarms on boot", e)
                 } finally {
@@ -64,6 +74,9 @@ class TimeChangeReceiver : BroadcastReceiver() {
     @Inject
     lateinit var alarmScheduler: AlarmScheduler
 
+    @Inject
+    lateinit var celestialAlarmScheduler: CelestialAlarmScheduler
+
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
         if (action == Intent.ACTION_TIME_CHANGED ||
@@ -77,6 +90,8 @@ class TimeChangeReceiver : BroadcastReceiver() {
                     alarmScheduler.schedule().onFailure { error ->
                         Log.e("TimeChangeReceiver", "Prayer alarm reconciliation was not completed", error)
                     }
+                    AstronomyWidgetUpdater.updateAll(context)
+                    celestialAlarmScheduler.rescheduleAllAlarms()
                 } catch (e: Exception) {
                     Log.e("TimeChangeReceiver", "Failed to reschedule alarms on time change", e)
                 } finally {
@@ -97,6 +112,9 @@ class ExactAlarmPermissionReceiver : BroadcastReceiver() {
     @Inject
     lateinit var alarmScheduler: AlarmScheduler
 
+    @Inject
+    lateinit var celestialAlarmScheduler: CelestialAlarmScheduler
+
     override fun onReceive(context: Context, intent: Intent) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (intent.action == AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED) {
@@ -107,6 +125,7 @@ class ExactAlarmPermissionReceiver : BroadcastReceiver() {
                         alarmScheduler.schedule().onFailure { error ->
                             Log.e("ExactAlarmPermissionReceiver", "Prayer alarm reconciliation was not completed", error)
                         }
+                        celestialAlarmScheduler.rescheduleAllAlarms()
                     } catch (e: Exception) {
                         Log.e("ExactAlarmPermissionReceiver", "Failed to reschedule alarms on permission change", e)
                     } finally {

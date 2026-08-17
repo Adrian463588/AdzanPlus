@@ -102,7 +102,21 @@ public object SunMath {
         dateMillis: Long,
         timeZone: TimeZone = TimeZone.UTC,
     ): Long {
-        var approx = startOfDay(dateMillis, timeZone) + 43200000L - (lon * 240000L).toLong()
+        val localMidnight = startOfDay(dateMillis, timeZone)
+        val localDate = Instant
+            .fromEpochMilliseconds(localMidnight)
+            .toLocalDateTime(timeZone)
+            .date
+        val utcFields = localDate.atTime(0, 0).toInstant(TimeZone.UTC)
+        val zoneOffsetMinutes = (
+            utcFields.epochSeconds - Instant.fromEpochMilliseconds(localMidnight).epochSeconds
+            ) / 60.0
+        // startOfDay is already the selected civil date's local midnight.
+        // Apply the difference between the timezone meridian and longitude;
+        // subtracting longitude alone shifts every non-UTC location by its
+        // full timezone offset.
+        var approx = localMidnight + 43200000L +
+            ((zoneOffsetMinutes - lon * 4.0) * 60000.0).toLong()
         // Simple convergence
         for (i in 0..2) {
             val jd = julianDay(approx)
@@ -121,7 +135,9 @@ public object SunMath {
                          1.25 * e * e * sin(2.0 * m.toRadians())
                          
             val eqTimeMins = eqTime.toDegrees() * 4.0
-            approx = startOfDay(dateMillis, timeZone) + 43200000L - (lon * 240000L).toLong() - (eqTimeMins * 60000L).toLong()
+            approx = localMidnight + 43200000L +
+                ((zoneOffsetMinutes - lon * 4.0) * 60000.0).toLong() -
+                (eqTimeMins * 60000L).toLong()
         }
         return approx
     }

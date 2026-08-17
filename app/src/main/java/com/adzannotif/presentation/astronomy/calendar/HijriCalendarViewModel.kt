@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.util.TimeZone
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,14 +36,9 @@ class HijriCalendarViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-    init {
-        val cal = Calendar.getInstance()
-        _uiState.value = _uiState.value.copy(
-            year = cal.get(Calendar.YEAR),
-            month = cal.get(Calendar.MONTH)
-        )
-        observeLocationAndCalendar()
-    }
+    init { observeLocationAndCalendar() }
+
+    fun retry() = loadCalendar()
 
     fun previousMonth() {
         val st = _uiState.value
@@ -89,6 +85,11 @@ class HijriCalendarViewModel @Inject constructor(
                     )
                     return@collectLatest
                 }
+                val locationCalendar = Calendar.getInstance(TimeZone.getTimeZone(loc.timeZoneId))
+                _uiState.value = _uiState.value.copy(
+                    year = locationCalendar.get(Calendar.YEAR),
+                    month = locationCalendar.get(Calendar.MONTH),
+                )
                 loadCalendar()
             }
         }

@@ -17,6 +17,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.adzannotif.domain.model.astronomy.SunInfo
 import com.adzannotif.presentation.theme.AstronomyBackgroundDeep
 import com.adzannotif.presentation.theme.AstronomyBlueHour
@@ -80,7 +82,10 @@ fun SolarEventTimeline(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(28.dp)
-                .clip(RoundedCornerShape(8.dp)),
+                .clip(RoundedCornerShape(8.dp))
+                .semantics {
+                    contentDescription = "Pita waktu matahari berdasarkan terbit, terbenam, blue hour, golden hour, dan senja lokasi."
+                },
         ) {
             val width = size.width
             val height = size.height

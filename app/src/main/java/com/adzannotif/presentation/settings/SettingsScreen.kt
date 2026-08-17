@@ -63,6 +63,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -411,6 +413,9 @@ fun SettingsScreen(
                                     onCheckedChange = { enabled ->
                                         viewModel.onAction(SettingsUiAction.SetPrayerEnabled(alarm.prayer, enabled))
                                     },
+                                    modifier = Modifier.semantics {
+                                        contentDescription = "Aktifkan pengingat ${alarm.label}"
+                                    },
                                 )
                             }
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -535,7 +540,7 @@ fun SettingsScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     IconButton(
                                         onClick = { viewModel.onAction(SettingsUiAction.SetPrayerAdjustment(item.prayer, item.minutes - 1)) },
-                                        modifier = Modifier.size(32.dp),
+                                        modifier = Modifier.size(48.dp),
                                         colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surface)
                                     ) {
                                         Icon(Icons.Default.Remove, contentDescription = "Kurang", modifier = Modifier.size(16.dp))
@@ -549,7 +554,7 @@ fun SettingsScreen(
                                     )
                                     IconButton(
                                         onClick = { viewModel.onAction(SettingsUiAction.SetPrayerAdjustment(item.prayer, item.minutes + 1)) },
-                                        modifier = Modifier.size(32.dp),
+                                        modifier = Modifier.size(48.dp),
                                         colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surface)
                                     ) {
                                         Icon(Icons.Default.Add, contentDescription = "Tambah", modifier = Modifier.size(16.dp))
@@ -708,6 +713,9 @@ fun SettingsScreen(
                                     checked = alert.enabled,
                                     onCheckedChange = { enabled ->
                                         viewModel.onAction(SettingsUiAction.SetCelestialAlert(alert.type, enabled))
+                                    },
+                                    modifier = Modifier.semantics {
+                                        contentDescription = "Aktifkan notifikasi ${alert.label}"
                                     },
                                 )
                             }
@@ -987,13 +995,12 @@ private fun LocationPickerContent(
                         onClick = { onSelectLocation(loc) },
                         label = { Text(loc.name) },
                         trailingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Hapus",
-                                modifier = Modifier
-                                    .size(14.dp)
-                                    .clickable { onDeleteSaved(loc.id) }
-                            )
+                            IconButton(onClick = { onDeleteSaved(loc.id) }) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Hapus lokasi ${loc.name}",
+                                )
+                            }
                         }
                     )
                 }

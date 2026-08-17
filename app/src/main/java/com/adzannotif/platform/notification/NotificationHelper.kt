@@ -6,6 +6,8 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.media.AudioAttributes
+import android.media.RingtoneManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -22,6 +24,7 @@ class NotificationHelper @Inject constructor(
 ) : NotificationGateway {
     companion object {
         const val CHANNEL_ADHAN_ID = "channel_adhan_alerts"
+        const val CHANNEL_BEEP_ID = "channel_prayer_beeps"
         const val CHANNEL_REMINDER_ID = "channel_prayer_reminders"
         const val CHANNEL_PERSISTENT_ID = "channel_prayer_persistent"
         const val CELESTIAL_CHANNEL_ID = "celestial_events"
@@ -56,6 +59,21 @@ class NotificationHelper @Inject constructor(
                 lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
             }
 
+            val beepChannel = NotificationChannel(
+                CHANNEL_BEEP_ID,
+                "Nada Singkat Waktu Sholat",
+                NotificationManager.IMPORTANCE_HIGH,
+            ).apply {
+                description = "Nada notifikasi singkat saat pengingat sholat aktif"
+                setSound(
+                    RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT)
+                        .build(),
+                )
+                enableVibration(true)
+            }
+
             // Normal Priority Channel for Pre-Prayer Reminders (5/10/15 mins before)
             val reminderChannel = NotificationChannel(
                 CHANNEL_REMINDER_ID,
@@ -85,7 +103,7 @@ class NotificationHelper @Inject constructor(
                 enableVibration(true)
             }
 
-            notificationManager.createNotificationChannels(listOf(adhanChannel, reminderChannel, persistentChannel, celestialChannel))
+            notificationManager.createNotificationChannels(listOf(adhanChannel, beepChannel, reminderChannel, persistentChannel, celestialChannel))
         }
     }
 
@@ -172,6 +190,33 @@ class NotificationHelper @Inject constructor(
             .setVibrate(if (vibrate) ADHAN_VIBRATION_PATTERN else longArrayOf(0))
 
         postNotification(NOTIFICATION_ID_REMINDER + prayer.ordinal, builder)
+    }
+
+    override fun showBeepNotification(
+        prayer: Prayer,
+        prayerTitle: String,
+        locationName: String,
+        vibrate: Boolean,
+    ) {
+        val contentIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            prayer.ordinal + 400,
+            contentIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val builder = NotificationCompat.Builder(context, CHANNEL_BEEP_ID)
+            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setContentTitle(prayerTitle)
+            .setContentText("Waktu sholat ${prayer.displayNameId} untuk wilayah $locationName")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .setVibrate(if (vibrate) ADHAN_VIBRATION_PATTERN else longArrayOf(0))
+        postNotification(NOTIFICATION_ID_ADHAN + prayer.ordinal + 5000, builder)
     }
 
     override fun showCelestialEventNotification(eventType: String, label: String) {

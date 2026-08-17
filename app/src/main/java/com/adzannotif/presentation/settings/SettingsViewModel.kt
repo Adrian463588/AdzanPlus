@@ -14,7 +14,7 @@ import com.adzannotif.domain.model.ThemeMode
 import com.adzannotif.domain.model.UserSettings
 import com.adzannotif.domain.repository.LocationRepository
 import com.adzannotif.domain.repository.SettingsRepository
-import com.adzannotif.domain.usecase.SchedulePrayerAlarmsUseCase
+import com.adzannotif.platform.alarm.AlarmScheduler
 import com.adzannotif.platform.alarm.CelestialAlarmScheduler
 import com.adzannotif.platform.audio.AudioGateway
 import com.adzannotif.platform.network.NetworkMonitor
@@ -78,7 +78,7 @@ class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
     private val locationRepository: LocationRepository,
-    private val schedulePrayerAlarmsUseCase: SchedulePrayerAlarmsUseCase,
+    private val alarmScheduler: AlarmScheduler,
     private val celestialAlarmScheduler: CelestialAlarmScheduler,
     private val audioGateway: AudioGateway,
     private val networkMonitor: NetworkMonitor,
@@ -144,21 +144,21 @@ class SettingsViewModel @Inject constructor(
             is SettingsUiAction.SetCalculationMethod -> {
                 viewModelScope.launch {
                     settingsRepository.updateUserSettings { it.copy(calculationMethod = action.method) }
-                    schedulePrayerAlarmsUseCase()
+                    refreshAlarms()
                     PrayerTimesWidgetReceiver.updateAll(context)
                 }
             }
             is SettingsUiAction.SetMadhab -> {
                 viewModelScope.launch {
                     settingsRepository.updateUserSettings { it.copy(madhab = action.madhab) }
-                    schedulePrayerAlarmsUseCase()
+                    refreshAlarms()
                     PrayerTimesWidgetReceiver.updateAll(context)
                 }
             }
             is SettingsUiAction.SetHighLatitudeRule -> {
                 viewModelScope.launch {
                     settingsRepository.updateUserSettings { it.copy(highLatitudeRule = action.rule) }
-                    schedulePrayerAlarmsUseCase()
+                    refreshAlarms()
                     PrayerTimesWidgetReceiver.updateAll(context)
                 }
             }
@@ -179,7 +179,7 @@ class SettingsViewModel @Inject constructor(
                             else -> current
                         }
                     }
-                    schedulePrayerAlarmsUseCase()
+                    refreshAlarms()
                     PrayerTimesWidgetReceiver.updateAll(context)
                 }
             }
@@ -189,7 +189,7 @@ class SettingsViewModel @Inject constructor(
                     settingsRepository.updateAlarmSettings {
                         it.updateConfig(currentConfig.copy(isEnabled = action.enabled))
                     }
-                    schedulePrayerAlarmsUseCase()
+                    refreshAlarms()
                     PrayerTimesWidgetReceiver.updateAll(context)
                 }
             }
@@ -228,7 +228,7 @@ class SettingsViewModel @Inject constructor(
                     val currentConfig = uiState.value.alarmSettings.getConfigForPrayer(action.prayer)
                     val updated = currentConfig.copy(preReminderMinutes = action.minutesBefore)
                     settingsRepository.updateAlarmSettings { it.updateConfig(updated) }
-                    schedulePrayerAlarmsUseCase()
+                    refreshAlarms()
                     PrayerTimesWidgetReceiver.updateAll(context)
                 }
             }
@@ -276,7 +276,7 @@ class SettingsViewModel @Inject constructor(
                         it.copy(selectedLocation = action.location, useAutoLocation = action.location.isAutoDetected)
                     }
                     _isLocationPickerVisible.value = false
-                    schedulePrayerAlarmsUseCase()
+                    refreshAlarms()
                     PrayerTimesWidgetReceiver.updateAll(context)
                 }
             }
@@ -302,7 +302,7 @@ class SettingsViewModel @Inject constructor(
                         it.copy(selectedLocation = customLoc, useAutoLocation = false)
                     }
                     _isLocationPickerVisible.value = false
-                    schedulePrayerAlarmsUseCase()
+                    refreshAlarms()
                     PrayerTimesWidgetReceiver.updateAll(context)
                 }
             }
@@ -316,7 +316,7 @@ class SettingsViewModel @Inject constructor(
                                 it.copy(selectedLocation = loc, useAutoLocation = true)
                             }
                             _isLocationPickerVisible.value = false
-                            schedulePrayerAlarmsUseCase()
+                            refreshAlarms()
                             PrayerTimesWidgetReceiver.updateAll(context)
                         }
                     } finally {
@@ -337,6 +337,11 @@ class SettingsViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         audioGateway.stop()
+    }
+
+    private fun refreshAlarms() {
+        alarmScheduler.rescheduleAllAlarms()
+        celestialAlarmScheduler.rescheduleAllAlarms()
     }
 
     private data class LocationStateTuple(

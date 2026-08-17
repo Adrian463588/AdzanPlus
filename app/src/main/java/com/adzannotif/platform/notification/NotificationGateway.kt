@@ -11,6 +11,13 @@ interface NotificationGateway {
         vibrate: Boolean = true,
     )
 
+    fun showBeepNotification(
+        prayer: Prayer,
+        prayerTitle: String,
+        locationName: String,
+        vibrate: Boolean = true,
+    )
+
     fun showPreReminderNotification(
         prayer: Prayer,
         minutesBefore: Int,

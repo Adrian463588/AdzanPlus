@@ -28,14 +28,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.adzannotif.domain.model.astronomy.CalendarDay
 import com.adzannotif.presentation.theme.*
+import com.adzannotif.presentation.common.WindowWidthSizeClass
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HijriCalendarScreen(
     navController: NavController,
+    widthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.COMPACT,
     viewModel: HijriCalendarViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -85,7 +88,7 @@ fun HijriCalendarScreen(
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(horizontal = if (widthSizeClass == WindowWidthSizeClass.COMPACT) 16.dp else 24.dp, vertical = 16.dp)
             ) {
                 Row(
                     modifier = Modifier
@@ -136,6 +139,32 @@ fun HijriCalendarScreen(
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = AstronomyMoonGold)
                 }
+            } else if (uiState.error != null) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Text(
+                        text = uiState.error ?: "Kalender belum tersedia.",
+                        color = AstronomyTwilightCivil,
+                        textAlign = TextAlign.Center,
+                    )
+                    Button(onClick = viewModel::retry) { Text("Coba lagi") }
+                }
+            } else if (uiState.days.isEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Text(
+                        text = "Kalender belum tersedia untuk lokasi ini.",
+                        color = AstronomyTwilightCivil,
+                        textAlign = TextAlign.Center,
+                    )
+                    Button(onClick = viewModel::retry) { Text("Coba lagi") }
+                }
             } else {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(7),
@@ -154,7 +183,9 @@ fun HijriCalendarScreen(
         // Selected Day Bottom Sheet
         if (uiState.selectedDay != null) {
             val day = uiState.selectedDay!!
-            val fmt = SimpleDateFormat("HH:mm", Locale.getDefault())
+            val fmt = SimpleDateFormat("HH:mm", Locale.ROOT).apply {
+                timeZone = TimeZone.getTimeZone(uiState.location?.timeZoneId ?: TimeZone.getDefault().id)
+            }
             ModalBottomSheet(
                 onDismissRequest = { viewModel.dismissDay() },
                 containerColor = AstronomySurface
@@ -226,6 +257,30 @@ fun HijriCalendarScreen(
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                     }
+                    day.prayerTimes?.let { prayers ->
+                        val prayerRows = listOf(
+                            "Subuh" to prayers.fajr,
+                            "Terbit" to prayers.sunrise,
+                            "Dzuhur" to prayers.dhuhr,
+                            "Ashar" to prayers.asr,
+                            "Maghrib" to prayers.maghrib,
+                            "Isya" to prayers.isha,
+                        )
+                        prayerRows.forEach { (label, instant) ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text(label, color = AstronomyTwilightCivil)
+                                Text(
+                                    fmt.format(Date(instant.epochSeconds * 1000L)),
+                                    color = AstronomyStarWhite,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                        }
+                    }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Iluminasi Bulan", color = AstronomyTwilightCivil)
                 Text(String.format(Locale.ROOT, "%.1f%%", day.moonIlluminationPercent), color = AstronomyMoonGold, fontWeight = FontWeight.SemiBold)
@@ -243,7 +298,7 @@ fun CalendarCell(day: CalendarDay, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .aspectRatio(1f)
-            .padding(3.dp)
+            .padding(1.dp)
             .clip(RoundedCornerShape(10.dp))
             .clickable(onClick = onClick)
             .border(
@@ -278,20 +333,22 @@ fun CalendarCell(day: CalendarDay, onClick: () -> Unit) {
             )
         }
 
-        // 5 Prayer dots indicator
-        Row(
-            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 3.dp),
-            horizontalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            repeat(5) {
-                Box(
-                    modifier = Modifier
-                        .size(2.5.dp)
-                        .background(
-                            if (day.isToday) MaterialTheme.colorScheme.primary else AstronomyTwilightCivil.copy(alpha = 0.7f),
-                            CircleShape
-                        )
-                )
+        // Prayer indicators are shown only when this day has a real schedule.
+        if (day.prayerTimes != null) {
+            Row(
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 3.dp),
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                repeat(5) {
+                    Box(
+                        modifier = Modifier
+                            .size(2.5.dp)
+                            .background(
+                                if (day.isToday) MaterialTheme.colorScheme.primary else AstronomyTwilightCivil.copy(alpha = 0.7f),
+                                CircleShape
+                            )
+                    )
+                }
             }
         }
     }

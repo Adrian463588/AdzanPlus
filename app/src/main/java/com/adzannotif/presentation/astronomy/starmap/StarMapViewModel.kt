@@ -44,7 +44,12 @@ class StarMapViewModel @Inject constructor(
     private fun observeLocationAndUpdates() {
         viewModelScope.launch {
             locationRepository.currentOrSelectedLocation.collectLatest { loc ->
-                _uiState.value = _uiState.value.copy(location = loc)
+                _uiState.value = _uiState.value.copy(
+                    location = loc,
+                    starMapData = null,
+                    isLoading = loc != null,
+                    error = null,
+                )
                 updateStarMap()
             }
         }
@@ -70,6 +75,7 @@ class StarMapViewModel @Inject constructor(
                 }
             } else {
                 _uiState.value = _uiState.value.copy(
+                    starMapData = null,
                     isLoading = false,
                     error = "Lokasi belum tersedia. Pilih lokasi sebelum membuka peta langit."
                 )

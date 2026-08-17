@@ -143,16 +143,16 @@ fun AppNavHost(
             AstronomyDashboardScreen(navController = navController, widthSizeClass = widthSizeClass)
         }
         composable(Screen.SunDetail.route) {
-            SunDetailScreen(navController = navController)
+            SunDetailScreen(navController = navController, widthSizeClass = widthSizeClass)
         }
         composable(Screen.MoonDetail.route) {
-            MoonDetailScreen(navController = navController)
+            MoonDetailScreen(navController = navController, widthSizeClass = widthSizeClass)
         }
         composable(Screen.StarMap.route) {
-            StarMapScreen(navController = navController)
+            StarMapScreen(navController = navController, widthSizeClass = widthSizeClass)
         }
         composable(Screen.HijriCalendar.route) {
-            HijriCalendarScreen(navController = navController)
+            HijriCalendarScreen(navController = navController, widthSizeClass = widthSizeClass)
         }
     }
 }

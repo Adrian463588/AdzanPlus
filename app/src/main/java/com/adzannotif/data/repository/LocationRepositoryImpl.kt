@@ -42,7 +42,7 @@ class LocationRepositoryImpl @Inject constructor(
 ) : LocationRepository {
 
     override val currentOrSelectedLocation: Flow<LocationInfo?> = appDataStore.userSettingsFlow.map { settings ->
-        settings.selectedLocation
+        settings.selectedLocation?.normalizeAutoDetectedTimeZone()
     }
 
     override val favoriteLocations: Flow<List<LocationInfo>> = savedLocationDao.getAllLocations().map { list ->
@@ -108,6 +108,17 @@ class LocationRepositoryImpl @Inject constructor(
     )
 
     private data class ResolvedName(val name: String, val country: String)
+
+    /**
+     * GPS locations inherit the device's current zone. Re-evaluate that zone
+     * whenever the selected GPS snapshot is consumed so a travel/time-zone
+     * change cannot render or schedule events in a stale zone.
+     */
+    private fun LocationInfo.normalizeAutoDetectedTimeZone(): LocationInfo {
+        if (!isAutoDetected) return this
+        val currentTimeZoneId = TimeZone.getDefault().id
+        return if (timeZoneId == currentTimeZoneId) this else copy(timeZoneId = currentTimeZoneId)
+    }
 
     private suspend fun resolveLocationName(lat: Double, lng: Double): ResolvedName {
         val closest = offlineCityDatabase.findClosestCity(lat, lng)

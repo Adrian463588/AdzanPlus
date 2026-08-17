@@ -145,7 +145,7 @@ fun AstronomyDashboardScreen(
                     SolarPhaseBadge(sunInfo = sunInfo)
                 }
 
-                if (widthSizeClass == WindowWidthSizeClass.EXPANDED) {
+                if (widthSizeClass != WindowWidthSizeClass.COMPACT) {
                     item {
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             Box(modifier = Modifier.weight(1f)) {

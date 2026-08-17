@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CenterFocusStrong
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,6 +19,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,6 +30,7 @@ import androidx.navigation.NavController
 import com.adzannotif.domain.model.astronomy.StarMapData
 import com.adzannotif.domain.model.astronomy.VisibleStar
 import com.adzannotif.presentation.theme.*
+import com.adzannotif.presentation.common.WindowWidthSizeClass
 import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.sin
@@ -36,6 +40,7 @@ import java.util.Locale
 @Composable
 fun StarMapScreen(
     navController: NavController,
+    widthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.COMPACT,
     viewModel: StarMapViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -86,6 +91,7 @@ fun StarMapScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .padding(horizontal = if (widthSizeClass == WindowWidthSizeClass.COMPACT) 0.dp else 24.dp)
                 .background(AstronomyBackgroundDeep)
         ) {
             Box(modifier = Modifier.weight(1f)) {
@@ -156,7 +162,11 @@ fun StarMapScreen(
                                 )
                             }
                             IconButton(onClick = { selectedStar = null }) {
-                                Text("✕", color = AstronomyStarWhite, fontSize = 18.sp)
+                                Icon(
+                                    imageVector = Icons.Filled.Close,
+                                    contentDescription = "Tutup informasi bintang",
+                                    tint = AstronomyStarWhite,
+                                )
                             }
                         }
                     }
@@ -201,26 +211,32 @@ fun InteractiveSkyChart(
     // Screen projected star coordinates cache for hit detection
     val projectedStars = remember { mutableStateListOf<Pair<VisibleStar, Offset>>() }
 
-    Canvas(
-        modifier = modifier
-            .background(AstronomyBackgroundDeep)
-            .pointerInput(resetKey) {
-                detectTransformGestures { _, pan, zoom, _ ->
-                    scale = (scale * zoom).coerceIn(0.5f, 5f)
-                    offset += pan
-                }
-            }
-            .pointerInput(resetKey) {
-                detectTapGestures { tapOffset ->
-                    val hit = projectedStars.minByOrNull { (_, pos) ->
-                        hypot(tapOffset.x - pos.x, tapOffset.y - pos.y)
-                    }
-                    if (hit != null && hypot(tapOffset.x - hit.second.x, tapOffset.y - hit.second.y) < 40f) {
-                        onStarTapped(hit.first)
-                    }
-                }
-            }
+    Box(
+        modifier = modifier.semantics {
+            contentDescription = "Peta bintang interaktif. Cubit untuk memperbesar, geser untuk berpindah, dan ketuk bintang untuk informasi."
+        }
     ) {
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(AstronomyBackgroundDeep)
+                .pointerInput(resetKey) {
+                    detectTransformGestures { _, pan, zoom, _ ->
+                        scale = (scale * zoom).coerceIn(0.5f, 5f)
+                        offset += pan
+                    }
+                }
+                .pointerInput(resetKey) {
+                    detectTapGestures { tapOffset ->
+                        val hit = projectedStars.minByOrNull { (_, pos) ->
+                            hypot(tapOffset.x - pos.x, tapOffset.y - pos.y)
+                        }
+                        if (hit != null && hypot(tapOffset.x - hit.second.x, tapOffset.y - hit.second.y) < 40f) {
+                            onStarTapped(hit.first)
+                        }
+                    }
+                }
+        ) {
         val center = Offset(size.width / 2 + offset.x, size.height / 2 + offset.y)
         val chartRadius = minOf(size.width, size.height) / 2 * scale
 
@@ -293,12 +309,20 @@ fun InteractiveSkyChart(
                 drawCircle(color = AstronomyMoonGold, radius = 7f, center = moonPos)
             }
         }
+        }
+        Text("N", modifier = Modifier.align(Alignment.TopCenter).padding(top = 8.dp), color = AstronomyTwilightCivil)
+        Text("S", modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp), color = AstronomyTwilightCivil)
+        Text("E", modifier = Modifier.align(Alignment.CenterEnd).padding(end = 8.dp), color = AstronomyTwilightCivil)
+        Text("W", modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp), color = AstronomyTwilightCivil)
     }
 }
 
 @Composable
 fun TimeSlider(currentMillis: Long, onTimeChanged: (Long) -> Unit, modifier: Modifier) {
     var sliderValue by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(currentMillis) {
+        sliderValue = ((currentMillis - System.currentTimeMillis()) / 3_600_000f).coerceIn(-12f, 12f)
+    }
 
     Column(modifier = modifier) {
         val sign = if (sliderValue > 0) "+" else ""

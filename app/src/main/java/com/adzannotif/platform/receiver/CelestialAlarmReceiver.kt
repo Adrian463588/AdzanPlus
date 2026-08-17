@@ -4,7 +4,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.adzannotif.platform.notification.NotificationGateway
+import com.adzannotif.widget.AstronomyWidgetUpdater
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -18,6 +22,9 @@ class CelestialAlarmReceiver : BroadcastReceiver() {
         val eventLabel = intent.getStringExtra(EXTRA_EVENT_LABEL) ?: return
         if (eventLabel.isBlank()) return
         notificationGateway.showCelestialEventNotification(eventTypeStr, eventLabel)
+        CoroutineScope(Dispatchers.Default).launch {
+            runCatching { AstronomyWidgetUpdater.updateAll(context) }
+        }
     }
 
     companion object {

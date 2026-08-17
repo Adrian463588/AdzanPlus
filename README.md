@@ -11,15 +11,21 @@
 
 ## 📱 Live App Previews (Tampilan Aplikasi Nyata)
 
+> Capture perangkat nyata — Android device `QSWSEMRKNFZ9LJRC`, 1220×2712, 17 Agustus 2026. Data astronomi pada capture memakai lokasi GPS terpilih dan timezone lokasi; tidak menggunakan preview sintetis.
+
+![Live astronomy dashboard](docs/screenshots/live_astronomy_fixed.png)
+
 ### Layanan Utama Sholat & Kiblat
 | Beranda (Home & Countdown) | Jadwal Bulanan (30-Day Schedule) | Kompas Arah Kiblat (Qibla) | Pengaturan & Hisab (Settings) |
 |:---:|:---:|:---:|:---:|
 | <img src="docs/screenshots/home.png" width="220" alt="Beranda AdzanPlus" /> | <img src="docs/screenshots/schedule.png" width="220" alt="Jadwal Bulanan" /> | <img src="docs/screenshots/qibla.png" width="220" alt="Kompas Arah Kiblat" /> | <img src="docs/screenshots/settings.png" width="220" alt="Pengaturan & Hisab" /> |
 
 ### Suite Astronomi & Bintang (Sprint 2)
-| Dashboard Astronomi | Detail Bulan & Fase 30 Hari | Detail Matahari & Golden Hour | Peta Bintang & Rasi (500 Stars) | Kalender Hijriah & Masehi |
-|:---:|:---:|:---:|:---:|:---:|
-| <img src="docs/screenshots/astronomy_dashboard.png" width="180" alt="Dashboard Astronomi" /> | <img src="docs/screenshots/moon_detail.png" width="180" alt="Detail Bulan" /> | <img src="docs/screenshots/sun_detail.png" width="180" alt="Detail Matahari" /> | <img src="docs/screenshots/star_map.png" width="180" alt="Peta Bintang" /> | <img src="docs/screenshots/hijri_calendar.png" width="180" alt="Kalender Hijriah" /> |
+| Dashboard Astronomi | Detail Bulan & Fase 30 Hari | Detail Matahari & Golden Hour | Peta Bintang & Rasi (500 Stars) |
+|:---:|:---:|:---:|:---:|
+| <img src="docs/screenshots/astronomy_dashboard.png" width="200" alt="Dashboard Astronomi" /> | <img src="docs/screenshots/moon_detail.png" width="200" alt="Detail Bulan" /> | <img src="docs/screenshots/sun_detail.png" width="200" alt="Detail Matahari" /> | <img src="docs/screenshots/star_map.png" width="200" alt="Peta Bintang" /> |
+
+Kalender Hijriah menampilkan grid berdasarkan timezone lokasi dan jadwal sholat dari repository lokal ketika data tersedia; state tanpa data ditampilkan sebagai unavailable.
 
 ---
 

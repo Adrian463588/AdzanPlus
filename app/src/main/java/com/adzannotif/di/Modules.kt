@@ -54,7 +54,6 @@ object AppModule {
             "prayer_times.db"
         )
             .addMigrations(PRAYER_DATABASE_MIGRATION_1_2)
-            .fallbackToDestructiveMigration()
             .build()
     }
 

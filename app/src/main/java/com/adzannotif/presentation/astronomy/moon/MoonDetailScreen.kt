@@ -27,12 +27,15 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.adzannotif.domain.model.astronomy.CalendarDay
 import com.adzannotif.domain.model.astronomy.MoonInfo
 import com.adzannotif.presentation.theme.*
+import com.adzannotif.presentation.common.WindowWidthSizeClass
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -42,6 +45,7 @@ import java.util.TimeZone
 @Composable
 fun MoonDetailScreen(
     navController: NavController,
+    widthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.COMPACT,
     viewModel: MoonDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -80,7 +84,10 @@ fun MoonDetailScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .background(AstronomyBackgroundDeep),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(
+                horizontal = if (widthSizeClass == WindowWidthSizeClass.COMPACT) 16.dp else 24.dp,
+                vertical = 16.dp,
+            ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (uiState.isLoading) {
@@ -143,7 +150,11 @@ fun MoonDetailScreen(
 @Composable
 fun MoonPhaseHeroIllustration(phaseOrdinal: Int, phaseName: String, modifier: Modifier) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Canvas(modifier) {
+        Canvas(
+            modifier.semantics {
+                contentDescription = "Ilustrasi fase bulan: $phaseName"
+            }
+        ) {
             val radius = size.minDimension / 2.2f
             val center = Offset(size.width / 2, size.height / 2)
 
@@ -366,33 +377,45 @@ fun InteractiveMiniPhaseCalendar(
             Text("Ketuk tanggal untuk melihat rincian fase", color = AstronomyTwilightCivil, style = MaterialTheme.typography.bodySmall)
             Spacer(modifier = Modifier.height(12.dp))
 
-            val displayDays = if (calendarDays.isNotEmpty()) calendarDays else (0..29).map {
-                CalendarDay(0, it + 1, 8, 2026, it + 1, 2, 1448, "Safar", null, "Fase", it % 8, (it * 3.3).coerceAtMost(100.0), it == 0, it == 14, null, null, null)
-            }
+            if (calendarDays.isEmpty()) {
+                Text(
+                    text = "Kalender fase belum tersedia untuk lokasi dan tanggal ini.",
+                    color = AstronomyTwilightCivil,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            } else {
+                val phaseIcons = listOf("🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘")
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    itemsIndexed(calendarDays) { index, day ->
+                        val isSelected = index == selectedIndex
+                        val icon = phaseIcons[day.moonPhaseOrdinal.coerceIn(0, phaseIcons.lastIndex)]
 
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                itemsIndexed(displayDays) { index, day ->
-                    val isSelected = index == selectedIndex
-                    val emojis = listOf("🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘")
-                    val icon = emojis[day.moonPhaseOrdinal.coerceIn(0, 7)]
-
-                    Column(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(if (isSelected) AstronomyMoonGold.copy(alpha = 0.25f) else AstronomyBackgroundMid)
-                            .border(
-                                width = if (isSelected) 1.5.dp else 0.dp,
-                                color = if (isSelected) AstronomyMoonGold else Color.Transparent,
-                                shape = RoundedCornerShape(12.dp)
+                        Column(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (isSelected) AstronomyMoonGold.copy(alpha = 0.25f) else AstronomyBackgroundMid)
+                                .border(
+                                    width = if (isSelected) 1.5.dp else 0.dp,
+                                    color = if (isSelected) AstronomyMoonGold else Color.Transparent,
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                .clickable { onSelectDay(index) }
+                                .padding(horizontal = 10.dp, vertical = 8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(icon, fontSize = 20.sp)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                "Tgl ${day.gregorianDay}",
+                                color = if (isSelected) AstronomyMoonGold else AstronomyStarWhite,
+                                style = MaterialTheme.typography.labelSmall,
                             )
-                            .clickable { onSelectDay(index) }
-                            .padding(horizontal = 10.dp, vertical = 8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(icon, fontSize = 20.sp)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("Tgl ${day.gregorianDay}", color = if (isSelected) AstronomyMoonGold else AstronomyStarWhite, style = MaterialTheme.typography.labelSmall)
-                Text(String.format(Locale.ROOT, "%.0f%%", day.moonIlluminationPercent), color = AstronomyTwilightCivil, style = MaterialTheme.typography.labelSmall)
+                            Text(
+                                String.format(Locale.ROOT, "%.0f%%", day.moonIlluminationPercent),
+                                color = AstronomyTwilightCivil,
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                        }
                     }
                 }
             }

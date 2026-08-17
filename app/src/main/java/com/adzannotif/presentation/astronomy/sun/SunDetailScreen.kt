@@ -21,6 +21,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -29,6 +31,7 @@ import com.adzannotif.domain.model.LocationInfo
 import com.adzannotif.domain.model.astronomy.SunInfo
 import com.adzannotif.presentation.astronomy.SolarEventTimeline
 import com.adzannotif.presentation.theme.*
+import com.adzannotif.presentation.common.WindowWidthSizeClass
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -38,6 +41,7 @@ import java.util.TimeZone
 @Composable
 fun SunDetailScreen(
     navController: NavController,
+    widthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.COMPACT,
     viewModel: SunDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -75,7 +79,10 @@ fun SunDetailScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .background(AstronomyBackgroundDeep),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(
+                horizontal = if (widthSizeClass == WindowWidthSizeClass.COMPACT) 16.dp else 24.dp,
+                vertical = 16.dp,
+            ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (uiState.isLoading) {
@@ -214,6 +221,9 @@ fun PhysicallyAccurateSunArc(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
+                    .semantics {
+                        contentDescription = "Busur elevasi matahari dan garis waktu senja untuk lokasi terpilih."
+                    }
             ) {
                 val w = size.width
                 val h = size.height

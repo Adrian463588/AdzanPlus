@@ -88,7 +88,12 @@ class AlarmReceiver : BroadcastReceiver() {
                             )
                         }
                         AdhanSoundType.BEEP_NOTIFICATION -> {
-                            // Handled via notification sound
+                            notificationGateway.showBeepNotification(
+                                prayer = prayer,
+                                prayerTitle = prayerTitle,
+                                locationName = locationName,
+                                vibrate = config.isVibrate,
+                            )
                         }
                         AdhanSoundType.SILENT -> {
                             // Silent

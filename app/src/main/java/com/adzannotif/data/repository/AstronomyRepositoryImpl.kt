@@ -16,7 +16,11 @@ import com.adzannotif.domain.model.astronomy.StarMapData
 import com.adzannotif.domain.model.astronomy.SunInfo
 import com.adzannotif.domain.model.astronomy.VisibleStar
 import com.adzannotif.domain.repository.AstronomyRepository
+import com.adzannotif.domain.repository.PrayerTimesRepository
+import com.adzannotif.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import java.util.Calendar
 import java.util.Locale
@@ -26,7 +30,9 @@ import javax.inject.Singleton
 @Singleton
 class AstronomyRepositoryImpl @Inject constructor(
     private val engine: AstronomyEngine,
-    private val cacheDao: AstronomyCacheDao
+    private val cacheDao: AstronomyCacheDao,
+    private val prayerTimesRepository: PrayerTimesRepository,
+    private val settingsRepository: SettingsRepository,
 ) : AstronomyRepository {
 
     override fun getSunInfo(locationInfo: LocationInfo, epochMillis: Long): Flow<SunInfo> = flow {
@@ -138,6 +144,7 @@ class AstronomyRepositoryImpl @Inject constructor(
             set(Calendar.MILLISECOND, 0)
         }
         val daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
+        val settings = settingsRepository.userSettings.first()
 
         return (1..daysInMonth).map { day ->
             cal.set(Calendar.DAY_OF_MONTH, day)
@@ -150,6 +157,13 @@ class AstronomyRepositoryImpl @Inject constructor(
                 dayMillis,
                 kotlinx.datetime.TimeZone.of(locationInfo.timeZoneId),
             )
+            val prayerTimes = runCatching {
+                prayerTimesRepository.getPrayerTimesForDate(
+                    date = kotlinx.datetime.LocalDate(year, month, day),
+                    location = locationInfo,
+                    settings = settings,
+                ).firstOrNull()
+            }.getOrNull()
 
             CalendarDay(
                 gregorianEpochMillis = dayMillis,
@@ -160,7 +174,7 @@ class AstronomyRepositoryImpl @Inject constructor(
                 hijriMonth = hijri.month,
                 hijriYear = hijri.year,
                 hijriMonthName = hijri.monthName,
-                prayerTimes = null, // injected separately when needed
+                prayerTimes = prayerTimes,
                 moonPhaseName = moonState.phase.displayName,
                 moonPhaseOrdinal = moonState.phase.ordinal,
                 moonIlluminationPercent = moonState.illuminationFraction * 100.0,
@@ -282,7 +296,7 @@ class AstronomyRepositoryImpl @Inject constructor(
         }
         return String.format(
             Locale.ROOT,
-            "%04d-%02d-%02d_%.4f_%.4f_%s",
+            "sun-moon-v2_%04d-%02d-%02d_%.4f_%.4f_%s",
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH) + 1,
             calendar.get(Calendar.DAY_OF_MONTH),
