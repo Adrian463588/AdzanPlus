@@ -31,7 +31,8 @@ import com.adzannotif.domain.model.astronomy.StarMapData
 import com.adzannotif.domain.model.astronomy.VisibleStar
 import com.adzannotif.presentation.theme.*
 import com.adzannotif.presentation.common.WindowWidthSizeClass
-import com.adzannotif.presentation.common.Screen
+import com.adzannotif.presentation.common.AstronomyDetailBackHandler
+import com.adzannotif.presentation.common.navigateToAstronomyDashboard
 import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.sin
@@ -44,6 +45,7 @@ fun StarMapScreen(
     widthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.COMPACT,
     viewModel: StarMapViewModel = hiltViewModel()
 ) {
+    AstronomyDetailBackHandler(navController)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var selectedStar by remember { mutableStateOf<VisibleStar?>(null) }
     var resetTrigger by remember { mutableIntStateOf(0) }
@@ -68,13 +70,7 @@ fun StarMapScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = {
-                        navController.navigate(Screen.AstronomyDashboard.route) {
-                            popUpTo(Screen.Home.route) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }) {
+                    IconButton(onClick = { navController.navigateToAstronomyDashboard() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.action_back),
@@ -351,7 +347,7 @@ fun TimeSlider(currentMillis: Long, onTimeChanged: (Long) -> Unit, modifier: Mod
                 androidx.compose.ui.res.stringResource(
                     com.adzannotif.R.string.star_simulation_offset,
                     sign,
-                    sliderValue.toInt(),
+                    sliderValue.toInt().toString(),
                 ),
                 color = AstronomyMoonGold,
                 style = MaterialTheme.typography.bodyMedium,

@@ -1,10 +1,14 @@
 package com.adzannotif.platform.audio
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.net.Uri
+import android.os.Build
 import android.os.PowerManager
 import android.util.Log
 import androidx.media3.common.AudioAttributes as Media3AudioAttributes
@@ -18,9 +22,7 @@ import com.adzannotif.domain.model.AdhanVoice
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -41,11 +43,29 @@ class AdhanAudioPlayer @Inject constructor(
     private var exoPlayer: ExoPlayer? = null
     private var mediaPlayer: MediaPlayer? = null
     private var wakeLock: PowerManager.WakeLock? = null
-    private var autoSilenceJob: Job? = null
+    private var audioManager: AudioManager? = null
+    private var audioFocusRequest: AudioFocusRequest? = null
+
+    private val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
+        when (focusChange) {
+            AudioManager.AUDIOFOCUS_GAIN -> {
+                runCatching { exoPlayer?.play() }
+                runCatching {
+                    if (mediaPlayer?.isPlaying != true) mediaPlayer?.start()
+                }
+            }
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                runCatching { exoPlayer?.pause() }
+                runCatching {
+                    if (mediaPlayer?.isPlaying == true) mediaPlayer?.pause()
+                }
+            }
+            AudioManager.AUDIOFOCUS_LOSS -> stop()
+        }
+    }
 
     companion object {
         private const val TAG = "AdhanAudioPlayer"
-        private const val WAKELOCK_TIMEOUT_MS = 15 * 60 * 1000L
     }
 
     /**
@@ -55,7 +75,6 @@ class AdhanAudioPlayer @Inject constructor(
     override fun playAdhan(
         voice: AdhanVoice,
         customUriString: String?,
-        durationMinutes: Int,
         onCompletion: (() -> Unit)?,
     ) {
         playbackScope.launch {
@@ -64,12 +83,16 @@ class AdhanAudioPlayer @Inject constructor(
             val audioUri = resolveAudioUri(voice, customUriString)
             if (audioUri == null) {
                 Log.e(TAG, "No playable audio source for voice=${voice.name}")
+                onCompletion?.invoke()
                 return@launch
             }
 
+            if (!requestAudioFocus()) {
+                Log.w(TAG, "Audio focus was not granted for voice=${voice.name}")
+                onCompletion?.invoke()
+                return@launch
+            }
             acquireWakeLock()
-            val duration = durationMinutes.coerceIn(1, (WAKELOCK_TIMEOUT_MS / 60_000L).toInt())
-
             try {
                 val audioAttributes = Media3AudioAttributes.Builder()
                     .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
@@ -77,7 +100,10 @@ class AdhanAudioPlayer @Inject constructor(
                     .build()
 
                 val player = ExoPlayer.Builder(context).build().apply {
-                    setAudioAttributes(audioAttributes, true)
+                    // Media3 only supports automatic focus handling for MEDIA/GAME.
+                    // Alarm focus is requested explicitly below so USAGE_ALARM remains
+                    // correct without throwing before playback starts.
+                    setAudioAttributes(audioAttributes, false)
                     setHandleAudioBecomingNoisy(true)
                     setWakeMode(C.WAKE_MODE_LOCAL)
                     setMediaItem(MediaItem.fromUri(audioUri))
@@ -93,8 +119,7 @@ class AdhanAudioPlayer @Inject constructor(
 
                         override fun onPlayerError(error: PlaybackException) {
                             Log.w(TAG, "Media3 could not play the configured source; trying the same source with MediaPlayer", error)
-                            stop()
-                            fallbackPlayMediaPlayer(audioUri, duration, onCompletion)
+                            startFallback(audioUri, onCompletion)
                         }
                     })
                 }
@@ -102,13 +127,21 @@ class AdhanAudioPlayer @Inject constructor(
                 exoPlayer = player
                 player.prepare()
                 player.play()
-                startAutoSilenceTimer(duration, onCompletion)
             } catch (error: Exception) {
                 Log.e(TAG, "Media3 failed for the configured audio source", error)
-                stop()
-                fallbackPlayMediaPlayer(audioUri, duration, onCompletion)
+                startFallback(audioUri, onCompletion)
             }
         }
+    }
+
+    private fun startFallback(audioUri: Uri, onCompletion: (() -> Unit)?) {
+        stop()
+        if (!requestAudioFocus()) {
+            onCompletion?.invoke()
+            return
+        }
+        acquireWakeLock()
+        fallbackPlayMediaPlayer(audioUri, onCompletion)
     }
 
     private fun resolveAudioUri(voice: AdhanVoice, customUriString: String?): Uri? {
@@ -141,7 +174,6 @@ class AdhanAudioPlayer @Inject constructor(
 
     private fun fallbackPlayMediaPlayer(
         audioUri: Uri,
-        durationMinutes: Int,
         onCompletion: (() -> Unit)?,
     ) {
         try {
@@ -162,32 +194,64 @@ class AdhanAudioPlayer @Inject constructor(
                 setOnErrorListener { _, what, extra ->
                     Log.e(TAG, "MediaPlayer could not play the configured source: what=$what extra=$extra")
                     stop()
+                    onCompletion?.invoke()
                     true
                 }
                 prepare()
                 start()
             }
-            startAutoSilenceTimer(durationMinutes, onCompletion)
         } catch (error: Exception) {
             Log.e(TAG, "MediaPlayer failed for the configured audio source", error)
-            stop()
-        }
-    }
-
-    private fun startAutoSilenceTimer(
-        durationMinutes: Int,
-        onCompletion: (() -> Unit)?,
-    ) {
-        autoSilenceJob?.cancel()
-        autoSilenceJob = playbackScope.launch {
-            delay(durationMinutes.coerceAtLeast(1) * 60_000L)
-            autoSilenceJob = null
-            Log.d(TAG, "Auto-silence timer expired after $durationMinutes minutes")
             stop()
             onCompletion?.invoke()
         }
     }
 
+    private fun requestAudioFocus(): Boolean {
+        val manager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return false
+        audioManager = manager
+        val attributes = AudioAttributes.Builder()
+            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+            .setUsage(AudioAttributes.USAGE_ALARM)
+            .build()
+
+        val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                .setAudioAttributes(attributes)
+                .setAcceptsDelayedFocusGain(false)
+                .setOnAudioFocusChangeListener(audioFocusChangeListener)
+                .build()
+            audioFocusRequest = request
+            manager.requestAudioFocus(request)
+        } else {
+            @Suppress("DEPRECATION")
+            manager.requestAudioFocus(
+                audioFocusChangeListener,
+                AudioManager.STREAM_ALARM,
+                AudioManager.AUDIOFOCUS_GAIN,
+            )
+        }
+
+        if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            abandonAudioFocus()
+            return false
+        }
+        return true
+    }
+
+    private fun abandonAudioFocus() {
+        val manager = audioManager ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            audioFocusRequest?.let { manager.abandonAudioFocusRequest(it) }
+        } else {
+            @Suppress("DEPRECATION")
+            manager.abandonAudioFocus(audioFocusChangeListener)
+        }
+        audioFocusRequest = null
+        audioManager = null
+    }
+
+    @SuppressLint("WakelockTimeout")
     private fun acquireWakeLock() {
         try {
             val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -196,18 +260,17 @@ class AdhanAudioPlayer @Inject constructor(
                 "AdzanNotif:AudioWakeLock",
             ).apply {
                 setReferenceCounted(false)
-                acquire(WAKELOCK_TIMEOUT_MS)
+                // Playback owns the lock. It is released by completion, error,
+                // explicit stop, or the foreground service's onDestroy.
+                acquire()
             }
         } catch (error: Exception) {
             Log.w(TAG, "Could not acquire the audio wake lock", error)
         }
     }
 
-    /** Stops playback, timers, and the wake lock without substituting another source. */
+    /** Stops playback and the wake lock without substituting another source. */
     override fun stop() {
-        autoSilenceJob?.cancel()
-        autoSilenceJob = null
-
         try {
             exoPlayer?.let { player ->
                 player.stop()
@@ -238,5 +301,7 @@ class AdhanAudioPlayer @Inject constructor(
         } catch (error: Exception) {
             Log.w(TAG, "Could not release the audio wake lock", error)
         }
+
+        abandonAudioFocus()
     }
 }

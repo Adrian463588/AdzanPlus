@@ -9,6 +9,7 @@ import android.util.Log
 import com.adzannotif.platform.alarm.AlarmScheduler
 import com.adzannotif.platform.alarm.CelestialAlarmScheduler
 import com.adzannotif.platform.audio.AudioGateway
+import com.adzannotif.platform.audio.AdhanPlaybackService
 import com.adzannotif.platform.worker.PrayerSyncWorker
 import com.adzannotif.widget.AstronomyWidgetUpdater
 import com.adzannotif.presentation.widget.PrayerTimesWidgetReceiver
@@ -159,6 +160,7 @@ class StopAdhanReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == ACTION_STOP_ADHAN) {
             Log.d("StopAdhanReceiver", "Stopping adhan playback")
+            AdhanPlaybackService.stop(context)
             audioGateway.stop()
             val notificationId = intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1)
             if (notificationId != -1) {

@@ -32,7 +32,8 @@ import com.adzannotif.domain.model.astronomy.SunInfo
 import com.adzannotif.presentation.astronomy.SolarEventTimeline
 import com.adzannotif.presentation.theme.*
 import com.adzannotif.presentation.common.WindowWidthSizeClass
-import com.adzannotif.presentation.common.Screen
+import com.adzannotif.presentation.common.AstronomyDetailBackHandler
+import com.adzannotif.presentation.common.navigateToAstronomyDashboard
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -45,6 +46,7 @@ fun SunDetailScreen(
     widthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.COMPACT,
     viewModel: SunDetailViewModel = hiltViewModel()
 ) {
+    AstronomyDetailBackHandler(navController)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
@@ -67,13 +69,7 @@ fun SunDetailScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = {
-                        navController.navigate(Screen.AstronomyDashboard.route) {
-                            popUpTo(Screen.Home.route) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }) {
+                    IconButton(onClick = { navController.navigateToAstronomyDashboard() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.action_back),
@@ -208,12 +204,17 @@ fun PhysicallyAccurateSunArc(
             ) {
                 Column {
                     Text(
-                        "Busur Elevasi Matahari Fisik (24 Jam)",
+                        androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_arc_title),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = AstronomyStarWhite
                     )
                     Text(
-                        "Waktu: ${fmt.format(Date(activeTime))} • Alt: ${String.format(Locale.ROOT, "%.1f°", activePos.altitude)} • Az: ${String.format(Locale.ROOT, "%.1f°", activePos.azimuth)}",
+                        androidx.compose.ui.res.stringResource(
+                            com.adzannotif.R.string.sun_arc_metrics,
+                            fmt.format(Date(activeTime)),
+                            activePos.altitude,
+                            activePos.azimuth,
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = if (activePos.altitude >= 0) AstronomySunAmber else AstronomyTwilightCivil
                     )
@@ -377,11 +378,12 @@ fun GoldenBlueHourDetailCards(
     val fmt = SimpleDateFormat("HH:mm", Locale.ROOT).apply {
         timeZoneId?.let { timeZone = TimeZone.getTimeZone(it) }
     }
+    val unavailable = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.value_unavailable)
     fun formatWindow(start: Long?, end: Long?): String {
         return if (start != null && end != null) {
             "${fmt.format(Date(start))} - ${fmt.format(Date(end))}"
         } else {
-            "Data tidak tersedia"
+            unavailable
         }
     }
 
@@ -524,7 +526,8 @@ fun KeyTimesList(sunInfo: SunInfo?, timeZoneId: String? = null) {
     val fmt = SimpleDateFormat("HH:mm", Locale.ROOT).apply {
         timeZoneId?.let { timeZone = TimeZone.getTimeZone(it) }
     }
-    fun formatTime(ms: Long?): String = ms?.let { fmt.format(Date(it)) } ?: "—"
+    val unavailable = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.value_unavailable)
+    fun formatTime(ms: Long?): String = ms?.let { fmt.format(Date(it)) } ?: unavailable
 
     Card(
         colors = CardDefaults.cardColors(containerColor = AstronomySurface),
@@ -539,15 +542,15 @@ fun KeyTimesList(sunInfo: SunInfo?, timeZoneId: String? = null) {
             )
             Spacer(modifier = Modifier.height(12.dp))
             val times = listOf(
-                "Fajar Astronomis (-18°)" to formatTime(sunInfo?.astronomicalDawnMillis),
-                "Fajar Nautikal (-12°)" to formatTime(sunInfo?.nauticalDawnMillis),
-                "Fajar Sipil (-6°)" to formatTime(sunInfo?.civilDawnMillis),
-                "Matahari Terbit (Sunrise)" to formatTime(sunInfo?.riseMillis),
-                "Tengah Hari (Solar Noon)" to formatTime(sunInfo?.noonMillis),
-                "Matahari Terbenam (Sunset)" to formatTime(sunInfo?.setMillis),
-                "Senja Sipil (-6°)" to formatTime(sunInfo?.civilDuskMillis),
-                "Senja Nautikal (-12°)" to formatTime(sunInfo?.nauticalDuskMillis),
-                "Senja Astronomis (-18°)" to formatTime(sunInfo?.astronomicalDuskMillis)
+                androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_key_astronomical_dawn) to formatTime(sunInfo?.astronomicalDawnMillis),
+                androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_key_nautical_dawn) to formatTime(sunInfo?.nauticalDawnMillis),
+                androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_key_civil_dawn) to formatTime(sunInfo?.civilDawnMillis),
+                androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_key_sunrise) to formatTime(sunInfo?.riseMillis),
+                androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_key_solar_noon) to formatTime(sunInfo?.noonMillis),
+                androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_key_sunset) to formatTime(sunInfo?.setMillis),
+                androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_key_civil_dusk) to formatTime(sunInfo?.civilDuskMillis),
+                androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_key_nautical_dusk) to formatTime(sunInfo?.nauticalDuskMillis),
+                androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_key_astronomical_dusk) to formatTime(sunInfo?.astronomicalDuskMillis),
             )
             times.forEach { (label, time) ->
                 Row(

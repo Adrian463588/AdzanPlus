@@ -21,6 +21,9 @@ import androidx.compose.material.icons.outlined.Stars
 import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.annotation.StringRes
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavController
 import com.adzannotif.R
 import com.adzannotif.shared.SharedRoute
 
@@ -118,5 +121,38 @@ sealed class Screen(
     companion object {
         val items: List<Screen>
             get() = listOf(Home, Schedule, Qibla, AstronomyDashboard, Settings)
+    }
+}
+
+/**
+ * Switches to a top-level dashboard without restoring a previously saved
+ * detail destination. Top-level navigation is a root switch, not a detail
+ * back-stack restore operation.
+ */
+fun NavController.navigateToTopLevel(screen: Screen) {
+    navigate(screen.route) {
+        popUpTo(Screen.Home.route) {
+            saveState = false
+        }
+        launchSingleTop = true
+        restoreState = false
+    }
+}
+
+/**
+ * Returns from an astronomy detail screen to its dashboard. Widget deep links
+ * may open a detail route without a dashboard entry, so navigation has a
+ * deterministic dashboard fallback.
+ */
+fun NavController.navigateToAstronomyDashboard() {
+    if (!popBackStack(Screen.AstronomyDashboard.route, inclusive = false)) {
+        navigateToTopLevel(Screen.AstronomyDashboard)
+    }
+}
+
+@Composable
+fun AstronomyDetailBackHandler(navController: NavController) {
+    BackHandler {
+        navController.navigateToAstronomyDashboard()
     }
 }

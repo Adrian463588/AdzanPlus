@@ -80,7 +80,7 @@ class AstronomyUseCaseTest {
             eveningBlueHourStartMillis = null,
             eveningBlueHourEndMillis = null,
             nextEventMillis = 1_500L,
-            nextEventName = "Civil Twilight fajar",
+            nextEventName = "CIVIL_TWILIGHT_DAWN",
         )
 
         val actual = GetSunInfoUseCase(FakeAstronomyRepository(sun = expected))

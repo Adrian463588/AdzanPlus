@@ -37,6 +37,8 @@ import com.adzannotif.domain.model.astronomy.SunInfo
 import com.adzannotif.presentation.common.Screen
 import com.adzannotif.presentation.common.WindowWidthSizeClass
 import com.adzannotif.presentation.common.rememberMotionAnimationsEnabled
+import com.adzannotif.presentation.localization.moonPhaseLabel
+import com.adzannotif.presentation.localization.solarPhaseLabel
 import com.adzannotif.presentation.theme.*
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -314,14 +316,17 @@ fun AstronomyWidgetPinningCard() {
 
 @Composable
 fun SolarPhaseBadge(sunInfo: SunInfo?) {
-    val phaseName = sunInfo?.currentPhase ?: stringResource(R.string.astro_data_unavailable)
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val phaseKey = sunInfo?.currentPhase
+    val phaseName = phaseKey?.let { solarPhaseLabel(context, it) }
+        ?: stringResource(R.string.astro_data_unavailable)
     val phaseColor = when {
-        phaseName.contains("Golden", ignoreCase = true) -> AstronomyGoldenHour
-        phaseName.contains("Blue", ignoreCase = true) -> AstronomyBlueHour
-        phaseName.contains("Day", ignoreCase = true) -> AstronomySunAmber
-        phaseName.contains("Civil", ignoreCase = true) -> AstronomyTwilightCivil
-        phaseName.contains("Nautical", ignoreCase = true) -> AstronomyTwilightNautical
-        phaseName.contains("Astro", ignoreCase = true) -> AstronomyTwilightAstro
+        phaseKey?.contains("Golden", ignoreCase = true) == true -> AstronomyGoldenHour
+        phaseKey?.contains("Blue", ignoreCase = true) == true -> AstronomyBlueHour
+        phaseKey?.contains("Day", ignoreCase = true) == true -> AstronomySunAmber
+        phaseKey?.contains("Civil", ignoreCase = true) == true -> AstronomyTwilightCivil
+        phaseKey?.contains("Nautical", ignoreCase = true) == true -> AstronomyTwilightNautical
+        phaseKey?.contains("Astro", ignoreCase = true) == true -> AstronomyTwilightAstro
         else -> AstronomySurface
     }
 
@@ -392,15 +397,17 @@ fun SunCard(
     timeZoneId: String? = null,
     onClick: () -> Unit,
 ) {
+    val unavailable = stringResource(R.string.value_unavailable)
+
     fun formatTime(ms: Long?): String {
-        if (ms == null || timeZoneId == null) return "—"
+        if (ms == null || timeZoneId == null) return unavailable
         return SimpleDateFormat("HH:mm", Locale.ROOT).apply {
             timeZone = TimeZone.getTimeZone(timeZoneId)
         }.format(Date(ms))
     }
 
     fun formatWindow(start: Long?, end: Long?): String {
-        if (start == null || end == null || timeZoneId == null) return "—"
+        if (start == null || end == null || timeZoneId == null) return unavailable
         return "${formatTime(start)} - ${formatTime(end)}"
     }
 
@@ -560,6 +567,8 @@ fun SunCard(
 
 @Composable
 fun MoonCard(moonInfo: MoonInfo?, onClick: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val unavailable = stringResource(R.string.value_unavailable)
     val emoji = when (moonInfo?.phaseOrdinal) {
         0 -> "🌑"
         1 -> "🌒"
@@ -569,7 +578,7 @@ fun MoonCard(moonInfo: MoonInfo?, onClick: () -> Unit) {
         5 -> "🌖"
         6 -> "🌗"
         7 -> "🌘"
-        else -> "—"
+        else -> unavailable
     }
 
     Card(
@@ -610,7 +619,7 @@ fun MoonCard(moonInfo: MoonInfo?, onClick: () -> Unit) {
                 Column {
                     Text(stringResource(R.string.astro_phase), style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
                     Text(
-                        moonInfo?.phaseName ?: "—",
+                        moonInfo?.let { moonPhaseLabel(context, it.phaseName) } ?: unavailable,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = AstronomyMoonGold
                     )
@@ -618,7 +627,7 @@ fun MoonCard(moonInfo: MoonInfo?, onClick: () -> Unit) {
                 Column {
                     Text(stringResource(R.string.astro_illumination), style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
                     Text(
-                        moonInfo?.let { String.format(Locale.ROOT, "%.1f%%", it.illuminationPercent) } ?: "—",
+                        moonInfo?.let { String.format(Locale.ROOT, "%.1f%%", it.illuminationPercent) } ?: unavailable,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = AstronomyStarWhite
                     )
@@ -626,7 +635,7 @@ fun MoonCard(moonInfo: MoonInfo?, onClick: () -> Unit) {
                 Column {
                     Text(stringResource(R.string.astro_age), style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
                     Text(
-                        moonInfo?.let { stringResource(R.string.astro_age_days, it.ageInDays) } ?: "—",
+                        moonInfo?.let { stringResource(R.string.astro_age_days, it.ageInDays) } ?: unavailable,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = AstronomyStarWhite
                     )

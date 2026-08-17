@@ -29,6 +29,7 @@ import com.adzannotif.domain.repository.SettingsRepository
 import com.adzannotif.presentation.common.AdaptiveScaffold
 import com.adzannotif.presentation.common.Screen
 import com.adzannotif.presentation.common.WindowWidthSizeClass
+import com.adzannotif.presentation.common.navigateToTopLevel
 import com.adzannotif.presentation.home.HomeScreen
 import com.adzannotif.presentation.qibla.QiblaScreen
 import com.adzannotif.presentation.schedule.ScheduleScreen
@@ -43,9 +44,11 @@ import com.adzannotif.platform.alarm.AlarmScheduler
 import com.adzannotif.presentation.theme.AdzanNotifTheme
 import com.adzannotif.presentation.widget.PrayerTimesWidgetReceiver
 import com.adzannotif.widget.AstronomyWidgetUpdater
+import com.adzannotif.domain.usecase.ResolveLocationUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 @Suppress("DEPRECATION")
@@ -58,11 +61,24 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var alarmScheduler: AlarmScheduler
 
+    @Inject
+    lateinit var resolveLocationUseCase: ResolveLocationUseCase
+
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { _ ->
-        alarmScheduler.rescheduleAllAlarms()
-        refreshWidgets()
+    ) { permissions ->
+        lifecycleScope.launch {
+            val locationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+            if (locationGranted && settingsRepository.userSettings.first().useAutoLocation) {
+                // GPS is optional, but when auto-location is enabled the first
+                // permission result must also trigger the offline calculation
+                // path. No network or synthetic coordinate is involved.
+                resolveLocationUseCase.refreshDeviceLocation()
+            }
+            alarmScheduler.rescheduleAllAlarms()
+            refreshWidgets()
+        }
     }
 
     private var exactAlarmPromptShown = false
@@ -88,7 +104,9 @@ class MainActivity : ComponentActivity() {
                         if (currentRoute != route) {
                             navController.navigate(route) {
                                 launchSingleTop = true
-                                restoreState = true
+                                // A widget deep link is an explicit destination. Do not
+                                // restore a previously saved detail screen behind it.
+                                restoreState = false
                             }
                         }
                         widgetRoute.value = null
@@ -125,7 +143,7 @@ class MainActivity : ComponentActivity() {
                 AdaptiveScaffold(
                     currentRoute = currentRoute,
                     onNavigate = { screen ->
-                        navigateToTopLevel(navController, screen)
+                        navController.navigateToTopLevel(screen)
                     },
                 ) { widthSizeClass ->
                     AppNavHost(
@@ -201,20 +219,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private fun navigateToTopLevel(
-    navController: NavHostController,
-    screen: Screen,
-) {
-    navController.navigate(screen.route) {
-        // Always return to a root dashboard when a top-level item is tapped.
-        popUpTo(Screen.Home.route) {
-            saveState = true
-        }
-        launchSingleTop = true
-        restoreState = true
-    }
-}
-
 @Composable
 fun AppNavHost(
     navController: NavHostController,
@@ -227,7 +231,8 @@ fun AppNavHost(
         composable(Screen.Home.route) {
             HomeScreen(
                 widthSizeClass = widthSizeClass,
-                onNavigateToAstronomy = { navController.navigate(Screen.AstronomyDashboard.route) }
+                onNavigateToAstronomy = { navController.navigateToTopLevel(Screen.AstronomyDashboard) },
+                onNavigateToSettings = { navController.navigateToTopLevel(Screen.Settings) },
             )
         }
         composable(Screen.Schedule.route) {

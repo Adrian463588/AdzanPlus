@@ -24,6 +24,6 @@
         android:gravity="center"
         android:text="@string/widget_preview_data_hint"
         android:textColor="@color/widget_initial_secondary_text"
-        android:textSize="10sp"
+        android:textSize="11sp"
         android:maxLines="3" />
 </LinearLayout>

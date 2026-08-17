@@ -14,6 +14,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.adzannotif.MainActivity
 import com.adzannotif.core.prayer.Prayer
 import com.adzannotif.presentation.alarm.AlarmFullscreenActivity
+import com.adzannotif.presentation.localization.prayerLabel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -49,10 +50,10 @@ class NotificationHelper @Inject constructor(
             // Note: Sound is set to null because AdhanAudioPlayer handles rich audio playback (ExoPlayer/MediaPlayer)
             val adhanChannel = NotificationChannel(
                 CHANNEL_ADHAN_ID,
-                "Peringatan Adzan & Sholat",
+                context.getString(com.adzannotif.R.string.notification_channel_adhan_name),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Notifikasi adzan waktu sholat tiba dengan suara penuh dan layar bangun"
+                description = context.getString(com.adzannotif.R.string.notification_channel_adhan_description)
                 enableVibration(true)
                 vibrationPattern = ADHAN_VIBRATION_PATTERN
                 setSound(null, null)
@@ -61,10 +62,10 @@ class NotificationHelper @Inject constructor(
 
             val beepChannel = NotificationChannel(
                 CHANNEL_BEEP_ID,
-                "Nada Singkat Waktu Sholat",
+                context.getString(com.adzannotif.R.string.notification_channel_beep_name),
                 NotificationManager.IMPORTANCE_HIGH,
             ).apply {
-                description = "Nada notifikasi singkat saat pengingat sholat aktif"
+                description = context.getString(com.adzannotif.R.string.notification_channel_beep_description)
                 setSound(
                     RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
                     AudioAttributes.Builder()
@@ -77,29 +78,29 @@ class NotificationHelper @Inject constructor(
             // Normal Priority Channel for Pre-Prayer Reminders (5/10/15 mins before)
             val reminderChannel = NotificationChannel(
                 CHANNEL_REMINDER_ID,
-                "Pengingat Menjelang Sholat",
+                context.getString(com.adzannotif.R.string.notification_channel_reminder_name),
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = "Pengingat beberapa menit sebelum adzan berkumandang"
+                description = context.getString(com.adzannotif.R.string.notification_channel_reminder_description)
                 enableVibration(true)
             }
 
             // Low Priority Channel for Persistent / Ongoing Status
             val persistentChannel = NotificationChannel(
                 CHANNEL_PERSISTENT_ID,
-                "Status Jadwal Sholat Aktif",
+                context.getString(com.adzannotif.R.string.notification_channel_persistent_name),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Informasi jadwal sholat berikutnya yang aktif di latar belakang"
+                description = context.getString(com.adzannotif.R.string.notification_channel_persistent_description)
                 setShowBadge(false)
             }
 
             val celestialChannel = NotificationChannel(
                 CELESTIAL_CHANNEL_ID,
-                "Peristiwa Langit",
+                context.getString(com.adzannotif.R.string.notification_channel_celestial_name),
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = "Notifikasi untuk peristiwa langit seperti sunrise, sunset, dan fase bulan"
+                description = context.getString(com.adzannotif.R.string.notification_channel_celestial_description)
                 enableVibration(true)
             }
 
@@ -113,6 +114,7 @@ class NotificationHelper @Inject constructor(
         locationName: String,
         vibrate: Boolean,
     ) {
+        val localizedPrayer = prayerLabel(context, prayer)
         val contentIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
@@ -150,15 +152,19 @@ class NotificationHelper @Inject constructor(
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ADHAN_ID)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setContentTitle("Waktu ${prayer.displayNameId} Telah Tiba")
-            .setContentText("Saatnya menunaikan sholat ${prayer.displayNameId} untuk wilayah $locationName")
+            .setContentTitle(context.getString(com.adzannotif.R.string.notification_adhan_title, localizedPrayer))
+            .setContentText(context.getString(com.adzannotif.R.string.notification_adhan_content, localizedPrayer, locationName))
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true)
             .setContentIntent(contentPendingIntent)
             .setFullScreenIntent(fullScreenPendingIntent, true)
-            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Hentikan Suara", stopPendingIntent)
+            .addAction(
+                android.R.drawable.ic_menu_close_clear_cancel,
+                context.getString(com.adzannotif.R.string.notification_stop_audio),
+                stopPendingIntent,
+            )
             .setVibrate(if (vibrate) ADHAN_VIBRATION_PATTERN else longArrayOf(0))
 
         postNotification(NOTIFICATION_ID_ADHAN + prayer.ordinal, builder)
@@ -170,6 +176,7 @@ class NotificationHelper @Inject constructor(
         locationName: String,
         vibrate: Boolean,
     ) {
+        val localizedPrayer = prayerLabel(context, prayer)
         val contentIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
@@ -182,8 +189,15 @@ class NotificationHelper @Inject constructor(
 
         val builder = NotificationCompat.Builder(context, CHANNEL_REMINDER_ID)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setContentTitle("$minutesBefore Menit Menuju ${prayer.displayNameId}")
-            .setContentText("Bersiaplah untuk menunaikan sholat ${prayer.displayNameId} ($locationName)")
+            .setContentTitle(
+                context.resources.getQuantityString(
+                    com.adzannotif.R.plurals.notification_pre_reminder_title,
+                    minutesBefore,
+                    minutesBefore,
+                    localizedPrayer,
+                ),
+            )
+            .setContentText(context.getString(com.adzannotif.R.string.notification_pre_reminder_content, localizedPrayer, locationName))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
@@ -198,6 +212,7 @@ class NotificationHelper @Inject constructor(
         locationName: String,
         vibrate: Boolean,
     ) {
+        val localizedPrayer = prayerLabel(context, prayer)
         val contentIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
@@ -210,7 +225,7 @@ class NotificationHelper @Inject constructor(
         val builder = NotificationCompat.Builder(context, CHANNEL_BEEP_ID)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setContentTitle(prayerTitle)
-            .setContentText("Waktu sholat ${prayer.displayNameId} untuk wilayah $locationName")
+            .setContentText(context.getString(com.adzannotif.R.string.notification_prayer_time_content, localizedPrayer, locationName))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)
@@ -234,8 +249,8 @@ class NotificationHelper @Inject constructor(
 
         val builder = NotificationCompat.Builder(context, CELESTIAL_CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("Peristiwa Langit: $label")
-            .setContentText("Waktu $eventType telah tiba")
+            .setContentTitle(context.getString(com.adzannotif.R.string.notification_celestial_title, label))
+            .setContentText(context.getString(com.adzannotif.R.string.notification_celestial_content, label))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(contentPendingIntent)

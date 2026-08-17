@@ -26,11 +26,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.res.stringResource
+import com.adzannotif.R
 import androidx.navigation.NavController
 import com.adzannotif.domain.model.astronomy.CalendarDay
 import com.adzannotif.presentation.theme.*
 import com.adzannotif.presentation.common.WindowWidthSizeClass
-import com.adzannotif.presentation.common.Screen
+import com.adzannotif.presentation.common.AstronomyDetailBackHandler
+import com.adzannotif.presentation.common.navigateToAstronomyDashboard
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -43,6 +46,7 @@ fun HijriCalendarScreen(
     widthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.COMPACT,
     viewModel: HijriCalendarViewModel = hiltViewModel()
 ) {
+    AstronomyDetailBackHandler(navController)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     fun getMonthName(monthZeroBased: Int): String {
@@ -86,13 +90,7 @@ fun HijriCalendarScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = {
-                        navController.navigate(Screen.AstronomyDashboard.route) {
-                            popUpTo(Screen.Home.route) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }) {
+                    IconButton(onClick = { navController.navigateToAstronomyDashboard() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.action_back),
@@ -302,12 +300,12 @@ fun HijriCalendarScreen(
                     }
                     day.prayerTimes?.let { prayers ->
                         val prayerRows = listOf(
-                            "Subuh" to prayers.fajr,
-                            "Terbit" to prayers.sunrise,
-                            "Dzuhur" to prayers.dhuhr,
-                            "Ashar" to prayers.asr,
-                            "Maghrib" to prayers.maghrib,
-                            "Isya" to prayers.isha,
+                            stringResource(R.string.prayer_fajr) to prayers.fajr,
+                            stringResource(R.string.prayer_sunrise) to prayers.sunrise,
+                            stringResource(R.string.prayer_dhuhr) to prayers.dhuhr,
+                            stringResource(R.string.prayer_asr) to prayers.asr,
+                            stringResource(R.string.prayer_maghrib) to prayers.maghrib,
+                            stringResource(R.string.prayer_isha) to prayers.isha,
                         )
                         prayerRows.forEach { (label, instant) ->
                             Row(

@@ -132,7 +132,6 @@ class CelestialAlarmScheduler @Inject constructor(
             action = CelestialAlarmReceiver.ACTION_CELESTIAL_ALARM
             data = Uri.parse("adzannotif://celestial/$day/${event.type.name}")
             putExtra(CelestialAlarmReceiver.EXTRA_EVENT_TYPE, event.type.name)
-            putExtra(CelestialAlarmReceiver.EXTRA_EVENT_LABEL, event.label)
         }
         val requestCode = REQUEST_CODE_BASE +
             (day.mod(REQUEST_DAY_BUCKETS) * SkyEventType.entries.size).toInt() + event.type.ordinal

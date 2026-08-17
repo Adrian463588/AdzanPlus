@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -152,20 +152,19 @@ class HomeViewModel @Inject constructor(
 
     private fun refreshHijriDate() {
         viewModelScope.launch {
-            val location = locationRepository.currentOrSelectedLocation.first() ?: run {
+            locationRepository.currentOrSelectedLocation.collectLatest { location ->
                 _hijriDateFormatted.value = null
-                return@launch
-            }
-            runCatching {
-                astronomyRepository.getHijriDate(
-                    gregorianEpochMillis = Clock.System.now().toEpochMilliseconds(),
-                    timeZoneId = location.timeZoneId,
-                )
-            }.onSuccess { hijriDate ->
-                _hijriDateFormatted.value =
-                    "${hijriDate.day} ${hijriDate.monthName} ${hijriDate.year} H"
-            }.onFailure {
-                _hijriDateFormatted.value = null
+                if (location == null) return@collectLatest
+
+                runCatching {
+                    astronomyRepository.getHijriDate(
+                        gregorianEpochMillis = Clock.System.now().toEpochMilliseconds(),
+                        timeZoneId = location.timeZoneId,
+                    )
+                }.onSuccess { hijriDate ->
+                    _hijriDateFormatted.value =
+                        "${hijriDate.day} ${hijriDate.monthName} ${hijriDate.year} H"
+                }
             }
         }
     }

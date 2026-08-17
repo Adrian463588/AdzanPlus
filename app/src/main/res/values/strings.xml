@@ -11,7 +11,7 @@
     <string name="moon_widget_content_description">Bulan: %1$s, iluminasi %2$s, lokasi %3$s</string>
     <string name="moon_widget_metrics">%1$s • umur %2$s hari • %3$s • %4$s</string>
     <string name="moonrise_time">Moonrise %1$s</string>
-    <string name="moonrise_unavailable">Moonrise belum tersedia</string>
+    <string name="moonrise_unavailable">Bulan terbit belum tersedia</string>
     <string name="moonrise_countdown_description">Waktu menuju moonrise</string>
     <string name="sun_widget_data_unavailable">Data surya belum tersedia</string>
     <string name="sun_widget_location_hint">Pilih lokasi untuk menghitung fase dan event surya</string>
@@ -20,12 +20,37 @@
     <string name="sun_widget_location_altitude">%1$s • %2$s</string>
     <string name="sun_widget_altitude">Alt %1$.1f°</string>
     <string name="sun_event_time">%1$s %2$s</string>
-    <string name="sun_event_default">Event berikutnya</string>
-    <string name="sun_event_unavailable">Event surya berikutnya belum tersedia</string>
+    <string name="sun_event_unavailable">Peristiwa surya berikutnya belum tersedia</string>
     <string name="sun_event_countdown_description">Waktu menuju event surya</string>
     <string name="sun_widget_golden_hour">Golden Hour: %1$s</string>
     <string name="sun_widget_blue_hour">Blue Hour: %1$s</string>
     <string name="sun_widget_light_unavailable">Jendela cahaya belum tersedia</string>
+    <string name="notification_adhan_title">Waktu %1$s telah tiba</string>
+    <string name="notification_adhan_content">Saatnya menunaikan salat %1$s di %2$s</string>
+    <string name="notification_stop_audio">Hentikan suara</string>
+    <string name="notification_channel_adhan_name">Peringatan Adzan &amp; Sholat</string>
+    <string name="notification_channel_adhan_description">Notifikasi adzan waktu sholat tiba dengan suara penuh dan layar bangun</string>
+    <string name="notification_channel_beep_name">Nada Singkat Waktu Sholat</string>
+    <string name="notification_channel_beep_description">Nada notifikasi singkat saat pengingat sholat aktif</string>
+    <string name="notification_channel_reminder_name">Pengingat Menjelang Sholat</string>
+    <string name="notification_channel_reminder_description">Pengingat beberapa menit sebelum adzan berkumandang</string>
+    <string name="notification_channel_persistent_name">Status Jadwal Sholat Aktif</string>
+    <string name="notification_channel_persistent_description">Informasi jadwal sholat berikutnya yang aktif di latar belakang</string>
+    <string name="notification_channel_celestial_name">Peristiwa Langit</string>
+    <string name="notification_channel_celestial_description">Notifikasi untuk peristiwa langit seperti matahari terbit, terbenam, dan fase bulan</string>
+    <plurals name="notification_pre_reminder_title">
+        <item quantity="one">%1$d menit menuju %2$s</item>
+        <item quantity="other">%1$d menit menuju %2$s</item>
+    </plurals>
+    <string name="notification_pre_reminder_content">Bersiap untuk menunaikan salat %1$s di %2$s</string>
+    <string name="notification_prayer_time_content">Waktu salat %1$s di %2$s</string>
+    <string name="notification_celestial_title">Peristiwa langit: %1$s</string>
+    <string name="notification_celestial_content">Waktu %1$s telah tiba</string>
+    <string name="alarm_default_title">Peringatan waktu salat</string>
+    <string name="alarm_adhan_content_description">Adzan</string>
+    <string name="alarm_dismiss">Matikan adzan</string>
+    <string name="alarm_snooze">Tunda 10 menit</string>
+    <string name="alarm_snooze_title">Tunda: %1$s</string>
 
     <!-- Prayers -->
     <string name="prayer_imsak">Imsak</string>
@@ -39,7 +64,6 @@
     <string name="prayer_tahajjud">Tahajjud</string>
 
     <string name="remaining_time">Menuju Waktu Sholat</string>
-    <string name="widget_prayer_time_description">%1$s pukul %2$s</string>
     <string name="widget_content_description">Jadwal sholat di %1$s. Berikutnya %2$s pukul %3$s.</string>
 
     <!-- Compose presentation states -->
@@ -56,6 +80,7 @@
     <string name="prayer_data_unavailable">Data waktu sholat belum tersedia</string>
     <string name="prayer_data_unavailable_detail">Perhitungan belum dapat ditampilkan untuk lokasi ini.</string>
     <string name="retry">Coba lagi</string>
+    <string name="choose_offline_location">Pilih lokasi offline</string>
     <string name="location_label">Lokasi</string>
     <string name="enable_prayer_alarm">Aktifkan pengingat %1$s</string>
     <string name="disable_prayer_alarm">Nonaktifkan pengingat %1$s</string>
@@ -78,9 +103,9 @@
     <string name="settings_calculation_method">Metode perhitungan hisab</string>
     <string name="settings_method_kemenag">Kemenag RI (Standar Indonesia)</string>
     <string name="settings_method_mwl">Muslim World League (MWL)</string>
-    <string name="settings_method_egyptian">Egyptian General Authority</string>
+    <string name="settings_method_egyptian">Otoritas Umum Survei Mesir</string>
     <string name="settings_method_umm_al_qura">Umm Al-Qura (Makkah)</string>
-    <string name="settings_method_karachi">University of Islamic Sciences, Karachi</string>
+    <string name="settings_method_karachi">Universitas Ilmu Islam, Karachi</string>
     <string name="settings_method_north_america">ISNA (Amerika Utara)</string>
     <string name="settings_method_singapore">MUIS (Singapura)</string>
     <string name="settings_madhab">Madhab (Penentuan waktu Ashar)</string>
@@ -88,11 +113,13 @@
     <string name="madhab_hanafi_label">Hanafi</string>
     <string name="settings_high_latitude">Aturan lintang tinggi</string>
     <string name="settings_high_latitude_description">Digunakan saat berada di lintang ekstrem.</string>
-    <string name="settings_high_latitude_middle">Middle of the Night (Tengah malam)</string>
-    <string name="settings_high_latitude_seventh">1/7th of Night (Sepertujuh malam)</string>
-    <string name="settings_high_latitude_angle">Angle Based (Berdasarkan sudut)</string>
+    <string name="settings_high_latitude_middle">Tengah malam</string>
+    <string name="settings_high_latitude_seventh">Sepertujuh malam</string>
+    <string name="settings_high_latitude_angle">Berdasarkan sudut</string>
     <string name="settings_prayer_notifications_section">NOTIFIKASI &amp; ALARM SHOLAT</string>
     <string name="settings_prayer_notifications_description">Aktifkan pengingat dan pilih sumber audio yang tersedia.</string>
+    <string name="settings_adhan_voice_label">Suara adzan</string>
+    <string name="settings_choose_voice_for">Pilih suara adzan untuk %1$s</string>
     <string name="settings_no_reminder">Tanpa pengingat</string>
     <string name="settings_reminder_minutes">-%1$d m</string>
     <string name="settings_custom_audio_saved">Audio kustom tersimpan</string>
@@ -112,7 +139,9 @@
     <string name="settings_voice_madinah">Adzan Madinah (Masjid Nabawi)</string>
     <string name="settings_voice_al_aqsa">Adzan Al-Aqsa (Al-Quds)</string>
     <string name="settings_voice_egypt">Adzan Mesir</string>
+    <string name="settings_voice_kuwait">Adzan Kuwait (Misyari)</string>
     <string name="settings_voice_fajr">Adzan Subuh khusus</string>
+    <string name="settings_voice_system_default">Nada dering sistem</string>
     <string name="settings_stop_preview">Hentikan pratinjau</string>
     <string name="settings_play_preview">Dengarkan pratinjau</string>
     <string name="settings_celestial_section">NOTIFIKASI ASTRONOMI</string>
@@ -158,13 +187,27 @@
     <string name="settings_latitude">Latitude (-90 s/d 90)</string>
     <string name="settings_longitude">Longitude (-180 s/d 180)</string>
     <string name="settings_elevation">Elevasi (meter)</string>
-    <string name="settings_timezone_id">Timezone ID</string>
+    <string name="settings_timezone_id">ID zona waktu</string>
     <string name="settings_save_coordinates">Simpan dan terapkan koordinat</string>
     <string name="prayer_dhuha">Dhuha</string>
     <string name="widget_pin_requested">Permintaan pemasangan widget telah dikirim ke layar utama.</string>
     <string name="blue_hour_title">Blue Hour</string>
     <string name="golden_hour_title">Golden Hour</string>
-    <string name="sun_card_morning">Pagi: %1$s • Sore: %2$s</string>
+    <string name="solar_phase_night">Malam</string>
+    <string name="solar_phase_astronomical_twilight">Senja astronomis</string>
+    <string name="solar_phase_nautical_twilight">Senja nautikal</string>
+    <string name="solar_phase_blue_hour">Blue Hour</string>
+    <string name="solar_phase_civil_twilight">Senja sipil</string>
+    <string name="solar_phase_golden_hour">Golden Hour</string>
+    <string name="solar_phase_day">Siang</string>
+    <string name="moon_phase_new_moon">Bulan baru</string>
+    <string name="moon_phase_waxing_crescent">Sabit membesar</string>
+    <string name="moon_phase_first_quarter">Perbani awal</string>
+    <string name="moon_phase_waxing_gibbous">Cembung membesar</string>
+    <string name="moon_phase_full_moon">Bulan purnama</string>
+    <string name="moon_phase_waning_gibbous">Cembung mengecil</string>
+    <string name="moon_phase_last_quarter">Perbani akhir</string>
+    <string name="moon_phase_waning_crescent">Sabit mengecil</string>
     <string name="action_astronomy">Dashboard Astronomi</string>
 
     <!-- Navigation Bar Labels -->
@@ -176,6 +219,8 @@
 
     <!-- Schedule Screen -->
     <string name="schedule_monthly_title">Jadwal Sholat Bulanan</string>
+    <string name="schedule_today_date">%1$d • Hari ini</string>
+    <string name="schedule_date_header">Tgl</string>
     <string name="schedule_prev_month">Bulan Sebelumnya</string>
     <string name="schedule_next_month">Bulan Berikutnya</string>
     <string name="schedule_days_count">%1$s Hari</string>
@@ -239,8 +284,6 @@
 
     <string name="sun_card_morning_label">Pagi: %1$s</string>
     <string name="sun_card_evening_label">Sore: %1$s</string>
-    <string name="sun_card_phase_morning">Pagi</string>
-    <string name="sun_card_phase_evening">Sore</string>
     <string name="photography_guide_title">Panduan Fotografi &amp; Pencahayaan</string>
     <string name="photography_guide_golden_body">Cahaya hangat &amp; lembut sangat cocok untuk potret dan lanskap.</string>
     <string name="photography_guide_blue_body">Warna langit biru pekat bernuansa magis untuk cityscape dan astrofotografi.</string>
@@ -259,14 +302,31 @@
     <string name="value_unavailable">Tidak tersedia</string>
     <string name="widget_open_settings">Buka pengaturan widget</string>
     <string name="widget_countdown_description">Hitung mundur menuju waktu sholat berikutnya</string>
-    <string name="widget_next_prayer_hours">%1$s ±%2$d jam lagi</string>
-    <string name="widget_next_prayer_minutes">%1$s ±%2$d mnt lagi</string>
+    <plurals name="widget_next_prayer_hours">
+        <item quantity="one">%1$s ±%2$d jam lagi</item>
+        <item quantity="other">%1$s ±%2$d jam lagi</item>
+    </plurals>
+    <plurals name="widget_next_prayer_minutes">
+        <item quantity="one">%1$s ±%2$d mnt lagi</item>
+        <item quantity="other">%1$s ±%2$d mnt lagi</item>
+    </plurals>
     <string name="widget_preview_data_unavailable">Data widget belum tersedia</string>
     <string name="widget_preview_data_hint">Pilih lokasi untuk menampilkan data nyata.</string>
     <string name="sun_location_unavailable_detail">Lokasi belum tersedia. Pilih kota offline atau izinkan lokasi perangkat.</string>
     <string name="sun_data_unavailable_detail">Data matahari belum tersedia untuk lokasi dan tanggal ini.</string>
     <string name="sun_noon_unavailable">Waktu tengah hari belum tersedia.</string>
     <string name="sun_arc_description">Busur elevasi matahari dan garis waktu senja untuk lokasi terpilih.</string>
+    <string name="sun_arc_title">Busur Elevasi Matahari Fisik (24 Jam)</string>
+    <string name="sun_arc_metrics">Waktu: %1$s • Alt: %2$.1f° • Az: %3$.1f°</string>
+    <string name="sun_key_astronomical_dawn">Fajar astronomis (-18°)</string>
+    <string name="sun_key_nautical_dawn">Fajar nautikal (-12°)</string>
+    <string name="sun_key_civil_dawn">Fajar sipil (-6°)</string>
+    <string name="sun_key_sunrise">Matahari terbit</string>
+    <string name="sun_key_solar_noon">Tengah hari (solar noon)</string>
+    <string name="sun_key_sunset">Matahari terbenam</string>
+    <string name="sun_key_civil_dusk">Senja sipil (-6°)</string>
+    <string name="sun_key_nautical_dusk">Senja nautikal (-12°)</string>
+    <string name="sun_key_astronomical_dusk">Senja astronomis (-18°)</string>
     <string name="sun_simulation_time">Simulasi waktu: %1$s</string>
     <string name="sun_reset_now">Reset ke sekarang</string>
     <string name="sun_midnight_label">00:00 (Malam)</string>
@@ -284,13 +344,18 @@
     <string name="star_close_info">Tutup informasi bintang</string>
     <string name="star_map_description">Peta bintang interaktif. Cubit untuk memperbesar, geser untuk berpindah, dan ketuk bintang untuk informasi.</string>
     <string name="star_simulation_title">Simulasi waktu langit</string>
-    <string name="star_simulation_offset">Sekarang %1$s%2$d jam</string>
+    <string name="star_simulation_offset">Sekarang %1$s%2$s jam</string>
     <string name="star_gesture_hint">🔍 Cubit/Geser untuk Zoom • Ketuk Bintang untuk Info</string>
     <string name="calendar_sunrise_label">Matahari terbit</string>
     <string name="calendar_sunset_label">Matahari terbenam</string>
     <string name="calendar_golden_morning_label">Golden Hour pagi</string>
+    <string name="celestial_event_civil_dawn">Fajar (senja sipil)</string>
+    <string name="celestial_event_civil_dusk">Senja sipil</string>
+    <string name="celestial_event_golden_start">Golden Hour dimulai</string>
+    <string name="celestial_event_golden_end">Golden Hour berakhir</string>
+    <string name="celestial_event_blue_start">Blue Hour dimulai</string>
+    <string name="celestial_event_blue_end">Blue Hour berakhir</string>
     <string name="calendar_moon_illumination">Iluminasi bulan</string>
-    <string name="calendar_month_empty">Tidak ada tanggal kalender.</string>
     <string name="astro_timeline_unavailable">Pita waktu matahari belum tersedia.</string>
     <string name="astro_timeline_timezone_unavailable">Zona waktu lokasi belum tersedia.</string>
     <string name="astro_timeline_description">Pita waktu matahari berdasarkan terbit, terbenam, blue hour, golden hour, dan senja lokasi.</string>

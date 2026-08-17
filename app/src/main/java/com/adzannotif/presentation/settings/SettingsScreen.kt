@@ -37,7 +37,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -46,6 +49,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -96,6 +100,99 @@ private data class PrayerAdjustmentItem(val prayer: Prayer, val name: String, va
 private data class VoiceItem(val voice: AdhanVoice, val label: String)
 private data class CelestialAlertItem(val type: CelestialAlertType, val label: String, val enabled: Boolean)
 private data class PrayerAlarmItem(val prayer: Prayer, val label: String, val config: AlarmConfig)
+
+@Composable
+private fun prayerLabel(prayer: Prayer): String = stringResource(
+    when (prayer) {
+        Prayer.FAJR -> R.string.prayer_fajr
+        Prayer.SUNRISE -> R.string.prayer_sunrise
+        Prayer.DHUHR -> R.string.prayer_dhuhr
+        Prayer.ASR -> R.string.prayer_asr
+        Prayer.MAGHRIB -> R.string.prayer_maghrib
+        Prayer.ISHA -> R.string.prayer_isha
+        Prayer.IMSAK -> R.string.prayer_imsak
+        Prayer.MIDNIGHT -> R.string.prayer_midnight
+        Prayer.TAHAJJUD -> R.string.prayer_tahajjud
+    },
+)
+
+@Composable
+private fun adhanVoiceLabel(voice: AdhanVoice): String = stringResource(
+    when (voice) {
+        AdhanVoice.MAKKAH -> R.string.settings_voice_makkah
+        AdhanVoice.MADINAH -> R.string.settings_voice_madinah
+        AdhanVoice.AL_AQSA -> R.string.settings_voice_al_aqsa
+        AdhanVoice.EGYPT -> R.string.settings_voice_egypt
+        AdhanVoice.KUWAIT -> R.string.settings_voice_kuwait
+        AdhanVoice.FAJR_SPECIAL -> R.string.settings_voice_fajr
+        AdhanVoice.SYSTEM_DEFAULT -> R.string.settings_voice_system_default
+    },
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AdhanVoiceDropdown(
+    prayer: Prayer,
+    selectedVoice: AdhanVoice,
+    options: List<AdhanVoice>,
+    onVoiceSelected: (AdhanVoice) -> Unit,
+) {
+    var expanded by remember(prayer) { mutableStateOf(false) }
+    val label = prayerLabel(prayer)
+    val voiceDescription = stringResource(R.string.settings_choose_voice_for, label)
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        OutlinedTextField(
+            value = adhanVoiceLabel(selectedVoice),
+            onValueChange = {},
+            readOnly = true,
+            singleLine = true,
+            label = { Text(stringResource(R.string.settings_adhan_voice_label)) },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            modifier = Modifier
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                .fillMaxWidth()
+                .semantics {
+                    contentDescription = voiceDescription
+                },
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            options.forEach { voice ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = adhanVoiceLabel(voice),
+                            maxLines = 2,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        )
+                    },
+                    onClick = {
+                        onVoiceSelected(voice)
+                        expanded = false
+                    },
+                    leadingIcon = if (selectedVoice == voice) {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                            )
+                        }
+                    } else null,
+                )
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -471,13 +568,21 @@ fun SettingsScreen(
                         val alarmItems = Prayer.STANDARD_TIMELINE.map { prayer ->
                             PrayerAlarmItem(
                                 prayer = prayer,
-                                label = prayer.displayNameId,
+                                label = prayerLabel(prayer),
                                 config = state.alarmSettings.getConfigForPrayer(prayer),
                             )
                         }
                         val voiceOptions = AdhanVoice.entries
 
                         alarmItems.forEachIndexed { index, alarm ->
+                            val alarmToggleDescription = stringResource(
+                                if (alarm.config.isEnabled) {
+                                    R.string.disable_prayer_alarm
+                                } else {
+                                    R.string.enable_prayer_alarm
+                                },
+                                alarm.label,
+                            )
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -498,21 +603,18 @@ fun SettingsScreen(
                                         viewModel.onAction(SettingsUiAction.SetPrayerEnabled(alarm.prayer, enabled))
                                     },
                                     modifier = Modifier.semantics {
-                                        contentDescription = alarm.label
+                                        contentDescription = alarmToggleDescription
                                     },
                                 )
                             }
-                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                items(voiceOptions) { voice ->
-                                    FilterChip(
-                                        selected = alarm.config.adhanVoice == voice,
-                                        onClick = {
-                                            viewModel.onAction(SettingsUiAction.SetAdhanVoice(alarm.prayer, voice))
-                                        },
-                                        label = { Text(voice.title) },
-                                    )
-                                }
-                            }
+                            AdhanVoiceDropdown(
+                                prayer = alarm.prayer,
+                                selectedVoice = alarm.config.adhanVoice,
+                                options = voiceOptions,
+                                onVoiceSelected = { voice ->
+                                    viewModel.onAction(SettingsUiAction.SetAdhanVoice(alarm.prayer, voice))
+                                },
+                            )
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 items(listOf(0, 5, 10, 15)) { minutes ->
                                     FilterChip(
@@ -624,11 +726,11 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         val prayerAdjustments = listOf(
-                            PrayerAdjustmentItem(Prayer.FAJR, Prayer.FAJR.displayNameId, state.userSettings.fajrAdjustment),
-                            PrayerAdjustmentItem(Prayer.DHUHR, Prayer.DHUHR.displayNameId, state.userSettings.dhuhrAdjustment),
-                            PrayerAdjustmentItem(Prayer.ASR, Prayer.ASR.displayNameId, state.userSettings.asrAdjustment),
-                            PrayerAdjustmentItem(Prayer.MAGHRIB, Prayer.MAGHRIB.displayNameId, state.userSettings.maghribAdjustment),
-                            PrayerAdjustmentItem(Prayer.ISHA, Prayer.ISHA.displayNameId, state.userSettings.ishaAdjustment),
+                            PrayerAdjustmentItem(Prayer.FAJR, prayerLabel(Prayer.FAJR), state.userSettings.fajrAdjustment),
+                            PrayerAdjustmentItem(Prayer.DHUHR, prayerLabel(Prayer.DHUHR), state.userSettings.dhuhrAdjustment),
+                            PrayerAdjustmentItem(Prayer.ASR, prayerLabel(Prayer.ASR), state.userSettings.asrAdjustment),
+                            PrayerAdjustmentItem(Prayer.MAGHRIB, prayerLabel(Prayer.MAGHRIB), state.userSettings.maghribAdjustment),
+                            PrayerAdjustmentItem(Prayer.ISHA, prayerLabel(Prayer.ISHA), state.userSettings.ishaAdjustment),
                         )
 
                         prayerAdjustments.forEachIndexed { index, item ->

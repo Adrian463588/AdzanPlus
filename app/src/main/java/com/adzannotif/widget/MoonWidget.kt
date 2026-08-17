@@ -17,7 +17,6 @@ import androidx.glance.appwidget.AndroidRemoteViews
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.provideContent
-import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
@@ -37,6 +36,7 @@ import com.adzannotif.domain.model.astronomy.MoonInfo
 import com.adzannotif.domain.repository.AstronomyRepository
 import com.adzannotif.domain.repository.LocationRepository
 import com.adzannotif.presentation.common.Screen
+import com.adzannotif.presentation.localization.moonPhaseLabel
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -47,8 +47,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import java.util.Locale
 
-import androidx.glance.appwidget.appWidgetBackground
-import androidx.glance.appwidget.cornerRadius
+import androidx.glance.appwidget.components.Scaffold
 
 @Composable
 fun MoonWidgetContent(moonInfo: MoonInfo?, locationName: String, timeZoneId: String?) {
@@ -60,7 +59,7 @@ fun MoonWidgetContent(moonInfo: MoonInfo?, locationName: String, timeZoneId: Str
     val widgetDescription = if (moonInfo != null && timeZoneId != null) {
         context.getString(
             R.string.moon_widget_content_description,
-            moonInfo.phaseName,
+            moonPhaseLabel(context, moonInfo.phaseName),
             formatPercent(moonInfo.illuminationPercent),
             locationName,
         )
@@ -69,31 +68,33 @@ fun MoonWidgetContent(moonInfo: MoonInfo?, locationName: String, timeZoneId: Str
     }
     val modifier = GlanceModifier
         .fillMaxSize()
-        .appWidgetBackground()
-        .background(AstronomyWidgetPalette.moonBackground)
-        .cornerRadius(16.dp)
-        .padding(if (wide) 14.dp else 12.dp)
         .semantics { contentDescription = widgetDescription }
         .clickable(routeAction)
+    val contentModifier = GlanceModifier
+        .fillMaxSize()
+        .padding(if (wide) 14.dp else 12.dp)
 
-    if (moonInfo == null || timeZoneId == null) {
-        Column(modifier = modifier, verticalAlignment = Alignment.Vertical.CenterVertically) {
-            Text(
-                text = context.getString(R.string.moon_widget_data_unavailable),
-                style = TextStyle(AstronomyWidgetPalette.primaryText, fontSize = 13.sp, fontWeight = FontWeight.Bold),
-                maxLines = 1,
-            )
-            Spacer(GlanceModifier.height(4.dp))
-            Text(
-                text = context.getString(R.string.moon_widget_location_hint),
-                style = TextStyle(AstronomyWidgetPalette.secondaryText, fontSize = 10.sp),
-                maxLines = 2,
-            )
-        }
-        return
-    }
-
-    Column(modifier = modifier, verticalAlignment = Alignment.Vertical.CenterVertically) {
+    Scaffold(
+        modifier = modifier,
+        backgroundColor = AstronomyWidgetPalette.moonSurface(context),
+        horizontalPadding = 0.dp,
+    ) {
+        if (moonInfo == null || timeZoneId == null) {
+            Column(modifier = contentModifier, verticalAlignment = Alignment.Vertical.CenterVertically) {
+                Text(
+                    text = context.getString(R.string.moon_widget_data_unavailable),
+                    style = TextStyle(AstronomyWidgetPalette.primaryText, fontSize = 13.sp, fontWeight = FontWeight.Bold),
+                    maxLines = 1,
+                )
+                Spacer(GlanceModifier.height(4.dp))
+                Text(
+                    text = context.getString(R.string.moon_widget_location_hint),
+                    style = TextStyle(AstronomyWidgetPalette.secondaryText, fontSize = 10.sp),
+                    maxLines = 2,
+                )
+            }
+        } else {
+            Column(modifier = contentModifier, verticalAlignment = Alignment.Vertical.CenterVertically) {
         Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.Vertical.CenterVertically) {
             Text(
                 text = phaseGlyph(moonInfo.phaseOrdinal),
@@ -101,7 +102,7 @@ fun MoonWidgetContent(moonInfo: MoonInfo?, locationName: String, timeZoneId: Str
             )
             Spacer(GlanceModifier.width(if (wide) 8.dp else 5.dp))
             Text(
-                text = moonInfo.phaseName,
+                text = moonPhaseLabel(context, moonInfo.phaseName),
                 style = TextStyle(
                     AstronomyWidgetPalette.primaryText,
                     fontSize = if (wide) 14.sp else 12.sp,
@@ -143,7 +144,9 @@ fun MoonWidgetContent(moonInfo: MoonInfo?, locationName: String, timeZoneId: Str
             maxLines = 1,
         )
         if (riseMillis != null) Countdown(context, riseMillis)
+        }
     }
+}
 }
 
 private fun phaseGlyph(ordinal: Int): String = when (ordinal) {

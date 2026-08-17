@@ -4,7 +4,7 @@
 [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2B%20KMP-00C853?style=for-the-badge)](https://developer.android.com/topic/architecture)
 [![Android Min SDK](https://img.shields.io/badge/Min%20SDK-API%2024%20(Nougat)-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com/)
-[![Download APK](https://img.shields.io/badge/Download-AdzanPlus%20v1.0.0%20APK-00C853?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Adrian463588/AdzanPlus/releases/latest)
+[![Download APK](https://img.shields.io/badge/Download-AdzanPlus%20v1.0.0%20APK-00C853?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Adrian463588/AdzanPlus/releases/download/v1.0.0/app-release.apk)
 [![DevSecOps](https://img.shields.io/badge/DevSecOps-Anti--Leakage%20Enforced-critical?style=for-the-badge&logo=shield&logoColor=white)](#-devsecops--security-best-practices)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
@@ -12,24 +12,38 @@
 
 ## 📥 Unduh Aplikasi (Download APK v1.0.0)
 
-Dapatkan file APK siap pasang langsung ke perangkat Android Anda tanpa perlu kompilasi:
-
-- 🚀 **[Download AdzanPlus v1.0.0 APK](https://github.com/Adrian463588/AdzanPlus/releases/download/v1.0.0/app-release.apk)** *(Rilis Resmi Siap Pakai)*
+- 🚀 **[Download AdzanPlus v1.0.0 APK](https://github.com/Adrian463588/AdzanPlus/releases/download/v1.0.0/app-release.apk)**
 - 📦 **[Halaman Rilis GitHub & Catatan Pembaruan](https://github.com/Adrian463588/AdzanPlus/releases)**
+
+Tautan asset tetap menggunakan path `v1.0.0/app-release.apk` sesuai kontrak distribusi. APK yang dibangun dari source saat ini memiliki metadata aplikasi `2.0.0 (versionCode 2)` dan ditandatangani dengan debug keystore karena repository tidak menyimpan production keystore; gunakan sebagai artifact validasi internal/device, bukan klaim signed production release.
 
 ---
 
-## 📱 Live App Previews (Tampilan Aplikasi Nyata)
+## 📱 Live App Previews (Tampilan Perangkat Nyata)
 
-### 🕋 Layanan Utama Sholat & Arah Kiblat
-| Beranda & Countdown Sholat | Jadwal Bulanan (30 Hari) | Kompas Arah Kiblat & Haptic | Pengaturan & Metode Hisab |
-|:---:|:---:|:---:|:---:|
-| <img src="./docs/screenshots/home.png" width="220" alt="Beranda AdzanPlus" /> | <img src="./docs/screenshots/schedule.png" width="220" alt="Jadwal Bulanan" /> | <img src="./docs/screenshots/qibla.png" width="220" alt="Kompas Arah Kiblat" /> | <img src="./docs/screenshots/settings.png" width="220" alt="Pengaturan & Hisab" /> |
+Preview berikut berasal dari perangkat Android nyata `SM-G988B` (Android 13), dengan lokasi Yogyakarta yang dipilih pengguna dan mode offline. Nilai jadwal sholat, Hijriah, matahari, bulan, dan widget berasal dari engine/cache lokal nyata.
 
-### 🌌 Suite Observasi Astronomi & Bintang (Sprint 2)
-| Dashboard Astronomi | Detail Bulan & Fase 30 Hari | Detail Matahari & Golden Hour | Peta Bintang (500 Bintang) | Kalender Hijriah & Masehi |
-|:---:|:---:|:---:|:---:|:---:|
-| <img src="./docs/screenshots/astronomy_dashboard.png" width="180" alt="Dashboard Astronomi" /> | <img src="./docs/screenshots/moon_detail.png" width="180" alt="Detail Bulan" /> | <img src="./docs/screenshots/sun_detail.png" width="180" alt="Detail Matahari" /> | <img src="./docs/screenshots/star_map.png" width="180" alt="Peta Bintang" /> | <img src="./docs/screenshots/hijri_calendar.png" width="180" alt="Kalender Hijriah" /> |
+### 🕋 Aplikasi
+
+| Beranda offline | Pengaturan & lokasi | Dashboard astronomi |
+|:---:|:---:|:---:|
+| <img src="./docs/screenshots/home-release.png" width="220" alt="Beranda AdzanPlus pada perangkat nyata" /> | <img src="./docs/screenshots/settings-release.png" width="220" alt="Pengaturan AdzanPlus pada perangkat nyata" /> | <img src="./docs/screenshots/astronomy-release.png" width="220" alt="Dashboard astronomi AdzanPlus pada perangkat nyata" /> |
+
+### 🧩 Widget
+
+| Widget waktu sholat 3×4 | Widget astronomi |
+|:---:|:---:|
+| <img src="./docs/screenshots/widget-prayer-3x4.png" width="260" alt="Widget waktu sholat detail 3x4 pada perangkat nyata" /> | <img src="./docs/screenshots/widget-astronomy.png" width="260" alt="Widget matahari dan bulan pada perangkat nyata" /> |
+
+### Bukti artefak
+
+- Device capture: `SM-G988B`, Android 13, lokasi offline Yogyakarta, 18 Agustus 2026.
+- APK SHA-256: `c81473f52848998b6bd80e687ded4c80b4d0a9b6c6f6a13a3b3750455131638d`.
+- `home-release.png`: `4d23c836abc21e460ea5af2d4d0701060d4cb58390f8ac608ed631d32e3c6962`.
+- `settings-release.png`: `bd5707954b1f65e8710010ff91a6e4c02b3b402b21d6d93d01869f2d9318d3d9`.
+- `astronomy-release.png`: `a85f5cbdfdbde664aa7d722fe4a9785c4c8bb874ed12f93c343d0184fc2b4817`.
+- `widget-prayer-3x4.png`: `dace5bc427b7a03111b6216b7cdb1c44b38fe5911963370154d86f25a14755c1`.
+- `widget-astronomy.png`: `93512158a9e85b337ed5559a3255aca6afc7c66bdc12e1297219cbd4c576cf36`.
 
 ---
 

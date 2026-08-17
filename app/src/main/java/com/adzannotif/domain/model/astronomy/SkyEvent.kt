@@ -12,5 +12,6 @@ enum class SkyEventType {
 data class SkyEvent(
     val type: SkyEventType,
     val epochMillis: Long,
-    val label: String
+    /** Stable event key; presentation resolves it through localized resources. */
+    val label: String,
 )

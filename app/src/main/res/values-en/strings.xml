@@ -20,12 +20,37 @@
     <string name="sun_widget_location_altitude">%1$s • %2$s</string>
     <string name="sun_widget_altitude">Alt %1$.1f°</string>
     <string name="sun_event_time">%1$s %2$s</string>
-    <string name="sun_event_default">Next event</string>
     <string name="sun_event_unavailable">Next solar event unavailable</string>
     <string name="sun_event_countdown_description">Time until solar event</string>
     <string name="sun_widget_golden_hour">Golden Hour: %1$s</string>
     <string name="sun_widget_blue_hour">Blue Hour: %1$s</string>
     <string name="sun_widget_light_unavailable">Light window unavailable</string>
+    <string name="notification_adhan_title">%1$s time has arrived</string>
+    <string name="notification_adhan_content">It is time for %1$s prayer in %2$s</string>
+    <string name="notification_stop_audio">Stop audio</string>
+    <string name="notification_channel_adhan_name">Adhan &amp; prayer alerts</string>
+    <string name="notification_channel_adhan_description">Full adhan notification with audio playback and wake-screen access</string>
+    <string name="notification_channel_beep_name">Prayer time chime</string>
+    <string name="notification_channel_beep_description">Short notification sound when a prayer reminder is active</string>
+    <string name="notification_channel_reminder_name">Upcoming prayer reminders</string>
+    <string name="notification_channel_reminder_description">Reminder several minutes before the adhan</string>
+    <string name="notification_channel_persistent_name">Active prayer schedule status</string>
+    <string name="notification_channel_persistent_description">The next prayer schedule kept available in the background</string>
+    <string name="notification_channel_celestial_name">Celestial events</string>
+    <string name="notification_channel_celestial_description">Notifications for sunrise, sunset, and lunar events</string>
+    <plurals name="notification_pre_reminder_title">
+        <item quantity="one">%1$d minute until %2$s</item>
+        <item quantity="other">%1$d minutes until %2$s</item>
+    </plurals>
+    <string name="notification_pre_reminder_content">Prepare for %1$s prayer in %2$s</string>
+    <string name="notification_prayer_time_content">%1$s prayer time in %2$s</string>
+    <string name="notification_celestial_title">Celestial event: %1$s</string>
+    <string name="notification_celestial_content">%1$s is happening now</string>
+    <string name="alarm_default_title">Prayer time reminder</string>
+    <string name="alarm_adhan_content_description">Adhan</string>
+    <string name="alarm_dismiss">Stop adhan</string>
+    <string name="alarm_snooze">Snooze 10 minutes</string>
+    <string name="alarm_snooze_title">Snooze: %1$s</string>
 
     <!-- Prayers -->
     <string name="prayer_imsak">Imsak</string>
@@ -40,7 +65,6 @@
     <string name="prayer_tahajjud">Tahajjud</string>
 
     <string name="remaining_time">Time Remaining</string>
-    <string name="widget_prayer_time_description">%1$s at %2$s</string>
     <string name="widget_content_description">Prayer schedule in %1$s. Next is %2$s at %3$s.</string>
 
     <!-- Compose presentation states -->
@@ -57,6 +81,7 @@
     <string name="prayer_data_unavailable">Prayer times data unavailable</string>
     <string name="prayer_data_unavailable_detail">Calculations cannot be displayed for this location.</string>
     <string name="retry">Retry</string>
+    <string name="choose_offline_location">Choose offline location</string>
     <string name="location_label">Location</string>
     <string name="enable_prayer_alarm">Enable reminder for %1$s</string>
     <string name="disable_prayer_alarm">Disable reminder for %1$s</string>
@@ -95,6 +120,8 @@
     <string name="settings_high_latitude_angle">Angle Based</string>
     <string name="settings_prayer_notifications_section">NOTIFICATIONS &amp; ADHAN ALARMS</string>
     <string name="settings_prayer_notifications_description">Enable reminders and customize audio playback.</string>
+    <string name="settings_adhan_voice_label">Adhan voice</string>
+    <string name="settings_choose_voice_for">Choose an adhan voice for %1$s</string>
     <string name="settings_no_reminder">No pre-reminder</string>
     <string name="settings_reminder_minutes">-%1$d min</string>
     <string name="settings_custom_audio_saved">Custom audio saved</string>
@@ -114,7 +141,9 @@
     <string name="settings_voice_madinah">Adhan Madinah (Al-Masjid an-Nabawi)</string>
     <string name="settings_voice_al_aqsa">Adhan Al-Aqsa (Al-Quds)</string>
     <string name="settings_voice_egypt">Adhan Egypt</string>
+    <string name="settings_voice_kuwait">Adhan Kuwait (Misyari)</string>
     <string name="settings_voice_fajr">Adhan Fajr Special</string>
+    <string name="settings_voice_system_default">System ringtone</string>
     <string name="settings_stop_preview">Stop preview</string>
     <string name="settings_play_preview">Play preview</string>
     <string name="settings_celestial_section">ASTRONOMY NOTIFICATIONS</string>
@@ -164,7 +193,21 @@
     <string name="settings_save_coordinates">Save and apply coordinates</string>
     <string name="blue_hour_title">Blue Hour</string>
     <string name="golden_hour_title">Golden Hour</string>
-    <string name="sun_card_morning">Morning: %1$s • Evening: %2$s</string>
+    <string name="solar_phase_night">Night</string>
+    <string name="solar_phase_astronomical_twilight">Astronomical Twilight</string>
+    <string name="solar_phase_nautical_twilight">Nautical Twilight</string>
+    <string name="solar_phase_blue_hour">Blue Hour</string>
+    <string name="solar_phase_civil_twilight">Civil Twilight</string>
+    <string name="solar_phase_golden_hour">Golden Hour</string>
+    <string name="solar_phase_day">Day</string>
+    <string name="moon_phase_new_moon">New Moon</string>
+    <string name="moon_phase_waxing_crescent">Waxing Crescent</string>
+    <string name="moon_phase_first_quarter">First Quarter</string>
+    <string name="moon_phase_waxing_gibbous">Waxing Gibbous</string>
+    <string name="moon_phase_full_moon">Full Moon</string>
+    <string name="moon_phase_waning_gibbous">Waning Gibbous</string>
+    <string name="moon_phase_last_quarter">Last Quarter</string>
+    <string name="moon_phase_waning_crescent">Waning Crescent</string>
     <string name="action_astronomy">Astronomy Dashboard</string>
 
     <!-- Navigation Bar Labels -->
@@ -176,6 +219,8 @@
 
     <!-- Schedule Screen -->
     <string name="schedule_monthly_title">Monthly Prayer Timetable</string>
+    <string name="schedule_today_date">%1$d • Today</string>
+    <string name="schedule_date_header">Date</string>
     <string name="schedule_prev_month">Previous Month</string>
     <string name="schedule_next_month">Next Month</string>
     <string name="schedule_days_count">%1$s Days</string>
@@ -239,8 +284,6 @@
 
     <string name="sun_card_morning_label">Morning: %1$s</string>
     <string name="sun_card_evening_label">Evening: %1$s</string>
-    <string name="sun_card_phase_morning">Morning</string>
-    <string name="sun_card_phase_evening">Evening</string>
     <string name="photography_guide_title">Photography &amp; Lighting Guide</string>
     <string name="photography_guide_golden_body">Warm, soft light ideal for portraits and landscape photography.</string>
     <string name="photography_guide_blue_body">Deep blue twilight sky with high contrast for cityscapes and astrophotography.</string>
@@ -259,14 +302,31 @@
     <string name="value_unavailable">Unavailable</string>
     <string name="widget_open_settings">Open widget settings</string>
     <string name="widget_countdown_description">Countdown to the next prayer time</string>
-    <string name="widget_next_prayer_hours">%1$s in %2$d hr</string>
-    <string name="widget_next_prayer_minutes">%1$s in %2$d min</string>
+    <plurals name="widget_next_prayer_hours">
+        <item quantity="one">%1$s in %2$d hr</item>
+        <item quantity="other">%1$s in %2$d hr</item>
+    </plurals>
+    <plurals name="widget_next_prayer_minutes">
+        <item quantity="one">%1$s in %2$d min</item>
+        <item quantity="other">%1$s in %2$d min</item>
+    </plurals>
     <string name="widget_preview_data_unavailable">Widget data unavailable</string>
     <string name="widget_preview_data_hint">Choose a location to show real data.</string>
     <string name="sun_location_unavailable_detail">Location unavailable. Choose an offline city or allow device location.</string>
     <string name="sun_data_unavailable_detail">Sun data is unavailable for this location and date.</string>
     <string name="sun_noon_unavailable">Solar noon is unavailable.</string>
     <string name="sun_arc_description">Solar altitude arc and twilight timeline for the selected location.</string>
+    <string name="sun_arc_title">Physical Solar Elevation Arc (24 Hours)</string>
+    <string name="sun_arc_metrics">Time: %1$s • Alt: %2$.1f° • Az: %3$.1f°</string>
+    <string name="sun_key_astronomical_dawn">Astronomical dawn (-18°)</string>
+    <string name="sun_key_nautical_dawn">Nautical dawn (-12°)</string>
+    <string name="sun_key_civil_dawn">Civil dawn (-6°)</string>
+    <string name="sun_key_sunrise">Sunrise</string>
+    <string name="sun_key_solar_noon">Solar noon</string>
+    <string name="sun_key_sunset">Sunset</string>
+    <string name="sun_key_civil_dusk">Civil dusk (-6°)</string>
+    <string name="sun_key_nautical_dusk">Nautical dusk (-12°)</string>
+    <string name="sun_key_astronomical_dusk">Astronomical dusk (-18°)</string>
     <string name="sun_simulation_time">Simulated time: %1$s</string>
     <string name="sun_reset_now">Reset to now</string>
     <string name="sun_midnight_label">00:00 (Night)</string>
@@ -284,13 +344,18 @@
     <string name="star_close_info">Close star information</string>
     <string name="star_map_description">Interactive star map. Pinch to zoom, drag to pan, and tap a star for information.</string>
     <string name="star_simulation_title">Sky time simulation</string>
-    <string name="star_simulation_offset">Now %1$s%2$d hours</string>
+    <string name="star_simulation_offset">Now %1$s%2$s hours</string>
     <string name="star_gesture_hint">🔍 Pinch/drag to zoom • Tap a star for info</string>
     <string name="calendar_sunrise_label">Sunrise</string>
     <string name="calendar_sunset_label">Sunset</string>
     <string name="calendar_golden_morning_label">Morning Golden Hour</string>
+    <string name="celestial_event_civil_dawn">Civil twilight dawn</string>
+    <string name="celestial_event_civil_dusk">Civil twilight dusk</string>
+    <string name="celestial_event_golden_start">Golden Hour started</string>
+    <string name="celestial_event_golden_end">Golden Hour ended</string>
+    <string name="celestial_event_blue_start">Blue Hour started</string>
+    <string name="celestial_event_blue_end">Blue Hour ended</string>
     <string name="calendar_moon_illumination">Moon illumination</string>
-    <string name="calendar_month_empty">No calendar dates.</string>
     <string name="astro_timeline_unavailable">Solar timeline is unavailable.</string>
     <string name="astro_timeline_timezone_unavailable">The location time zone is unavailable.</string>
     <string name="astro_timeline_description">Solar timeline based on local sunrise, sunset, blue hour, golden hour, and twilight.</string>

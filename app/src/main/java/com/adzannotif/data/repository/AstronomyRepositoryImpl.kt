@@ -83,12 +83,14 @@ class AstronomyRepositoryImpl @Inject constructor(
     override fun getMoonInfo(locationInfo: LocationInfo, epochMillis: Long): Flow<MoonInfo> = flow {
         val day = loadDay(locationInfo, epochMillis)
         val state = day.moonState
+        val nextRiseMillis = nextMoonrise(locationInfo, epochMillis, state)
         emit(
             MoonInfo(
-                // Moonrise is a live next-event value. A retained daily cache
-                // may contain today's rise even after that event has passed.
-                riseMillis = state.riseMillis?.takeIf { it > epochMillis },
-                nextRiseMillis = state.riseMillis?.takeIf { it > epochMillis },
+                // Moonrise is a live next-event value. If today's rise has
+                // passed, continue through the next local civil day using the
+                // same engine and cache path instead of fabricating a value.
+                riseMillis = nextRiseMillis,
+                nextRiseMillis = nextRiseMillis,
                 setMillis = state.setMillis,
                 transitMillis = state.transitMillis,
                 azimuth = state.position.azimuth,
@@ -103,6 +105,32 @@ class AstronomyRepositoryImpl @Inject constructor(
                 isPerigee = state.isPerigee
             )
         )
+    }
+
+    private suspend fun nextMoonrise(
+        locationInfo: LocationInfo,
+        epochMillis: Long,
+        currentState: com.adzannotif.core.astronomy.MoonState,
+    ): Long? {
+        val calendar = Calendar.getInstance(java.util.TimeZone.getTimeZone(locationInfo.timeZoneId)).apply {
+            timeInMillis = epochMillis
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        repeat(3) { dayOffset ->
+            val dayState = if (dayOffset == 0) {
+                currentState
+            } else {
+                loadDay(locationInfo, calendar.timeInMillis).moonState
+            }
+            val riseMillis = dayState.riseMillis?.takeIf { it > epochMillis }
+            if (riseMillis != null) return riseMillis
+            calendar.add(Calendar.DAY_OF_YEAR, 1)
+        }
+        return null
     }
 
     override fun getStarMapData(locationInfo: LocationInfo, epochMillis: Long): Flow<StarMapData> = flow {
@@ -211,33 +239,33 @@ class AstronomyRepositoryImpl @Inject constructor(
             val dayMillis = calendar.timeInMillis
             loadDay(locationInfo, dayMillis)
             engine.getDayEvents(location, dayMillis).forEach { astroEvent ->
-                val (type, label) = when (astroEvent) {
+                val type = when (astroEvent) {
                     is com.adzannotif.core.astronomy.AstronomyEvent.Sunrise ->
-                        SkyEventType.SUNRISE to "Matahari Terbit"
+                        SkyEventType.SUNRISE
                     is com.adzannotif.core.astronomy.AstronomyEvent.Sunset ->
-                        SkyEventType.SUNSET to "Matahari Terbenam"
+                        SkyEventType.SUNSET
                     is com.adzannotif.core.astronomy.AstronomyEvent.Moonrise ->
-                        SkyEventType.MOONRISE to "Bulan Terbit"
+                        SkyEventType.MOONRISE
                     is com.adzannotif.core.astronomy.AstronomyEvent.Moonset ->
-                        SkyEventType.MOONSET to "Bulan Terbenam"
+                        SkyEventType.MOONSET
                     is com.adzannotif.core.astronomy.AstronomyEvent.GoldenHourStart ->
-                        if (astroEvent.isMorning) SkyEventType.GOLDEN_HOUR_MORNING_START to "Golden Hour Pagi Dimulai"
-                        else SkyEventType.GOLDEN_HOUR_EVENING_START to "Golden Hour Sore Dimulai"
+                        if (astroEvent.isMorning) SkyEventType.GOLDEN_HOUR_MORNING_START
+                        else SkyEventType.GOLDEN_HOUR_EVENING_START
                     is com.adzannotif.core.astronomy.AstronomyEvent.GoldenHourEnd ->
-                        if (astroEvent.isMorning) SkyEventType.GOLDEN_HOUR_MORNING_END to "Golden Hour Pagi Berakhir"
-                        else SkyEventType.GOLDEN_HOUR_EVENING_END to "Golden Hour Sore Berakhir"
+                        if (astroEvent.isMorning) SkyEventType.GOLDEN_HOUR_MORNING_END
+                        else SkyEventType.GOLDEN_HOUR_EVENING_END
                     is com.adzannotif.core.astronomy.AstronomyEvent.BlueHourStart ->
-                        if (astroEvent.isMorning) SkyEventType.BLUE_HOUR_MORNING_START to "Blue Hour Pagi"
-                        else SkyEventType.BLUE_HOUR_EVENING_START to "Blue Hour Sore"
+                        if (astroEvent.isMorning) SkyEventType.BLUE_HOUR_MORNING_START
+                        else SkyEventType.BLUE_HOUR_EVENING_START
                     is com.adzannotif.core.astronomy.AstronomyEvent.BlueHourEnd ->
-                        if (astroEvent.isMorning) SkyEventType.BLUE_HOUR_MORNING_END to "Blue Hour Pagi Berakhir"
-                        else SkyEventType.BLUE_HOUR_EVENING_END to "Blue Hour Sore Berakhir"
+                        if (astroEvent.isMorning) SkyEventType.BLUE_HOUR_MORNING_END
+                        else SkyEventType.BLUE_HOUR_EVENING_END
                     is com.adzannotif.core.astronomy.AstronomyEvent.FullMoon ->
-                        SkyEventType.FULL_MOON to "Bulan Purnama"
+                        SkyEventType.FULL_MOON
                     is com.adzannotif.core.astronomy.AstronomyEvent.NewMoon ->
-                        SkyEventType.NEW_MOON to "Bulan Baru"
+                        SkyEventType.NEW_MOON
                 }
-                events.add(SkyEvent(type = type, epochMillis = astroEvent.epochMillis, label = label))
+                events.add(SkyEvent(type = type, epochMillis = astroEvent.epochMillis, label = type.name))
             }
             calendar.add(Calendar.DAY_OF_YEAR, 1)
         }
@@ -330,13 +358,13 @@ class AstronomyRepositoryImpl @Inject constructor(
             repeat(2) {
                 val sunState = engine.getSunState(location, calendar.timeInMillis)
                 sunState.twilight.civilDawn?.let {
-                    if (it > fromMillis) add(UpcomingSunEvent(it, "Civil Twilight fajar"))
+                    if (it > fromMillis) add(UpcomingSunEvent(it, "CIVIL_TWILIGHT_DAWN"))
                 }
                 sunState.twilight.civilDusk?.let {
-                    if (it > fromMillis) add(UpcomingSunEvent(it, "Civil Twilight senja"))
+                    if (it > fromMillis) add(UpcomingSunEvent(it, "CIVIL_TWILIGHT_DUSK"))
                 }
                 engine.getDayEvents(location, calendar.timeInMillis).forEach { event ->
-                    val label = event.sunLabelOrNull() ?: return@forEach
+                    val label = event.sunEventKeyOrNull() ?: return@forEach
                     if (event.epochMillis > fromMillis) {
                         add(UpcomingSunEvent(event.epochMillis, label))
                     }
@@ -347,13 +375,29 @@ class AstronomyRepositoryImpl @Inject constructor(
         return candidates.minByOrNull { it.epochMillis }
     }
 
-    private fun AstronomyEvent.sunLabelOrNull(): String? = when (this) {
-        is AstronomyEvent.Sunrise -> "Matahari terbit"
-        is AstronomyEvent.Sunset -> "Matahari terbenam"
-        is AstronomyEvent.GoldenHourStart -> if (isMorning) "Golden Hour pagi" else "Golden Hour sore"
-        is AstronomyEvent.GoldenHourEnd -> if (isMorning) "Akhir Golden Hour pagi" else "Akhir Golden Hour sore"
-        is AstronomyEvent.BlueHourStart -> if (isMorning) "Blue Hour pagi" else "Blue Hour sore"
-        is AstronomyEvent.BlueHourEnd -> if (isMorning) "Akhir Blue Hour pagi" else "Akhir Blue Hour sore"
+    private fun AstronomyEvent.sunEventKeyOrNull(): String? = when (this) {
+        is AstronomyEvent.Sunrise -> SkyEventType.SUNRISE.name
+        is AstronomyEvent.Sunset -> SkyEventType.SUNSET.name
+        is AstronomyEvent.GoldenHourStart -> if (isMorning) {
+            SkyEventType.GOLDEN_HOUR_MORNING_START.name
+        } else {
+            SkyEventType.GOLDEN_HOUR_EVENING_START.name
+        }
+        is AstronomyEvent.GoldenHourEnd -> if (isMorning) {
+            SkyEventType.GOLDEN_HOUR_MORNING_END.name
+        } else {
+            SkyEventType.GOLDEN_HOUR_EVENING_END.name
+        }
+        is AstronomyEvent.BlueHourStart -> if (isMorning) {
+            SkyEventType.BLUE_HOUR_MORNING_START.name
+        } else {
+            SkyEventType.BLUE_HOUR_EVENING_START.name
+        }
+        is AstronomyEvent.BlueHourEnd -> if (isMorning) {
+            SkyEventType.BLUE_HOUR_MORNING_END.name
+        } else {
+            SkyEventType.BLUE_HOUR_EVENING_END.name
+        }
         is AstronomyEvent.Moonrise,
         is AstronomyEvent.Moonset,
         is AstronomyEvent.FullMoon,

@@ -6,6 +6,7 @@ import android.os.SystemClock
 import android.widget.RemoteViews
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -14,9 +15,11 @@ import androidx.glance.LocalContext
 import androidx.glance.LocalSize
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
+import androidx.glance.appwidget.action.actionStartActivity as actionStartActivityIntent
 import androidx.glance.appwidget.AndroidRemoteViews
+import androidx.glance.color.ColorProvider as DayNightColorProvider
 import androidx.glance.background
-import androidx.glance.appwidget.cornerRadius
+import androidx.glance.appwidget.components.Scaffold
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -43,7 +46,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import java.util.Locale
 
-import androidx.glance.appwidget.appWidgetBackground
 
 internal object WidgetRenderer {
     private val navyHeader = dayNight(Color(0xFF0D3B66), Color(0xFF0A2540))
@@ -54,39 +56,40 @@ internal object WidgetRenderer {
     private val highlightText = dayNight(Color(0xFF0D3B66), Color(0xFF63B3ED))
     private val passedCheckColor = dayNight(Color(0xFF0D3B66), Color(0xFF63B3ED))
 
-    private fun dayNight(day: Color, night: Color): ColorProvider = object : ColorProvider {
-        override fun getColor(context: Context): Color {
-            val isNight = (context.resources.configuration.uiMode and
-                Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-            return if (isNight) night else day
-        }
-    }
+    private fun dayNight(day: Color, night: Color): ColorProvider = DayNightColorProvider(day, night)
 
     @Composable
     fun Content(snapshot: PrayerWidgetSnapshot) {
         val size = LocalSize.current
         val context = LocalContext.current
+        val isNight = (LocalConfiguration.current.uiMode and
+            Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val surfaceColor = if (isNight) Color(0xFF161E26) else Color.White
         val description = if (snapshot.availability == PrayerWidgetAvailability.AVAILABLE) {
             context.getString(
                 R.string.widget_content_description,
                 snapshot.locationName ?: context.getString(R.string.location_unavailable),
                 prayerLabel(context, snapshot.nextPrayer),
-                formatTarget(snapshot.nextTargetEpochMillis, snapshot.timeZoneId),
+                formatTarget(context, snapshot.nextTargetEpochMillis, snapshot.timeZoneId),
             )
         } else {
             context.getString(R.string.prayer_data_unavailable)
         }
         val rootModifier = GlanceModifier
             .fillMaxSize()
-            .appWidgetBackground()
-            .background(timetableBg)
-            .cornerRadius(16.dp)
             .semantics { contentDescription = description }
             .clickable(actionStartActivity<MainActivity>())
 
-        Box(modifier = rootModifier, contentAlignment = Alignment.Center) {
+        Scaffold(
+            modifier = rootModifier,
+            backgroundColor = ColorProvider(surfaceColor),
+            horizontalPadding = 0.dp,
+        ) {
             if (snapshot.availability == PrayerWidgetAvailability.AVAILABLE) {
-                if (size.height >= 140.dp || size.width >= 160.dp) {
+                // The timetable needs vertical room for all eight real entries.
+                // A wide-but-short launcher slot (for example 4x2) must stay
+                // compact instead of rendering rows that the host will clip.
+                if (size.height >= 140.dp) {
                     Timetable3x4Content(snapshot)
                 } else {
                     CompactContent(snapshot)
@@ -111,8 +114,7 @@ internal object WidgetRenderer {
                     .padding(horizontal = 14.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.Vertical.CenterVertically,
             ) {
-                val remainingText = formatRelativeRemaining(snapshot.nextTargetEpochMillis)
-                val headerTitle = if (remainingText.isNotEmpty()) "$nextName $remainingText" else nextName
+                val headerTitle = formatNextPrayer(context, nextName, snapshot.nextTargetEpochMillis)
 
                 Text(
                     text = headerTitle,
@@ -128,8 +130,11 @@ internal object WidgetRenderer {
                 Text(
                     text = "⚙",
                     modifier = GlanceModifier
-                        .padding(4.dp)
-                        .clickable(actionStartActivity<MainActivity>()),
+                        .padding(8.dp)
+                        .semantics {
+                            contentDescription = context.getString(R.string.widget_open_settings)
+                        }
+                        .clickable(actionStartActivityIntent(PrayerWidgetRoute.settingsIntent(context))),
                     style = TextStyle(
                         color = ColorProvider(Color.White),
                         fontSize = 14.sp,
@@ -143,7 +148,7 @@ internal object WidgetRenderer {
                     .fillMaxWidth()
                     .defaultWeight()
                     .padding(horizontal = 14.dp, vertical = 2.dp),
-                verticalAlignment = Alignment.Vertical.CenterVertically,
+                verticalAlignment = Alignment.Vertical.Top,
             ) {
                 snapshot.timetableItems.forEach { item ->
                     TimetableRow(item, snapshot.timeZoneId)
@@ -187,9 +192,10 @@ internal object WidgetRenderer {
     private fun TimetableRow(item: PrayerTimetableItem, timeZoneId: String?) {
         val context = LocalContext.current
         val checkIcon = if (item.isPassed) "✓" else "○"
-        val rowColor = if (item.isNext) highlightText else primaryText
-        val fontWeight = if (item.isNext) FontWeight.Bold else FontWeight.Normal
-        val iconColor = if (item.isPassed) passedCheckColor else if (item.isNext) highlightText else secondaryText
+        val highlighted = item.isCurrent || item.isNext
+        val rowColor = if (highlighted) highlightText else primaryText
+        val fontWeight = if (highlighted) FontWeight.Bold else FontWeight.Normal
+        val iconColor = if (item.isPassed) passedCheckColor else if (highlighted) highlightText else secondaryText
 
         Row(
             modifier = GlanceModifier
@@ -217,7 +223,7 @@ internal object WidgetRenderer {
                 maxLines = 1,
             )
             Text(
-                text = formatTarget(item.timeEpochMillis, timeZoneId),
+                text = formatTarget(context, item.timeEpochMillis, timeZoneId),
                 style = TextStyle(
                     color = rowColor,
                     fontSize = 12.sp,
@@ -260,7 +266,7 @@ internal object WidgetRenderer {
                 maxLines = 1,
             )
             Text(
-                text = formatTarget(snapshot.nextTargetEpochMillis, snapshot.timeZoneId),
+                text = formatTarget(context, snapshot.nextTargetEpochMillis, snapshot.timeZoneId),
                 style = TextStyle(color = primaryText, fontSize = 13.sp, fontWeight = FontWeight.Bold),
             )
             Spacer(modifier = GlanceModifier.height(4.dp))
@@ -304,7 +310,7 @@ internal object WidgetRenderer {
                 true,
             )
             setTextColor(R.id.chronometer, countdownTextColor(context))
-            setContentDescription(R.id.chronometer, context.getString(R.string.remaining_time))
+            setContentDescription(R.id.chronometer, context.getString(R.string.widget_countdown_description))
         }
         AndroidRemoteViews(remoteViews = remoteViews)
     }
@@ -319,26 +325,37 @@ internal object WidgetRenderer {
         Prayer.ISHA -> context.getString(R.string.prayer_isha)
         Prayer.MIDNIGHT -> context.getString(R.string.prayer_midnight)
         Prayer.TAHAJJUD -> context.getString(R.string.prayer_tahajjud)
-        null -> "—"
+        null -> context.getString(R.string.value_unavailable)
     }
 
-    private fun formatTarget(epochMillis: Long?, timeZoneId: String?): String {
-        if (epochMillis == null || timeZoneId == null) return "—"
-        val timeZone = runCatching { TimeZone.of(timeZoneId) }.getOrNull() ?: return "—"
+    private fun formatTarget(context: Context, epochMillis: Long?, timeZoneId: String?): String {
+        if (epochMillis == null || timeZoneId == null) return context.getString(R.string.value_unavailable)
+        val timeZone = runCatching { TimeZone.of(timeZoneId) }.getOrNull()
+            ?: return context.getString(R.string.value_unavailable)
         val local = Instant.fromEpochMilliseconds(epochMillis).toLocalDateTime(timeZone)
         return String.format(Locale.ROOT, "%02d:%02d", local.hour, local.minute)
     }
 
-    private fun formatRelativeRemaining(targetEpochMillis: Long?): String {
-        if (targetEpochMillis == null) return ""
+    private fun formatNextPrayer(context: Context, prayerName: String, targetEpochMillis: Long?): String {
+        if (targetEpochMillis == null) return prayerName
         val diffMillis = targetEpochMillis - System.currentTimeMillis()
-        if (diffMillis <= 0) return ""
+        if (diffMillis <= 0) return prayerName
         val totalMinutes = diffMillis / (1000 * 60)
         val hours = totalMinutes / 60
         val minutes = totalMinutes % 60
         return when {
-            hours > 0 -> "±$hours jam lagi"
-            else -> "±$minutes mnt lagi"
+            hours > 0 -> context.resources.getQuantityString(
+                R.plurals.widget_next_prayer_hours,
+                hours.toInt(),
+                prayerName,
+                hours,
+            )
+            else -> context.resources.getQuantityString(
+                R.plurals.widget_next_prayer_minutes,
+                minutes.toInt(),
+                prayerName,
+                minutes,
+            )
         }
     }
 

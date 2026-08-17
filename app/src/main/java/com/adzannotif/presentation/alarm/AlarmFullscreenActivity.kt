@@ -42,13 +42,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.adzannotif.domain.model.ThemeMode
 import com.adzannotif.platform.audio.AudioGateway
+import com.adzannotif.platform.audio.AdhanPlaybackService
 import com.adzannotif.presentation.theme.AdzanNotifTheme
 import com.adzannotif.presentation.common.rememberMotionAnimationsEnabled
+import com.adzannotif.R
 import com.adzannotif.core.prayer.Prayer
 import com.adzannotif.domain.repository.AlarmRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -85,10 +88,10 @@ class AlarmFullscreenActivity : ComponentActivity() {
             ?.let { name -> runCatching { Prayer.valueOf(name) }.getOrNull() }
         val prayerTitle = intent.getStringExtra(EXTRA_PRAYER_TITLE)
             ?.takeIf(String::isNotBlank)
-            ?: "Peringatan waktu sholat"
+            ?: getString(R.string.alarm_default_title)
         val locationName = intent.getStringExtra(EXTRA_LOCATION_NAME)
             ?.takeIf(String::isNotBlank)
-            ?: "Lokasi belum tersedia"
+            ?: getString(R.string.location_unavailable)
 
         setContent {
             AdzanNotifTheme(themeMode = ThemeMode.DARK) {
@@ -96,10 +99,12 @@ class AlarmFullscreenActivity : ComponentActivity() {
                     prayerTitle = prayerTitle,
                     locationName = locationName,
                     onDismiss = {
+                        AdhanPlaybackService.stop(this)
                         audioGateway.stop()
                         finish()
                     },
                     onSnooze = {
+                        AdhanPlaybackService.stop(this)
                         audioGateway.stop()
                         prayer?.let { prayerToSnooze ->
                             CoroutineScope(Dispatchers.Default).launch {
@@ -107,7 +112,7 @@ class AlarmFullscreenActivity : ComponentActivity() {
                                 alarmRepository.scheduleExactAlarm(
                                     prayer = prayerToSnooze,
                                     targetInstant = snoozeInstant,
-                                    title = "Tunda: $prayerTitle",
+                                    title = getString(R.string.alarm_snooze_title, prayerTitle),
                                     isPreReminder = false,
                                 )
                             }
@@ -218,7 +223,7 @@ fun AlarmFullscreenScreen(
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     imageVector = Icons.Default.Alarm,
-                                    contentDescription = "Adzan",
+                                    contentDescription = androidx.compose.ui.res.stringResource(R.string.alarm_adhan_content_description),
                                     tint = Color.White,
                                     modifier = Modifier.size(48.dp)
                                 )
@@ -264,7 +269,7 @@ fun AlarmFullscreenScreen(
                 ) {
                     Icon(imageVector = Icons.Default.AlarmOff, contentDescription = null)
                     Spacer(modifier = Modifier.size(8.dp))
-                    Text("Matikan Adzan", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.alarm_dismiss), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 }
 
                 OutlinedButton(
@@ -277,7 +282,7 @@ fun AlarmFullscreenScreen(
                 ) {
                     Icon(imageVector = Icons.Default.Snooze, contentDescription = null)
                     Spacer(modifier = Modifier.size(8.dp))
-                    Text("Tunda 10 Menit")
+                    Text(stringResource(R.string.alarm_snooze))
                 }
             }
         }

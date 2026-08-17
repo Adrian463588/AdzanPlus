@@ -7,7 +7,6 @@ interface AudioGateway {
     fun playAdhan(
         voice: AdhanVoice,
         customUriString: String? = null,
-        durationMinutes: Int = 15,
         onCompletion: (() -> Unit)? = null,
     )
 

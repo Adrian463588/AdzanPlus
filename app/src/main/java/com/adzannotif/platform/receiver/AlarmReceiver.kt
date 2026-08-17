@@ -4,15 +4,17 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.adzannotif.R
 import com.adzannotif.core.prayer.Prayer
 import com.adzannotif.domain.model.AdhanSoundType
 import com.adzannotif.domain.repository.LocationRepository
 import com.adzannotif.domain.repository.SettingsRepository
 import com.adzannotif.platform.alarm.AlarmScheduler
-import com.adzannotif.platform.audio.AudioGateway
+import com.adzannotif.platform.audio.AdhanPlaybackService
 import com.adzannotif.platform.notification.NotificationGateway
 import com.adzannotif.widget.AstronomyWidgetUpdater
 import com.adzannotif.presentation.widget.PrayerTimesWidgetReceiver
+import com.adzannotif.presentation.localization.prayerLabel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,9 +27,6 @@ class AlarmReceiver : BroadcastReceiver() {
 
     @Inject
     lateinit var notificationGateway: NotificationGateway
-
-    @Inject
-    lateinit var audioGateway: AudioGateway
 
     @Inject
     lateinit var settingsRepository: SettingsRepository
@@ -51,16 +50,18 @@ class AlarmReceiver : BroadcastReceiver() {
         if (intent.action != ACTION_ALARM_FIRE) return
 
         val prayerName = intent.getStringExtra(EXTRA_PRAYER_NAME) ?: return
-        val prayerTitle = intent.getStringExtra(EXTRA_PRAYER_TITLE) ?: prayerName
         val isPreReminder = intent.getBooleanExtra(EXTRA_IS_PRE_REMINDER, false)
 
         val prayer = runCatching { Prayer.valueOf(prayerName) }.getOrNull() ?: return
+        val prayerTitle = intent.getStringExtra(EXTRA_PRAYER_TITLE)
+            ?.takeIf(String::isNotBlank)
+            ?: prayerLabel(context, prayer)
 
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.Default).launch {
             try {
                 val location = locationRepository.currentOrSelectedLocation.first()
-                val locationName = location?.name ?: "Lokasi belum tersedia"
+                val locationName = location?.name ?: context.getString(R.string.location_unavailable)
                 val alarmSettings = settingsRepository.alarmSettings.first()
                 val config = alarmSettings.getConfigForPrayer(prayer)
 
@@ -83,10 +84,13 @@ class AlarmReceiver : BroadcastReceiver() {
                     // Play Audio based on sound configuration
                     when (config.soundType) {
                         AdhanSoundType.FULL_ADHAN, AdhanSoundType.SHORT_TAKBEER -> {
-                            audioGateway.playAdhan(
+                            AdhanPlaybackService.start(
+                                context = context,
                                 voice = config.adhanVoice,
                                 customUriString = config.customSoundUri,
-                                durationMinutes = alarmSettings.dndAutoSilenceMinutes
+                                prayer = prayer,
+                                prayerTitle = prayerTitle,
+                                locationName = locationName,
                             )
                         }
                         AdhanSoundType.BEEP_NOTIFICATION -> {

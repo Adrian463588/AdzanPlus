@@ -46,8 +46,8 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import androidx.compose.ui.res.stringResource
 import com.adzannotif.R
-import java.time.YearMonth
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,8 +60,13 @@ fun ScheduleScreen(
     val listState = rememberLazyListState()
 
     val monthYearText = remember(state.currentYear, state.currentMonth) {
-        YearMonth.of(state.currentYear, state.currentMonth)
-            .format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()))
+        Calendar.getInstance(Locale.getDefault()).apply {
+            set(Calendar.YEAR, state.currentYear)
+            set(Calendar.MONTH, state.currentMonth - 1)
+            set(Calendar.DAY_OF_MONTH, 1)
+        }.let { calendar ->
+            SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(calendar.time)
+        }
     }
 
     LaunchedEffect(state.monthlyRecords) {
@@ -222,11 +227,11 @@ private fun CompactScheduleList(
         items(records) { record ->
             val isToday = record.date == todayDate
             val times = listOf(
-                "Subuh" to record.fajr,
-                "Dzuhur" to record.dhuhr,
-                "Ashar" to record.asr,
-                "Maghrib" to record.maghrib,
-                "Isya" to record.isha,
+                stringResource(R.string.prayer_fajr) to record.fajr,
+                stringResource(R.string.prayer_dhuhr) to record.dhuhr,
+                stringResource(R.string.prayer_asr) to record.asr,
+                stringResource(R.string.prayer_maghrib) to record.maghrib,
+                stringResource(R.string.prayer_isha) to record.isha,
             )
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -242,7 +247,11 @@ private fun CompactScheduleList(
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
                     Text(
-                        text = if (isToday) "${record.date.dayOfMonth} • Hari ini" else "${record.date.dayOfMonth}",
+                        text = if (isToday) {
+                            stringResource(R.string.schedule_today_date, record.date.dayOfMonth)
+                        } else {
+                            record.date.dayOfMonth.toString()
+                        },
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
@@ -299,12 +308,12 @@ private fun MonthlyScheduleTable(
                 .padding(vertical = 10.dp, horizontal = 6.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            TableHeaderCell("Tgl", 0.8f)
-            TableHeaderCell("Subuh", 1f)
-            TableHeaderCell("Dzuhur", 1f)
-            TableHeaderCell("Ashar", 1f)
-            TableHeaderCell("Maghrib", 1f)
-            TableHeaderCell("Isya", 1f)
+            TableHeaderCell(stringResource(R.string.schedule_date_header), 0.8f)
+            TableHeaderCell(stringResource(R.string.prayer_fajr), 1f)
+            TableHeaderCell(stringResource(R.string.prayer_dhuhr), 1f)
+            TableHeaderCell(stringResource(R.string.prayer_asr), 1f)
+            TableHeaderCell(stringResource(R.string.prayer_maghrib), 1f)
+            TableHeaderCell(stringResource(R.string.prayer_isha), 1f)
         }
     }
 

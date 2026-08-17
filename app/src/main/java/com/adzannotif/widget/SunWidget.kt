@@ -17,7 +17,6 @@ import androidx.glance.appwidget.AndroidRemoteViews
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.provideContent
-import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
@@ -37,6 +36,8 @@ import com.adzannotif.domain.model.astronomy.SunInfo
 import com.adzannotif.domain.repository.AstronomyRepository
 import com.adzannotif.domain.repository.LocationRepository
 import com.adzannotif.presentation.common.Screen
+import com.adzannotif.presentation.localization.astronomyEventLabel
+import com.adzannotif.presentation.localization.solarPhaseLabel
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -45,13 +46,18 @@ import kotlinx.coroutines.flow.first
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import java.util.Calendar
 import java.util.Locale
 
-import androidx.glance.appwidget.appWidgetBackground
-import androidx.glance.appwidget.cornerRadius
+import androidx.glance.appwidget.components.Scaffold
 
 @Composable
-fun SunWidgetContent(sunInfo: SunInfo?, locationName: String, timeZoneId: String?) {
+fun SunWidgetContent(
+    sunInfo: SunInfo?,
+    nextDaySunInfo: SunInfo?,
+    locationName: String,
+    timeZoneId: String?,
+) {
     val context = LocalContext.current
     val wide = LocalSize.current.width >= 220.dp
     val routeAction = actionStartActivity(
@@ -60,8 +66,8 @@ fun SunWidgetContent(sunInfo: SunInfo?, locationName: String, timeZoneId: String
     val widgetDescription = if (sunInfo != null && timeZoneId != null) {
         context.getString(
             R.string.sun_widget_content_description,
-            sunInfo.currentPhase,
-            sunInfo.nextEventName ?: context.getString(R.string.sun_event_unavailable),
+            solarPhaseLabel(context, sunInfo.currentPhase),
+            astronomyEventLabel(context, sunInfo.nextEventName),
             locationName,
         )
     } else {
@@ -69,31 +75,33 @@ fun SunWidgetContent(sunInfo: SunInfo?, locationName: String, timeZoneId: String
     }
     val modifier = GlanceModifier
         .fillMaxSize()
-        .appWidgetBackground()
-        .background(AstronomyWidgetPalette.sunBackground)
-        .cornerRadius(16.dp)
-        .padding(if (wide) 14.dp else 12.dp)
         .semantics { contentDescription = widgetDescription }
         .clickable(routeAction)
+    val contentModifier = GlanceModifier
+        .fillMaxSize()
+        .padding(if (wide) 14.dp else 12.dp)
 
-    if (sunInfo == null || timeZoneId == null) {
-        Column(modifier = modifier, verticalAlignment = Alignment.Vertical.CenterVertically) {
-            Text(
-                text = context.getString(R.string.sun_widget_data_unavailable),
-                style = TextStyle(AstronomyWidgetPalette.primaryText, fontSize = 13.sp, fontWeight = FontWeight.Bold),
-                maxLines = 1,
-            )
-            Spacer(GlanceModifier.height(4.dp))
-            Text(
-                text = context.getString(R.string.sun_widget_location_hint),
-                style = TextStyle(AstronomyWidgetPalette.secondaryText, fontSize = 10.sp),
-                maxLines = 2,
-            )
-        }
-        return
-    }
-
-    Column(modifier = modifier, verticalAlignment = Alignment.Vertical.CenterVertically) {
+    Scaffold(
+        modifier = modifier,
+        backgroundColor = AstronomyWidgetPalette.sunSurface(context),
+        horizontalPadding = 0.dp,
+    ) {
+        if (sunInfo == null || timeZoneId == null) {
+            Column(modifier = contentModifier, verticalAlignment = Alignment.Vertical.CenterVertically) {
+                Text(
+                    text = context.getString(R.string.sun_widget_data_unavailable),
+                    style = TextStyle(AstronomyWidgetPalette.primaryText, fontSize = 13.sp, fontWeight = FontWeight.Bold),
+                    maxLines = 1,
+                )
+                Spacer(GlanceModifier.height(4.dp))
+                Text(
+                    text = context.getString(R.string.sun_widget_location_hint),
+                    style = TextStyle(AstronomyWidgetPalette.secondaryText, fontSize = 10.sp),
+                    maxLines = 2,
+                )
+            }
+        } else {
+            Column(modifier = contentModifier, verticalAlignment = Alignment.Vertical.CenterVertically) {
         Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.Vertical.CenterVertically) {
             Text(
                 text = context.getString(R.string.sun_widget_icon),
@@ -101,7 +109,7 @@ fun SunWidgetContent(sunInfo: SunInfo?, locationName: String, timeZoneId: String
             )
             Spacer(GlanceModifier.width(if (wide) 8.dp else 5.dp))
             Text(
-                text = sunInfo.currentPhase,
+                text = solarPhaseLabel(context, sunInfo.currentPhase),
                 style = TextStyle(
                     AstronomyWidgetPalette.primaryText,
                     fontSize = if (wide) 14.sp else 12.sp,
@@ -126,30 +134,33 @@ fun SunWidgetContent(sunInfo: SunInfo?, locationName: String, timeZoneId: String
         val now = System.currentTimeMillis()
         val nextMillis = sunInfo.nextEventMillis?.takeIf { it > now }
         
-        val goldenWindow = formatWindow(
-            sunInfo.morningGoldenHourStartMillis,
-            sunInfo.morningGoldenHourEndMillis,
-            timeZoneId,
-        ) ?: formatWindow(
-            sunInfo.eveningGoldenHourStartMillis,
-            sunInfo.eveningGoldenHourEndMillis,
-            timeZoneId,
+        val sunInfos = listOfNotNull(sunInfo, nextDaySunInfo)
+        val goldenWindow = nextLightWindow(
+            now = now,
+            timeZoneId = timeZoneId,
+            windows = sunInfos.flatMap { info ->
+                listOf(
+                    info.morningGoldenHourStartMillis to info.morningGoldenHourEndMillis,
+                    info.eveningGoldenHourStartMillis to info.eveningGoldenHourEndMillis,
+                )
+            },
         )
-        val blueWindow = formatWindow(
-            sunInfo.morningBlueHourStartMillis,
-            sunInfo.morningBlueHourEndMillis,
-            timeZoneId,
-        ) ?: formatWindow(
-            sunInfo.eveningBlueHourStartMillis,
-            sunInfo.eveningBlueHourEndMillis,
-            timeZoneId,
+        val blueWindow = nextLightWindow(
+            now = now,
+            timeZoneId = timeZoneId,
+            windows = sunInfos.flatMap { info ->
+                listOf(
+                    info.morningBlueHourStartMillis to info.morningBlueHourEndMillis,
+                    info.eveningBlueHourStartMillis to info.eveningBlueHourEndMillis,
+                )
+            },
         )
 
         Text(
             text = if (nextMillis != null) {
                 context.getString(
                     R.string.sun_event_time,
-                    sunInfo.nextEventName ?: context.getString(R.string.sun_event_default),
+                    astronomyEventLabel(context, sunInfo.nextEventName),
                     formatTime(nextMillis, timeZoneId),
                 )
             } else {
@@ -189,7 +200,9 @@ fun SunWidgetContent(sunInfo: SunInfo?, locationName: String, timeZoneId: String
         }
 
         if (nextMillis != null) Countdown(context, nextMillis)
+        }
     }
+}
 }
 
 private fun formatAltitude(context: Context, value: Double): String =
@@ -207,6 +220,21 @@ private fun formatWindow(startMillis: Long?, endMillis: Long?, timeZoneId: Strin
         "${formatTime(startMillis, timeZoneId)}–${formatTime(endMillis, timeZoneId)}"
     }.getOrNull()
 }
+
+private fun nextLightWindow(
+    now: Long,
+    timeZoneId: String,
+    windows: List<Pair<Long?, Long?>>,
+): String? = windows
+    .mapNotNull { (start, end) ->
+        if (start == null || end == null || end <= start || end <= now) {
+            null
+        } else {
+            start to end
+        }
+    }
+    .minByOrNull { (start, _) -> start }
+    ?.let { (start, end) -> formatWindow(start, end, timeZoneId) }
 
 @Composable
 private fun Countdown(context: Context, targetMillis: Long) {
@@ -242,9 +270,25 @@ class SunWidget : GlanceAppWidget() {
                 entryPoint.astronomyRepository().getSunInfo(it, System.currentTimeMillis()).first()
             }.getOrNull()
         }
+        val nextDaySunInfo = location?.let { selectedLocation ->
+            runCatching {
+                val nextDayStart = Calendar.getInstance(
+                    java.util.TimeZone.getTimeZone(selectedLocation.timeZoneId),
+                ).apply {
+                    timeInMillis = System.currentTimeMillis()
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                    add(Calendar.DAY_OF_YEAR, 1)
+                }.timeInMillis
+                entryPoint.astronomyRepository().getSunInfo(selectedLocation, nextDayStart).first()
+            }.getOrNull()
+        }
         provideContent {
             SunWidgetContent(
                 sunInfo = sunInfo,
+                nextDaySunInfo = nextDaySunInfo,
                 locationName = location?.name ?: context.getString(R.string.location_unavailable),
                 timeZoneId = location?.timeZoneId,
             )

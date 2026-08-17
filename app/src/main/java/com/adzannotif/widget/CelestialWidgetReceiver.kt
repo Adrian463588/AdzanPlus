@@ -1,5 +1,6 @@
 package com.adzannotif.widget
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -28,7 +29,7 @@ class MoonWidgetReceiver : GlanceAppWidgetReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         if (AstronomyWidgetUpdater.isRefreshTrigger(intent.action)) {
-            refresh(context, intent.action)
+            refresh(context, intent.action, goAsync())
         }
     }
 }
@@ -39,13 +40,21 @@ class SunWidgetReceiver : GlanceAppWidgetReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         if (AstronomyWidgetUpdater.isRefreshTrigger(intent.action)) {
-            refresh(context, intent.action)
+            refresh(context, intent.action, goAsync())
         }
     }
 }
 
-private fun refresh(context: Context, action: String?) {
+private fun refresh(
+    context: Context,
+    action: String?,
+    pendingResult: BroadcastReceiver.PendingResult,
+) {
     CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
-        AstronomyWidgetUpdater.updateForTrigger(context.applicationContext, action)
+        try {
+            AstronomyWidgetUpdater.updateForTrigger(context.applicationContext, action)
+        } finally {
+            pendingResult.finish()
+        }
     }
 }

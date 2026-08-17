@@ -36,7 +36,8 @@ import com.adzannotif.domain.model.astronomy.CalendarDay
 import com.adzannotif.domain.model.astronomy.MoonInfo
 import com.adzannotif.presentation.theme.*
 import com.adzannotif.presentation.common.WindowWidthSizeClass
-import com.adzannotif.presentation.common.Screen
+import com.adzannotif.presentation.common.AstronomyDetailBackHandler
+import com.adzannotif.presentation.common.navigateToAstronomyDashboard
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -49,6 +50,7 @@ fun MoonDetailScreen(
     widthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.COMPACT,
     viewModel: MoonDetailViewModel = hiltViewModel()
 ) {
+    AstronomyDetailBackHandler(navController)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var selectedDayIndex by remember { mutableIntStateOf(0) }
 
@@ -72,13 +74,7 @@ fun MoonDetailScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = {
-                        navController.navigate(Screen.AstronomyDashboard.route) {
-                            popUpTo(Screen.Home.route) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }) {
+                    IconButton(onClick = { navController.navigateToAstronomyDashboard() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.action_back),

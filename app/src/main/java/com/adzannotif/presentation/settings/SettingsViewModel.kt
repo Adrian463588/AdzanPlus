@@ -251,7 +251,6 @@ class SettingsViewModel @Inject constructor(
                     _currentlyPlayingVoice.value = action.voice
                     audioGateway.playAdhan(
                         voice = action.voice,
-                        durationMinutes = 1,
                         onCompletion = {
                             _currentlyPlayingVoice.value = null
                         }

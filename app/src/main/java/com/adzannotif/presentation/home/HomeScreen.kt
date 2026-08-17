@@ -61,6 +61,7 @@ import com.adzannotif.presentation.common.rememberMotionAnimationsEnabled
 fun HomeScreen(
     widthSizeClass: WindowWidthSizeClass,
     onNavigateToAstronomy: (() -> Unit)? = null,
+    onNavigateToSettings: (() -> Unit)? = null,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -185,6 +186,7 @@ fun HomeScreen(
                 UnavailableState(
                     modifier = Modifier.padding(innerPadding),
                     onRetry = { viewModel.onAction(HomeUiAction.RefreshLocation) },
+                    onChooseLocation = onNavigateToSettings,
                 )
             }
             HomeDataState.READY -> {
@@ -366,6 +368,7 @@ private fun LoadingState(modifier: Modifier = Modifier) {
 private fun UnavailableState(
     modifier: Modifier = Modifier,
     onRetry: () -> Unit,
+    onChooseLocation: (() -> Unit)? = null,
 ) {
     Box(
         modifier = modifier
@@ -399,8 +402,18 @@ private fun UnavailableState(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Button(onClick = onRetry) {
-                    Text(text = stringResource(R.string.retry))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Button(onClick = onRetry) {
+                        Text(text = stringResource(R.string.retry))
+                    }
+                    onChooseLocation?.let { openSettings ->
+                        androidx.compose.material3.OutlinedButton(onClick = openSettings) {
+                            Text(text = stringResource(R.string.choose_offline_location))
+                        }
+                    }
                 }
             }
         }

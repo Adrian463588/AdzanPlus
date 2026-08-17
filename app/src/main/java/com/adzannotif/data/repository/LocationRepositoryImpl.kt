@@ -1,11 +1,14 @@
 package com.adzannotif.data.repository
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.os.Build
+import androidx.core.content.ContextCompat
 import com.adzannotif.data.datastore.AppDataStore
 import com.adzannotif.data.local.city.OfflineCityDatabase
 import com.adzannotif.data.local.dao.SavedLocationDao
@@ -20,6 +23,8 @@ import com.google.android.gms.tasks.Task
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -41,9 +46,21 @@ class LocationRepositoryImpl @Inject constructor(
     private val networkMonitor: NetworkMonitor,
 ) : LocationRepository {
 
-    override val currentOrSelectedLocation: Flow<LocationInfo?> = appDataStore.userSettingsFlow.map { settings ->
-        settings.selectedLocation?.normalizeAutoDetectedTimeZone()
-    }
+    /**
+     * DataStore is the selected-location source, while Room is the durable
+     * offline backup written by every selection path. A corrupted or partial
+     * preference write must not discard a real saved location.
+     */
+    override val currentOrSelectedLocation: Flow<LocationInfo?> = combine(
+        appDataStore.userSettingsFlow,
+        savedLocationDao.getAllLocations(),
+    ) { settings, savedLocations ->
+        LocationSelectionResolver.resolve(
+            selected = settings.selectedLocation,
+            saved = savedLocations.map { it.toDomain() },
+        )
+    }.map { it?.normalizeAutoDetectedTimeZone() }
+        .distinctUntilChanged()
 
     override val favoriteLocations: Flow<List<LocationInfo>> = savedLocationDao.getAllLocations().map { list ->
         list.map { it.toDomain() }
@@ -51,33 +68,36 @@ class LocationRepositoryImpl @Inject constructor(
 
     @SuppressLint("MissingPermission")
     override suspend fun getDeviceLocation(): Result<LocationInfo> {
+        if (!hasLocationPermission()) {
+            return Result.failure(LocationPermissionRequiredException())
+        }
+
         return withContext(Dispatchers.IO) {
             try {
                 // 1. Try High Accuracy first with timeout
-                val highAccuracyLocation = withTimeoutOrNull(6000L) {
-                    val cts = CancellationTokenSource()
-                    awaitTask(
-                        fusedLocationClient.getCurrentLocation(
-                            Priority.PRIORITY_HIGH_ACCURACY,
-                            cts.token
-                        )
-                    )
-                }
+                val highAccuracyLocation = getCurrentLocation(
+                    priority = Priority.PRIORITY_HIGH_ACCURACY,
+                    timeoutMillis = 6000L,
+                )
 
-                val finalLocation: Location? = highAccuracyLocation ?: withTimeoutOrNull(3000L) {
-                    val cts = CancellationTokenSource()
-                    awaitTask(
-                        fusedLocationClient.getCurrentLocation(
-                            Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-                            cts.token
-                        )
+                val finalLocation: Location? = highAccuracyLocation
+                    ?: getCurrentLocation(
+                        priority = Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                        timeoutMillis = 3000L,
                     )
-                } ?: awaitTask(fusedLocationClient.lastLocation)
+                    ?: withTimeoutOrNull(1500L) {
+                        awaitTask(fusedLocationClient.lastLocation)
+                    }
 
-                if (finalLocation != null) {
+                if (finalLocation != null && finalLocation.isUsable()) {
                     val lat = finalLocation.latitude
                     val lng = finalLocation.longitude
-                    val elevation = finalLocation.altitude
+                    // Elevation is optional in Android Location. Prayer and
+                    // astronomy engines accept sea-level when the provider
+                    // has no altitude measurement; coordinates remain real.
+                    val elevation = finalLocation.altitude.takeIf {
+                        finalLocation.hasAltitude() && it.isFinite()
+                    } ?: 0.0
                     val timeZoneId = TimeZone.getDefault().id
 
                     // Try geocoding online if connected
@@ -94,6 +114,8 @@ class LocationRepositoryImpl @Inject constructor(
                         isAutoDetected = true
                     )
                     Result.success(locationInfo)
+                } else if (finalLocation != null) {
+                    Result.failure(InvalidLocationException())
                 } else {
                     Result.failure(LocationUnavailableException())
                 }
@@ -105,6 +127,14 @@ class LocationRepositoryImpl @Inject constructor(
 
     class LocationUnavailableException : IllegalStateException(
         "Device location is unavailable; choose an offline city or enter coordinates manually",
+    )
+
+    class LocationPermissionRequiredException : SecurityException(
+        "Location permission is required to refresh GPS location",
+    )
+
+    class InvalidLocationException : IllegalStateException(
+        "The location provider returned invalid coordinates",
     )
 
     private data class ResolvedName(val name: String, val country: String)
@@ -119,6 +149,39 @@ class LocationRepositoryImpl @Inject constructor(
         val currentTimeZoneId = TimeZone.getDefault().id
         return if (timeZoneId == currentTimeZoneId) this else copy(timeZoneId = currentTimeZoneId)
     }
+
+    private fun hasLocationPermission(): Boolean {
+        val fineGranted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED
+        val coarseGranted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED
+        return fineGranted || coarseGranted
+    }
+
+    @SuppressLint("MissingPermission")
+    private suspend fun getCurrentLocation(priority: Int, timeoutMillis: Long): Location? {
+        val cancellationTokenSource = CancellationTokenSource()
+        return try {
+            withTimeoutOrNull(timeoutMillis) {
+                awaitTask(
+                    fusedLocationClient.getCurrentLocation(
+                        priority,
+                        cancellationTokenSource.token,
+                    ),
+                )
+            }
+        } finally {
+            cancellationTokenSource.cancel()
+        }
+    }
+
+    private fun Location.isUsable(): Boolean =
+        latitude.isFinite() && longitude.isFinite() &&
+            latitude in -90.0..90.0 && longitude in -180.0..180.0
 
     private suspend fun resolveLocationName(lat: Double, lng: Double): ResolvedName {
         val closest = offlineCityDatabase.findClosestCity(lat, lng)
@@ -176,6 +239,7 @@ class LocationRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setSelectedLocation(location: LocationInfo) {
+        saveLocation(location)
         appDataStore.updateUserSettings { current ->
             current.copy(selectedLocation = location)
         }

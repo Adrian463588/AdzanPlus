@@ -61,6 +61,11 @@
             android:turnScreenOn="true"
             android:theme="@style/Theme.AdzanNotif.FullscreenAlarm" />
 
+        <service
+            android:name=".platform.audio.AdhanPlaybackService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
         <!-- Broadcast Receivers -->
         <receiver
             android:name=".platform.receiver.AlarmReceiver"
