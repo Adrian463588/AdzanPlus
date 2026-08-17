@@ -43,14 +43,24 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import java.util.Locale
 
+import androidx.glance.appwidget.appWidgetBackground
+
 internal object WidgetRenderer {
-    private val navyHeader = ColorProvider(Color(0xFF072146))
-    private val timetableBg = dayNightColor(Color(0xFFFFFFFF), Color(0xFF161E26))
-    private val timetableBorder = dayNightColor(Color(0xFFE2E8F0), Color(0xFF2D3748))
-    private val primaryText = dayNightColor(Color(0xFF1A202C), Color(0xFFF7FAFC))
-    private val secondaryText = dayNightColor(Color(0xFF4A5568), Color(0xFFA0AEC0))
-    private val highlightText = dayNightColor(Color(0xFF0E3A75), Color(0xFF63B3ED))
-    private val accent = dayNightColor(Color(0xFF0F3E7D), Color(0xFF4299E1))
+    private val navyHeader = dayNight(Color(0xFF0D3B66), Color(0xFF0A2540))
+    private val timetableBg = dayNight(Color(0xFFFFFFFF), Color(0xFF161E26))
+    private val timetableBorder = dayNight(Color(0xFFE2E8F0), Color(0xFF2D3748))
+    private val primaryText = dayNight(Color(0xFF1A202C), Color(0xFFF7FAFC))
+    private val secondaryText = dayNight(Color(0xFF4A5568), Color(0xFFA0AEC0))
+    private val highlightText = dayNight(Color(0xFF0D3B66), Color(0xFF63B3ED))
+    private val passedCheckColor = dayNight(Color(0xFF0D3B66), Color(0xFF63B3ED))
+
+    private fun dayNight(day: Color, night: Color): ColorProvider = object : ColorProvider {
+        override fun getColor(context: Context): Color {
+            val isNight = (context.resources.configuration.uiMode and
+                Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            return if (isNight) night else day
+        }
+    }
 
     @Composable
     fun Content(snapshot: PrayerWidgetSnapshot) {
@@ -68,6 +78,7 @@ internal object WidgetRenderer {
         }
         val rootModifier = GlanceModifier
             .fillMaxSize()
+            .appWidgetBackground()
             .background(timetableBg)
             .cornerRadius(16.dp)
             .semantics { contentDescription = description }
@@ -75,7 +86,7 @@ internal object WidgetRenderer {
 
         Box(modifier = rootModifier, contentAlignment = Alignment.Center) {
             if (snapshot.availability == PrayerWidgetAvailability.AVAILABLE) {
-                if (size.height >= 170.dp || size.width >= 180.dp) {
+                if (size.height >= 140.dp || size.width >= 160.dp) {
                     Timetable3x4Content(snapshot)
                 } else {
                     CompactContent(snapshot)
@@ -99,7 +110,7 @@ internal object WidgetRenderer {
                 modifier = GlanceModifier
                     .fillMaxWidth()
                     .background(navyHeader)
-                    .padding(horizontal = 12.dp, vertical = 7.dp),
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.Vertical.CenterVertically,
             ) {
                 Text(
@@ -117,17 +128,17 @@ internal object WidgetRenderer {
                     text = "⚙",
                     style = TextStyle(
                         color = ColorProvider(Color.White),
-                        fontSize = 13.sp,
+                        fontSize = 14.sp,
                     ),
                 )
             }
 
-            // 2. Timetable Prayer Rows
+            // 2. Timetable Prayer Rows (All 8 Prayers)
             Column(
                 modifier = GlanceModifier
                     .fillMaxWidth()
                     .defaultWeight()
-                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                    .padding(horizontal = 14.dp, vertical = 2.dp),
                 verticalAlignment = Alignment.Vertical.CenterVertically,
             ) {
                 val items = if (snapshot.timetableItems.isNotEmpty()) {
@@ -148,6 +159,14 @@ internal object WidgetRenderer {
                 }
             }
 
+            // Divider Line
+            Box(
+                modifier = GlanceModifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(timetableBorder)
+            ) {}
+
             // 3. Hijri Date Footer
             val hijriText = snapshot.hijriDate?.let { "${String.format(Locale.ROOT, "%02d", it.day)} ${it.monthName} ${it.year} H" }
                 ?: context.getString(R.string.hijri_unavailable)
@@ -164,7 +183,7 @@ internal object WidgetRenderer {
                     style = TextStyle(
                         color = secondaryText,
                         fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Medium,
                         textAlign = TextAlign.Center,
                     ),
                     maxLines = 1,
@@ -175,9 +194,10 @@ internal object WidgetRenderer {
 
     @Composable
     private fun TimetableRow(item: PrayerTimetableItem, timeZoneId: String?) {
-        val checkIcon = if (item.isPassed) "☑" else "○"
+        val checkIcon = if (item.isPassed) "✓" else "○"
         val rowColor = if (item.isNext) highlightText else primaryText
         val fontWeight = if (item.isNext) FontWeight.Bold else FontWeight.Normal
+        val iconColor = if (item.isPassed) passedCheckColor else if (item.isNext) highlightText else secondaryText
 
         Row(
             modifier = GlanceModifier
@@ -188,12 +208,12 @@ internal object WidgetRenderer {
             Text(
                 text = checkIcon,
                 style = TextStyle(
-                    color = if (item.isPassed || item.isNext) accent else secondaryText,
-                    fontSize = 12.sp,
+                    color = iconColor,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                 ),
             )
-            Spacer(modifier = GlanceModifier.width(8.dp))
+            Spacer(modifier = GlanceModifier.width(10.dp))
             Text(
                 text = item.name,
                 modifier = GlanceModifier.defaultWeight(),
@@ -219,7 +239,9 @@ internal object WidgetRenderer {
     private fun CompactContent(snapshot: PrayerWidgetSnapshot) {
         val context = LocalContext.current
         Column(
-            modifier = GlanceModifier.fillMaxSize().padding(8.dp),
+            modifier = GlanceModifier
+                .fillMaxSize()
+                .padding(10.dp),
             horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
             verticalAlignment = Alignment.Vertical.CenterVertically,
         ) {
@@ -228,6 +250,7 @@ internal object WidgetRenderer {
                 style = TextStyle(color = secondaryText, fontSize = 11.sp, fontWeight = FontWeight.Bold),
                 maxLines = 1,
             )
+            Spacer(modifier = GlanceModifier.height(2.dp))
             Text(
                 text = prayerLabel(context, snapshot.nextPrayer),
                 style = TextStyle(color = highlightText, fontSize = 16.sp, fontWeight = FontWeight.Bold),
@@ -235,8 +258,9 @@ internal object WidgetRenderer {
             )
             Text(
                 text = formatTarget(snapshot.nextTargetEpochMillis, snapshot.timeZoneId),
-                style = TextStyle(color = secondaryText, fontSize = 12.sp, fontWeight = FontWeight.Bold),
+                style = TextStyle(color = primaryText, fontSize = 13.sp, fontWeight = FontWeight.Bold),
             )
+            Spacer(modifier = GlanceModifier.height(4.dp))
             Countdown(snapshot.nextTargetEpochMillis)
         }
     }
@@ -250,23 +274,26 @@ internal object WidgetRenderer {
         ) {
             Text(
                 text = context.getString(R.string.prayer_data_unavailable),
-                style = TextStyle(color = primaryText, fontSize = 14.sp, fontWeight = FontWeight.Bold),
+                style = TextStyle(color = primaryText, fontSize = 12.sp, fontWeight = FontWeight.Bold),
+                maxLines = 1,
             )
             Spacer(modifier = GlanceModifier.height(4.dp))
             Text(
                 text = context.getString(R.string.prayer_data_unavailable_detail),
-                style = TextStyle(color = secondaryText, fontSize = 11.sp),
+                style = TextStyle(color = secondaryText, fontSize = 10.sp),
+                maxLines = 2,
             )
         }
     }
 
     @Composable
     private fun Countdown(targetEpochMillis: Long?) {
+        if (targetEpochMillis == null) return
+        val remainingMillis = targetEpochMillis - System.currentTimeMillis()
+        if (remainingMillis <= 0) return
+
         val context = LocalContext.current
-        val target = targetEpochMillis ?: return
-        val remainingMillis = target - System.currentTimeMillis()
-        if (remainingMillis <= 0L) return
-        val chronometer = RemoteViews(context.packageName, R.layout.widget_chronometer).apply {
+        val remoteViews = RemoteViews(context.packageName, R.layout.widget_chronometer).apply {
             setChronometer(
                 R.id.chronometer,
                 SystemClock.elapsedRealtime() + remainingMillis,
@@ -274,9 +301,8 @@ internal object WidgetRenderer {
                 true,
             )
             setTextColor(R.id.chronometer, countdownTextColor(context))
-            setContentDescription(R.id.chronometer, context.getString(R.string.remaining_time))
         }
-        AndroidRemoteViews(remoteViews = chronometer)
+        AndroidRemoteViews(remoteViews = remoteViews)
     }
 
     private fun prayerLabel(context: Context, prayer: Prayer?): String = when (prayer) {
@@ -287,7 +313,9 @@ internal object WidgetRenderer {
         Prayer.ASR -> context.getString(R.string.prayer_asr)
         Prayer.MAGHRIB -> context.getString(R.string.prayer_maghrib)
         Prayer.ISHA -> context.getString(R.string.prayer_isha)
-        else -> context.getString(R.string.prayer_data_unavailable)
+        Prayer.MIDNIGHT -> context.getString(R.string.prayer_midnight)
+        Prayer.TAHAJJUD -> context.getString(R.string.prayer_tahajjud)
+        null -> "—"
     }
 
     private fun formatTarget(epochMillis: Long?, timeZoneId: String?): String {
@@ -313,14 +341,6 @@ internal object WidgetRenderer {
     private fun countdownTextColor(context: Context): Int {
         val isNight = context.resources.configuration.uiMode and
             Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
-        return if (isNight) 0xFF63B3ED.toInt() else 0xFF0E3A75.toInt()
-    }
-
-    private fun dayNightColor(day: Color, night: Color): ColorProvider = object : ColorProvider {
-        override fun getColor(context: Context): Color {
-            val isNight = context.resources.configuration.uiMode and
-                Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
-            return if (isNight) night else day
-        }
+        return if (isNight) 0xFF63B3ED.toInt() else 0xFF0D3B66.toInt()
     }
 }

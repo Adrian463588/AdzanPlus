@@ -18,6 +18,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.res.stringResource
+import com.adzannotif.R
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -177,7 +179,7 @@ fun AstronomyDashboardScreen(
 
                 item {
                     Text(
-                        "Jelajahi Langit",
+                        stringResource(R.string.astro_explore_sky),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = AstronomyStarWhite,
                         modifier = Modifier.padding(vertical = 4.dp)
@@ -188,16 +190,16 @@ fun AstronomyDashboardScreen(
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         NavigationTile(
                             modifier = Modifier.weight(1f),
-                            title = "Detail Bulan",
-                            subtitle = "Fase & Iluminasi",
+                            title = stringResource(R.string.astro_moon_detail_title),
+                            subtitle = stringResource(R.string.astro_moon_detail_sub),
                             icon = Icons.Filled.NightsStay,
                             accentColor = AstronomyMoonGold
                         ) { navController.navigate(Screen.MoonDetail.route) }
 
                         NavigationTile(
                             modifier = Modifier.weight(1f),
-                            title = "Detail Matahari",
-                            subtitle = "Arc & Golden Hour",
+                            title = stringResource(R.string.astro_sun_detail_title),
+                            subtitle = stringResource(R.string.astro_sun_detail_sub),
                             icon = Icons.Filled.WbSunny,
                             accentColor = AstronomySunAmber
                         ) { navController.navigate(Screen.SunDetail.route) }
@@ -208,16 +210,16 @@ fun AstronomyDashboardScreen(
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         NavigationTile(
                             modifier = Modifier.weight(1f),
-                            title = "Peta Bintang",
-                            subtitle = "500 Bintang & Rasi",
+                            title = stringResource(R.string.astro_star_map_title),
+                            subtitle = stringResource(R.string.astro_star_map_sub),
                             icon = Icons.Filled.AutoAwesome,
                             accentColor = AstronomyBlueHour
                         ) { navController.navigate(Screen.StarMap.route) }
 
                         NavigationTile(
                             modifier = Modifier.weight(1f),
-                            title = "Kalender Hijriah",
-                            subtitle = "Masehi & Hijriah",
+                            title = stringResource(R.string.astro_hijri_cal_title),
+                            subtitle = stringResource(R.string.astro_hijri_cal_sub),
                             icon = Icons.Filled.CalendarMonth,
                             accentColor = AstronomyGoldenHour
                         ) { navController.navigate(Screen.HijriCalendar.route) }
@@ -259,14 +261,14 @@ fun AstronomyWidgetPinningCard() {
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        "Widget Astronomi di Layar Utama",
+                        stringResource(R.string.astro_widget_card_title),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = AstronomyStarWhite
                     )
                 }
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    "Pasang widget fase bulan atau jadwal matahari & golden hour langsung ke Home Screen Anda.",
+                    stringResource(R.string.astro_widget_card_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = AstronomyTwilightCivil
                 )
@@ -287,7 +289,7 @@ fun AstronomyWidgetPinningCard() {
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("🌙 Widget Bulan", style = MaterialTheme.typography.labelSmall)
+                        Text(stringResource(R.string.astro_btn_moon_widget), style = MaterialTheme.typography.labelSmall)
                     }
 
                     Button(
@@ -302,7 +304,7 @@ fun AstronomyWidgetPinningCard() {
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("☀️ Widget Surya", style = MaterialTheme.typography.labelSmall, color = Color.Black)
+                        Text(stringResource(R.string.astro_btn_sun_widget), style = MaterialTheme.typography.labelSmall, color = Color.Black)
                     }
                 }
             }
@@ -312,7 +314,7 @@ fun AstronomyWidgetPinningCard() {
 
 @Composable
 fun SolarPhaseBadge(sunInfo: SunInfo?) {
-    val phaseName = sunInfo?.currentPhase ?: "Data belum tersedia"
+    val phaseName = sunInfo?.currentPhase ?: stringResource(R.string.astro_data_unavailable)
     val phaseColor = when {
         phaseName.contains("Golden", ignoreCase = true) -> AstronomyGoldenHour
         phaseName.contains("Blue", ignoreCase = true) -> AstronomyBlueHour
@@ -360,7 +362,7 @@ fun SolarPhaseBadge(sunInfo: SunInfo?) {
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(
-                        "Fase Matahari Saat Ini",
+                        stringResource(R.string.astro_current_solar_phase),
                         style = MaterialTheme.typography.labelSmall,
                         color = AstronomyTwilightCivil
                     )
@@ -418,19 +420,19 @@ fun SunCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Filled.WbSunny,
-                        contentDescription = "Matahari",
+                        contentDescription = stringResource(R.string.astro_sun_today),
                         tint = AstronomySunAmber,
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        "Matahari Hari Ini",
+                        stringResource(R.string.astro_sun_today),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = AstronomyStarWhite
                     )
                 }
                 Text(
-                    "Detail ›",
+                    stringResource(R.string.astro_detail_link),
                     style = MaterialTheme.typography.labelMedium,
                     color = AstronomySunAmber
                 )
@@ -443,7 +445,7 @@ fun SunCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text("Terbit", style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
+                    Text(stringResource(R.string.astro_sunrise), style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
                     Text(
                         formatTime(sunInfo?.riseMillis),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
@@ -451,7 +453,7 @@ fun SunCard(
                     )
                 }
                 Column {
-                    Text("Puncak (Noon)", style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
+                    Text(stringResource(R.string.astro_solar_noon), style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
                     Text(
                         formatTime(sunInfo?.noonMillis),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
@@ -459,7 +461,7 @@ fun SunCard(
                     )
                 }
                 Column {
-                    Text("Terbenam", style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
+                    Text(stringResource(R.string.astro_sunset), style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
                     Text(
                         formatTime(sunInfo?.setMillis),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
@@ -497,10 +499,10 @@ fun SunCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.size(8.dp).background(AstronomyGoldenHour, CircleShape))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Golden Hour", style = MaterialTheme.typography.labelSmall, color = AstronomyGoldenHour)
+                    Text(stringResource(R.string.golden_hour_title), style = MaterialTheme.typography.labelSmall, color = AstronomyGoldenHour)
                 }
                 Text(
-                    "Pagi: $goldenMorning • Sore: $goldenEvening",
+                    stringResource(R.string.sun_card_morning, goldenMorning, goldenEvening),
                     style = MaterialTheme.typography.labelSmall,
                     color = AstronomyStarWhite
                 )
@@ -516,10 +518,10 @@ fun SunCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.size(8.dp).background(AstronomyBlueHour, CircleShape))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Blue Hour", style = MaterialTheme.typography.labelSmall, color = AstronomyBlueHour)
+                    Text(stringResource(R.string.blue_hour_title), style = MaterialTheme.typography.labelSmall, color = AstronomyBlueHour)
                 }
                 Text(
-                    "Pagi: $blueMorning • Sore: $blueEvening",
+                    stringResource(R.string.sun_card_morning, blueMorning, blueEvening),
                     style = MaterialTheme.typography.labelSmall,
                     color = AstronomyStarWhite
                 )
@@ -559,13 +561,13 @@ fun MoonCard(moonInfo: MoonInfo?, onClick: () -> Unit) {
                     Text(emoji, fontSize = 20.sp)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        "Bulan Hari Ini",
+                        stringResource(R.string.astro_moon_today),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = AstronomyStarWhite
                     )
                 }
                 Text(
-                    "Detail ›",
+                    stringResource(R.string.astro_detail_link),
                     style = MaterialTheme.typography.labelMedium,
                     color = AstronomyMoonGold
                 )
@@ -578,25 +580,25 @@ fun MoonCard(moonInfo: MoonInfo?, onClick: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text("Fase", style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
+                    Text(stringResource(R.string.astro_phase), style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
                     Text(
-                        moonInfo?.phaseName ?: "Belum tersedia",
+                        moonInfo?.phaseName ?: "—",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = AstronomyMoonGold
                     )
                 }
                 Column {
-                    Text("Iluminasi", style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
+                    Text(stringResource(R.string.astro_illumination), style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
                     Text(
-                    moonInfo?.let { String.format(Locale.ROOT, "%.1f%%", it.illuminationPercent) } ?: "—",
+                        moonInfo?.let { String.format(Locale.ROOT, "%.1f%%", it.illuminationPercent) } ?: "—",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = AstronomyStarWhite
                     )
                 }
                 Column {
-                    Text("Umur", style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
+                    Text(stringResource(R.string.astro_age), style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
                     Text(
-                    moonInfo?.let { String.format(Locale.ROOT, "%.1f h", it.ageInDays) } ?: "—",
+                        moonInfo?.let { stringResource(R.string.astro_age_days, it.ageInDays) } ?: "—",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = AstronomyStarWhite
                     )

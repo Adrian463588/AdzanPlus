@@ -47,6 +47,9 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import java.util.Locale
 
+import androidx.glance.appwidget.appWidgetBackground
+import androidx.glance.appwidget.cornerRadius
+
 @Composable
 fun SunWidgetContent(sunInfo: SunInfo?, locationName: String, timeZoneId: String?) {
     val context = LocalContext.current
@@ -66,8 +69,10 @@ fun SunWidgetContent(sunInfo: SunInfo?, locationName: String, timeZoneId: String
     }
     val modifier = GlanceModifier
         .fillMaxSize()
+        .appWidgetBackground()
         .background(AstronomyWidgetPalette.sunBackground)
-        .padding(if (wide) 12.dp else 10.dp)
+        .cornerRadius(16.dp)
+        .padding(if (wide) 14.dp else 12.dp)
         .semantics { contentDescription = widgetDescription }
         .clickable(routeAction)
 
@@ -141,7 +146,7 @@ fun SunWidgetContent(sunInfo: SunInfo?, locationName: String, timeZoneId: String
             } else {
                 context.getString(R.string.sun_event_unavailable)
             },
-            style = TextStyle(AstronomyWidgetPalette.sunAccent, fontSize = if (wide) 11.sp else 10.sp),
+            style = TextStyle(AstronomyWidgetPalette.sunAccent, fontSize = if (wide) 11.sp else 10.sp, fontWeight = FontWeight.Bold),
             maxLines = 1,
         )
 

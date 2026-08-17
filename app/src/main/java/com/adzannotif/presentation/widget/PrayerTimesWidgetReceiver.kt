@@ -69,8 +69,9 @@ class PrayerTimesWidget : GlanceAppWidget() {
     override val sizeMode = SizeMode.Responsive(
         setOf(
             DpSize(110.dp, 110.dp),
-            DpSize(250.dp, 110.dp),
-            DpSize(250.dp, 180.dp),
+            DpSize(200.dp, 110.dp),
+            DpSize(180.dp, 150.dp),
+            DpSize(250.dp, 220.dp),
         ),
     )
 

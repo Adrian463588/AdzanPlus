@@ -187,6 +187,10 @@
     <string name="qibla_bearing_unavailable">Kiblat belum tersedia (%1$s)</string>
     <string name="qibla_no_location">Lokasi belum tersedia untuk menghitung arah kiblat</string>
     <string name="qibla_no_sensor">Sensor Kompas tidak terdeteksi pada perangkat ini</string>
+    <string name="qibla_device_heading">Arah HP</string>
+    <string name="qibla_target_bearing">Arah Ka\'bah</string>
+    <string name="qibla_distance">Jarak Ka\'bah</string>
+    <string name="qibla_north_letter">U</string>
 
     <!-- Astronomy Screen Titles & Subtitles -->
     <string name="astronomy_dashboard_title">Dashboard Astronomi</string>
@@ -201,4 +205,32 @@
     <string name="hijri_calendar_subtitle">Waktu Shalat &amp; Fase Bulan Harian</string>
     <string name="action_back">Kembali</string>
     <string name="action_reset_position">Reset Posisi</string>
+
+    <!-- Astronomy Dashboard Cards & Navigation -->
+    <string name="astro_current_solar_phase">Fase Matahari Saat Ini</string>
+    <string name="astro_data_unavailable">Data belum tersedia</string>
+    <string name="astro_sun_today">Matahari Hari Ini</string>
+    <string name="astro_detail_link">Detail ›</string>
+    <string name="astro_sunrise">Terbit</string>
+    <string name="astro_solar_noon">Puncak (Noon)</string>
+    <string name="astro_sunset">Terbenam</string>
+    <string name="astro_moon_today">Bulan Hari Ini</string>
+    <string name="astro_phase">Fase</string>
+    <string name="astro_illumination">Iluminasi</string>
+    <string name="astro_age">Umur</string>
+    <string name="astro_age_days">%1$.1f hari</string>
+    <string name="astro_timeline_title">Pita waktu matahari 24 jam</string>
+    <string name="astro_explore_sky">Jelajahi Langit</string>
+    <string name="astro_moon_detail_title">Detail Bulan</string>
+    <string name="astro_moon_detail_sub">Fase &amp; Iluminasi</string>
+    <string name="astro_sun_detail_title">Detail Matahari</string>
+    <string name="astro_sun_detail_sub">Arc &amp; Golden Hour</string>
+    <string name="astro_star_map_title">Peta Bintang</string>
+    <string name="astro_star_map_sub">500 Bintang &amp; Rasi</string>
+    <string name="astro_hijri_cal_title">Kalender Hijriah</string>
+    <string name="astro_hijri_cal_sub">Masehi &amp; Hijriah</string>
+    <string name="astro_widget_card_title">Widget Astronomi di Layar Utama</string>
+    <string name="astro_widget_card_desc">Pasang widget fase bulan atau jadwal matahari &amp; golden hour langsung ke Home Screen Anda.</string>
+    <string name="astro_btn_moon_widget">🌙 Widget Bulan</string>
+    <string name="astro_btn_sun_widget">☀️ Widget Surya</string>
 </resources>

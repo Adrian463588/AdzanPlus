@@ -83,7 +83,7 @@ fun SolarEventTimeline(
 
     androidx.compose.foundation.layout.Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = "Pita waktu matahari 24 jam",
+            text = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.astro_timeline_title),
             color = AstronomyTwilightCivil,
             style = MaterialTheme.typography.titleMedium,
         )

@@ -365,7 +365,7 @@ fun QiblaScreen(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Text(
-                                    text = "U",
+                                    text = stringResource(R.string.qibla_north_letter),
                                     fontWeight = FontWeight.ExtraBold,
                                     color = Color(0xFFE53935),
                                     style = MaterialTheme.typography.titleMedium
@@ -383,7 +383,7 @@ fun QiblaScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Navigation,
-                            contentDescription = "Arah Perangkat",
+                            contentDescription = stringResource(R.string.qibla_device_heading),
                             tint = if (state.isFacingQibla) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                             modifier = Modifier.size(24.dp)
                         )
@@ -408,7 +408,11 @@ fun QiblaScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Arah HP", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                text = stringResource(R.string.qibla_device_heading),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                             Text(
                                 text = "${state.deviceHeading.toInt()}°",
                                 style = MaterialTheme.typography.titleLarge,
@@ -417,7 +421,11 @@ fun QiblaScreen(
                             )
                         }
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Arah Ka'bah", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                text = stringResource(R.string.qibla_target_bearing),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                             Text(
                                 text = state.qiblaBearing?.let { "${it.toInt()}°" } ?: "—",
                                 style = MaterialTheme.typography.titleLarge,
@@ -427,7 +435,11 @@ fun QiblaScreen(
                         }
                         if (state.qiblaDirection != null) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("Jarak Ka'bah", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    text = stringResource(R.string.qibla_distance),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                                 Text(
                                     text = "${state.qiblaDirection!!.distanceKm.toInt()} km",
                                     style = MaterialTheme.typography.titleLarge,

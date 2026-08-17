@@ -47,6 +47,9 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import java.util.Locale
 
+import androidx.glance.appwidget.appWidgetBackground
+import androidx.glance.appwidget.cornerRadius
+
 @Composable
 fun MoonWidgetContent(moonInfo: MoonInfo?, locationName: String, timeZoneId: String?) {
     val context = LocalContext.current
@@ -66,8 +69,10 @@ fun MoonWidgetContent(moonInfo: MoonInfo?, locationName: String, timeZoneId: Str
     }
     val modifier = GlanceModifier
         .fillMaxSize()
+        .appWidgetBackground()
         .background(AstronomyWidgetPalette.moonBackground)
-        .padding(if (wide) 12.dp else 10.dp)
+        .cornerRadius(16.dp)
+        .padding(if (wide) 14.dp else 12.dp)
         .semantics { contentDescription = widgetDescription }
         .clickable(routeAction)
 

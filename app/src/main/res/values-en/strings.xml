@@ -187,6 +187,10 @@
     <string name="qibla_bearing_unavailable">Qibla unavailable (%1$s)</string>
     <string name="qibla_no_location">Location not available for Qibla calculation</string>
     <string name="qibla_no_sensor">Compass sensor not detected on this device</string>
+    <string name="qibla_device_heading">Phone Heading</string>
+    <string name="qibla_target_bearing">Ka\'bah Direction</string>
+    <string name="qibla_distance">Ka\'bah Distance</string>
+    <string name="qibla_north_letter">N</string>
 
     <!-- Astronomy Screen Titles & Subtitles -->
     <string name="astronomy_dashboard_title">Astronomy Dashboard</string>
@@ -201,4 +205,32 @@
     <string name="hijri_calendar_subtitle">Daily Prayer Times &amp; Moon Phases</string>
     <string name="action_back">Back</string>
     <string name="action_reset_position">Reset Position</string>
+
+    <!-- Astronomy Dashboard Cards & Navigation -->
+    <string name="astro_current_solar_phase">Current Solar Phase</string>
+    <string name="astro_data_unavailable">Data unavailable</string>
+    <string name="astro_sun_today">Sun Today</string>
+    <string name="astro_detail_link">Details ›</string>
+    <string name="astro_sunrise">Sunrise</string>
+    <string name="astro_solar_noon">Solar Noon</string>
+    <string name="astro_sunset">Sunset</string>
+    <string name="astro_moon_today">Moon Today</string>
+    <string name="astro_phase">Phase</string>
+    <string name="astro_illumination">Illumination</string>
+    <string name="astro_age">Age</string>
+    <string name="astro_age_days">%1$.1f days</string>
+    <string name="astro_timeline_title">24-Hour Solar Timeline</string>
+    <string name="astro_explore_sky">Explore the Sky</string>
+    <string name="astro_moon_detail_title">Moon Details</string>
+    <string name="astro_moon_detail_sub">Phases &amp; Illumination</string>
+    <string name="astro_sun_detail_title">Sun Details</string>
+    <string name="astro_sun_detail_sub">Arc &amp; Golden Hour</string>
+    <string name="astro_star_map_title">Star Map</string>
+    <string name="astro_star_map_sub">500 Stars &amp; Constellations</string>
+    <string name="astro_hijri_cal_title">Hijri Calendar</string>
+    <string name="astro_hijri_cal_sub">Gregorian &amp; Hijri</string>
+    <string name="astro_widget_card_title">Astronomy Home Screen Widgets</string>
+    <string name="astro_widget_card_desc">Pin moon phase or solar timetable &amp; golden hour widgets directly to your Home Screen.</string>
+    <string name="astro_btn_moon_widget">🌙 Moon Widget</string>
+    <string name="astro_btn_sun_widget">☀️ Sun Widget</string>
 </resources>
