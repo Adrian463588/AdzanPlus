@@ -6,6 +6,7 @@ import com.adzannotif.core.astronomy.MoonPhase
 import com.adzannotif.core.astronomy.ObserverLocation
 import com.adzannotif.data.local.dao.AstronomyCacheDao
 import com.adzannotif.data.local.entity.AstronomyCacheEntity
+import com.adzannotif.domain.model.LocationInfo
 import com.adzannotif.domain.model.astronomy.CalendarDay
 import com.adzannotif.domain.model.astronomy.ConstellationData
 import com.adzannotif.domain.model.astronomy.MoonInfo
@@ -18,6 +19,7 @@ import com.adzannotif.domain.repository.AstronomyRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.util.Calendar
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,61 +29,72 @@ class AstronomyRepositoryImpl @Inject constructor(
     private val cacheDao: AstronomyCacheDao
 ) : AstronomyRepository {
 
-    override fun getSunInfo(latDeg: Double, lonDeg: Double, epochMillis: Long): Flow<SunInfo> = flow {
-        val location = ObserverLocation(latDeg, lonDeg)
-        val state = engine.getSunState(location, epochMillis)
+    override fun getSunInfo(locationInfo: LocationInfo, epochMillis: Long): Flow<SunInfo> = flow {
+        val day = loadDay(locationInfo, epochMillis)
+        val state = day.sunState
+        val cache = day.cache
         emit(
             SunInfo(
-                riseMillis = state.riseMillis,
-                setMillis = state.setMillis,
-                noonMillis = state.noonMillis,
+                riseMillis = cache?.sunriseMillis ?: state.riseMillis,
+                setMillis = cache?.sunsetMillis ?: state.setMillis,
+                noonMillis = cache?.solarNoonMillis ?: state.noonMillis,
                 azimuth = state.position.azimuth,
                 altitude = state.position.altitude,
                 azimuthAtRise = state.azimuthAtRise,
                 azimuthAtSet = state.azimuthAtSet,
                 currentPhase = state.currentPhase.displayName,
-                civilDawnMillis = state.twilight.civilDawn,
-                civilDuskMillis = state.twilight.civilDusk,
+                civilDawnMillis = cache?.civilDawnMillis ?: state.twilight.civilDawn,
+                civilDuskMillis = cache?.civilDuskMillis ?: state.twilight.civilDusk,
                 nauticalDawnMillis = state.twilight.nauticalDawn,
                 nauticalDuskMillis = state.twilight.nauticalDusk,
                 astronomicalDawnMillis = state.twilight.astronomicalDawn,
                 astronomicalDuskMillis = state.twilight.astronomicalDusk,
-                morningGoldenHourStartMillis = state.goldenBlueHour.morningGoldenHour?.startMillis,
-                morningGoldenHourEndMillis = state.goldenBlueHour.morningGoldenHour?.endMillis,
-                eveningGoldenHourStartMillis = state.goldenBlueHour.eveningGoldenHour?.startMillis,
-                eveningGoldenHourEndMillis = state.goldenBlueHour.eveningGoldenHour?.endMillis,
-                morningBlueHourStartMillis = state.goldenBlueHour.morningBlueHour?.startMillis,
-                morningBlueHourEndMillis = state.goldenBlueHour.morningBlueHour?.endMillis,
-                eveningBlueHourStartMillis = state.goldenBlueHour.eveningBlueHour?.startMillis,
-                eveningBlueHourEndMillis = state.goldenBlueHour.eveningBlueHour?.endMillis
+                morningGoldenHourStartMillis = cache?.goldenHourMorningStartMillis
+                    ?: state.goldenBlueHour.morningGoldenHour?.startMillis,
+                morningGoldenHourEndMillis = cache?.goldenHourMorningEndMillis
+                    ?: state.goldenBlueHour.morningGoldenHour?.endMillis,
+                eveningGoldenHourStartMillis = cache?.goldenHourEveningStartMillis
+                    ?: state.goldenBlueHour.eveningGoldenHour?.startMillis,
+                eveningGoldenHourEndMillis = cache?.goldenHourEveningEndMillis
+                    ?: state.goldenBlueHour.eveningGoldenHour?.endMillis,
+                morningBlueHourStartMillis = cache?.blueHourMorningStartMillis
+                    ?: state.goldenBlueHour.morningBlueHour?.startMillis,
+                morningBlueHourEndMillis = cache?.blueHourMorningEndMillis
+                    ?: state.goldenBlueHour.morningBlueHour?.endMillis,
+                eveningBlueHourStartMillis = cache?.blueHourEveningStartMillis
+                    ?: state.goldenBlueHour.eveningBlueHour?.startMillis,
+                eveningBlueHourEndMillis = cache?.blueHourEveningEndMillis
+                    ?: state.goldenBlueHour.eveningBlueHour?.endMillis
             )
         )
     }
 
-    override fun getMoonInfo(latDeg: Double, lonDeg: Double, epochMillis: Long): Flow<MoonInfo> = flow {
-        val location = ObserverLocation(latDeg, lonDeg)
-        val state = engine.getMoonState(location, epochMillis)
+    override fun getMoonInfo(locationInfo: LocationInfo, epochMillis: Long): Flow<MoonInfo> = flow {
+        val day = loadDay(locationInfo, epochMillis)
+        val state = day.moonState
+        val cache = day.cache
+        val phase = cache?.moonPhaseOrdinal?.let(MoonPhase.entries::getOrNull) ?: state.phase
         emit(
             MoonInfo(
-                riseMillis = state.riseMillis,
-                setMillis = state.setMillis,
+                riseMillis = cache?.moonriseMillis ?: state.riseMillis,
+                setMillis = cache?.moonsetMillis ?: state.setMillis,
                 transitMillis = state.transitMillis,
                 azimuth = state.position.azimuth,
                 altitude = state.position.altitude,
                 azimuthAtRise = state.azimuthAtRise,
-                phaseName = state.phase.displayName,
-                phaseOrdinal = state.phase.ordinal,
-                illuminationPercent = state.illuminationFraction * 100.0,
-                ageInDays = state.ageInDays,
-                distanceKm = state.distanceKm,
+                phaseName = phase.displayName,
+                phaseOrdinal = phase.ordinal,
+                illuminationPercent = cache?.moonIlluminationPercent ?: state.illuminationFraction * 100.0,
+                ageInDays = cache?.moonAgeInDays ?: state.ageInDays,
+                distanceKm = cache?.moonDistanceKm ?: state.distanceKm,
                 isApogee = state.isApogee,
                 isPerigee = state.isPerigee
             )
         )
     }
 
-    override fun getStarMapData(latDeg: Double, lonDeg: Double, epochMillis: Long): Flow<StarMapData> = flow {
-        val location = ObserverLocation(latDeg, lonDeg)
+    override fun getStarMapData(locationInfo: LocationInfo, epochMillis: Long): Flow<StarMapData> = flow {
+        val location = locationInfo.toObserverLocation()
         val visibleStars = engine.getVisibleStars(location, epochMillis).map { sp ->
             VisibleStar(
                 hipId = sp.star.hipId,
@@ -108,32 +121,35 @@ class AstronomyRepositoryImpl @Inject constructor(
                 sunAltitude = sunPos.altitude,
                 moonAzimuth = moonPos.azimuth,
                 moonAltitude = moonPos.altitude,
-                observerLatitude = latDeg,
-                observerLongitude = lonDeg,
+                observerLatitude = locationInfo.latitude,
+                observerLongitude = locationInfo.longitude,
                 epochMillis = epochMillis
             )
         )
     }
 
-    override suspend fun getHijriDate(gregorianEpochMillis: Long): HijriDate {
-        return engine.getHijriDate(gregorianEpochMillis)
+    override suspend fun getHijriDate(gregorianEpochMillis: Long, timeZoneId: String): HijriDate {
+        return engine.getHijriDate(gregorianEpochMillis, kotlinx.datetime.TimeZone.of(timeZoneId))
     }
 
-    override suspend fun getMonthCalendar(latDeg: Double, lonDeg: Double, year: Int, month: Int): List<CalendarDay> {
-        val cal = Calendar.getInstance().apply {
+    override suspend fun getMonthCalendar(locationInfo: LocationInfo, year: Int, month: Int): List<CalendarDay> {
+        val cal = Calendar.getInstance(java.util.TimeZone.getTimeZone(locationInfo.timeZoneId)).apply {
             set(year, month - 1, 1, 0, 0, 0)
             set(Calendar.MILLISECOND, 0)
         }
-        val location = ObserverLocation(latDeg, lonDeg)
         val daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
 
         return (1..daysInMonth).map { day ->
             cal.set(Calendar.DAY_OF_MONTH, day)
             val dayMillis = cal.timeInMillis
 
-            val sunState = engine.getSunState(location, dayMillis)
-            val moonState = engine.getMoonState(location, dayMillis)
-            val hijri = engine.getHijriDate(dayMillis)
+            val cachedDay = loadDay(locationInfo, dayMillis)
+            val sunState = cachedDay.sunState
+            val moonState = cachedDay.moonState
+            val hijri = engine.getHijriDate(
+                dayMillis,
+                kotlinx.datetime.TimeZone.of(locationInfo.timeZoneId),
+            )
 
             CalendarDay(
                 gregorianEpochMillis = dayMillis,
@@ -158,12 +174,22 @@ class AstronomyRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getUpcomingEvents(
-        latDeg: Double, lonDeg: Double, fromMillis: Long, days: Int
+        locationInfo: LocationInfo,
+        fromMillis: Long,
+        days: Int,
     ): List<SkyEvent> {
-        val location = ObserverLocation(latDeg, lonDeg)
+        val location = locationInfo.toObserverLocation()
         val events = mutableListOf<SkyEvent>()
-        for (i in 0 until days) {
-            val dayMillis = fromMillis + i * 86_400_000L
+        val calendar = Calendar.getInstance(java.util.TimeZone.getTimeZone(locationInfo.timeZoneId)).apply {
+            timeInMillis = fromMillis
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        repeat(days) {
+            val dayMillis = calendar.timeInMillis
+            loadDay(locationInfo, dayMillis)
             engine.getDayEvents(location, dayMillis).forEach { astroEvent ->
                 val (type, label) = when (astroEvent) {
                     is com.adzannotif.core.astronomy.AstronomyEvent.Sunrise ->
@@ -184,8 +210,8 @@ class AstronomyRepositoryImpl @Inject constructor(
                         if (astroEvent.isMorning) SkyEventType.BLUE_HOUR_MORNING_START to "Blue Hour Pagi"
                         else SkyEventType.BLUE_HOUR_EVENING_START to "Blue Hour Sore"
                     is com.adzannotif.core.astronomy.AstronomyEvent.BlueHourEnd ->
-                        if (astroEvent.isMorning) SkyEventType.BLUE_HOUR_MORNING_START to "Blue Hour Pagi Berakhir"
-                        else SkyEventType.BLUE_HOUR_EVENING_START to "Blue Hour Sore Berakhir"
+                        if (astroEvent.isMorning) SkyEventType.BLUE_HOUR_MORNING_END to "Blue Hour Pagi Berakhir"
+                        else SkyEventType.BLUE_HOUR_EVENING_END to "Blue Hour Sore Berakhir"
                     is com.adzannotif.core.astronomy.AstronomyEvent.FullMoon ->
                         SkyEventType.FULL_MOON to "Bulan Purnama"
                     is com.adzannotif.core.astronomy.AstronomyEvent.NewMoon ->
@@ -193,7 +219,94 @@ class AstronomyRepositoryImpl @Inject constructor(
                 }
                 events.add(SkyEvent(type = type, epochMillis = astroEvent.epochMillis, label = label))
             }
+            calendar.add(Calendar.DAY_OF_YEAR, 1)
         }
         return events.sortedBy { it.epochMillis }
+    }
+
+    private suspend fun loadDay(locationInfo: LocationInfo, epochMillis: Long): CachedAstronomyDay {
+        val key = cacheKey(locationInfo, epochMillis)
+        val now = System.currentTimeMillis()
+        val cacheEligible = epochMillis in (now - DAY_MILLIS)..(now + CACHE_RETENTION_MILLIS)
+        val cached = if (cacheEligible) {
+            cacheDao.queryByKey(key)?.takeIf {
+                it.cachedAtMillis >= now - CACHE_RETENTION_MILLIS
+            }
+        } else {
+            null
+        }
+        val location = locationInfo.toObserverLocation()
+        val sunState = engine.getSunState(location, epochMillis)
+        val moonState = engine.getMoonState(location, epochMillis)
+        if (cached == null && cacheEligible) {
+            cacheDao.upsert(
+                AstronomyCacheEntity(
+                    cacheKey = key,
+                    dateEpochMillis = epochMillis,
+                    latitudeDeg = locationInfo.latitude,
+                    longitudeDeg = locationInfo.longitude,
+                    sunriseMillis = sunState.riseMillis,
+                    sunsetMillis = sunState.setMillis,
+                    solarNoonMillis = sunState.noonMillis,
+                    moonriseMillis = moonState.riseMillis,
+                    moonsetMillis = moonState.setMillis,
+                    moonPhaseOrdinal = moonState.phase.ordinal,
+                    moonIlluminationPercent = moonState.illuminationFraction * 100.0,
+                    moonDistanceKm = moonState.distanceKm,
+                    moonAgeInDays = moonState.ageInDays,
+                    goldenHourMorningStartMillis = sunState.goldenBlueHour.morningGoldenHour?.startMillis,
+                    goldenHourMorningEndMillis = sunState.goldenBlueHour.morningGoldenHour?.endMillis,
+                    goldenHourEveningStartMillis = sunState.goldenBlueHour.eveningGoldenHour?.startMillis,
+                    goldenHourEveningEndMillis = sunState.goldenBlueHour.eveningGoldenHour?.endMillis,
+                    blueHourMorningStartMillis = sunState.goldenBlueHour.morningBlueHour?.startMillis,
+                    blueHourMorningEndMillis = sunState.goldenBlueHour.morningBlueHour?.endMillis,
+                    blueHourEveningStartMillis = sunState.goldenBlueHour.eveningBlueHour?.startMillis,
+                    blueHourEveningEndMillis = sunState.goldenBlueHour.eveningBlueHour?.endMillis,
+                    civilDawnMillis = sunState.twilight.civilDawn,
+                    civilDuskMillis = sunState.twilight.civilDusk,
+                    cachedAtMillis = now,
+                )
+            )
+            cacheDao.deleteStale(now - CACHE_RETENTION_MILLIS)
+            cacheDao.deleteOutsideWindow(
+                firstMillis = now - DAY_MILLIS,
+                lastMillis = now + CACHE_RETENTION_MILLIS,
+            )
+        }
+        return CachedAstronomyDay(sunState, moonState, cached)
+    }
+
+    private fun cacheKey(location: LocationInfo, epochMillis: Long): String {
+        val calendar = Calendar.getInstance(java.util.TimeZone.getTimeZone(location.timeZoneId)).apply {
+            timeInMillis = epochMillis
+        }
+        return String.format(
+            Locale.ROOT,
+            "%04d-%02d-%02d_%.4f_%.4f_%s",
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH) + 1,
+            calendar.get(Calendar.DAY_OF_MONTH),
+            location.latitude,
+            location.longitude,
+            location.timeZoneId,
+        )
+    }
+
+    private fun LocationInfo.toObserverLocation(): ObserverLocation = ObserverLocation(
+        latitude = latitude,
+        longitude = longitude,
+        elevationMeters = elevation,
+        timeZoneId = timeZoneId,
+    )
+
+    private data class CachedAstronomyDay(
+        val sunState: com.adzannotif.core.astronomy.SunState,
+        val moonState: com.adzannotif.core.astronomy.MoonState,
+        val cache: AstronomyCacheEntity?,
+    )
+
+    private companion object {
+        const val CACHE_RETENTION_MILLIS = 7 * 24 * 60 * 60 * 1000L
+        const val DAY_MILLIS = 24 * 60 * 60 * 1000L
     }
 }

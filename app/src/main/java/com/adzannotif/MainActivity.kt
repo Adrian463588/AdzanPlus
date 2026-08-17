@@ -32,7 +32,7 @@ import com.adzannotif.presentation.astronomy.sun.SunDetailScreen
 import com.adzannotif.presentation.astronomy.moon.MoonDetailScreen
 import com.adzannotif.presentation.astronomy.starmap.StarMapScreen
 import com.adzannotif.presentation.astronomy.calendar.HijriCalendarScreen
-import com.adzannotif.platform.alarm.AdhanScheduler
+import com.adzannotif.platform.alarm.AlarmScheduler
 import com.adzannotif.presentation.theme.AdzanNotifTheme
 import com.adzannotif.widget.PrayerTimesWidgetReceiver
 import dagger.hilt.android.AndroidEntryPoint
@@ -45,14 +45,16 @@ class MainActivity : ComponentActivity() {
     lateinit var settingsRepository: SettingsRepository
 
     @Inject
-    lateinit var adhanScheduler: AdhanScheduler
+    lateinit var alarmScheduler: AlarmScheduler
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { _ ->
-        adhanScheduler.rescheduleAllAlarms()
+        alarmScheduler.rescheduleAllAlarms()
         PrayerTimesWidgetReceiver.updateAll(this)
     }
+
+    private var exactAlarmPromptShown = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,7 +96,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        adhanScheduler.rescheduleAllAlarms()
+        if (!exactAlarmPromptShown) {
+            alarmScheduler.exactAlarmPermissionIntent()?.let { intent ->
+                exactAlarmPromptShown = true
+                startActivity(intent)
+            }
+        }
+        alarmScheduler.rescheduleAllAlarms()
         PrayerTimesWidgetReceiver.updateAll(this)
     }
 

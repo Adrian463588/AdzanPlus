@@ -1,12 +1,16 @@
 package com.adzannotif.domain.usecase
 
+import com.adzannotif.core.prayer.PrayerTimesUnavailableException
 import com.adzannotif.domain.model.PrayerTimeRecord
 import com.adzannotif.domain.repository.LocationRepository
 import com.adzannotif.domain.repository.PrayerTimesRepository
 import com.adzannotif.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
 class GetMonthlyPrayerTimesUseCase @Inject constructor(
@@ -21,7 +25,17 @@ class GetMonthlyPrayerTimesUseCase @Inject constructor(
         ) { settings, location ->
             Pair(settings, location)
         }.flatMapLatest { (settings, location) ->
-            prayerTimesRepository.getMonthlyPrayerTimes(year, month, location, settings)
+            if (location == null) {
+                flowOf(emptyList())
+            } else {
+                flow {
+                    try {
+                        emitAll(prayerTimesRepository.getMonthlyPrayerTimes(year, month, location, settings))
+                    } catch (_: PrayerTimesUnavailableException) {
+                        emit(emptyList())
+                    }
+                }
+            }
         }
     }
 }

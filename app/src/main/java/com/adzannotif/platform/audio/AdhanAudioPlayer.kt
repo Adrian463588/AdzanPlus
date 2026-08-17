@@ -13,6 +13,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.adzannotif.R
 import com.adzannotif.domain.model.AdhanVoice
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -34,7 +35,7 @@ import javax.inject.Singleton
 @Singleton
 class AdhanAudioPlayer @Inject constructor(
     @ApplicationContext private val context: Context,
-) {
+) : AudioGateway {
     private val playbackScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     private var exoPlayer: ExoPlayer? = null
@@ -51,11 +52,11 @@ class AdhanAudioPlayer @Inject constructor(
      * Starts the configured audio source. A custom URI or bundled raw resource is
      * passed through unchanged so the audio that plays is the audio the user chose.
      */
-    fun playAdhan(
+    override fun playAdhan(
         voice: AdhanVoice,
-        customUriString: String? = null,
-        durationMinutes: Int = 15,
-        onCompletion: (() -> Unit)? = null,
+        customUriString: String?,
+        durationMinutes: Int,
+        onCompletion: (() -> Unit)?,
     ) {
         playbackScope.launch {
             stop()
@@ -125,14 +126,14 @@ class AdhanAudioPlayer @Inject constructor(
                 ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         }
 
-        val rawResId = context.resources.getIdentifier(
-            voice.rawResName,
-            "raw",
-            context.packageName,
-        )
-        if (rawResId == 0) {
-            Log.e(TAG, "Bundled audio resource is unavailable: ${voice.rawResName}")
-            return null
+        val rawResId = when (voice) {
+            AdhanVoice.MAKKAH -> R.raw.adhan_makkah
+            AdhanVoice.MADINAH -> R.raw.adhan_madinah
+            AdhanVoice.AL_AQSA -> R.raw.adhan_alaqsa
+            AdhanVoice.EGYPT -> R.raw.adhan_egypt
+            AdhanVoice.KUWAIT -> R.raw.adhan_kuwait
+            AdhanVoice.FAJR_SPECIAL -> R.raw.adhan_fajr
+            AdhanVoice.SYSTEM_DEFAULT -> return null
         }
 
         return Uri.parse("android.resource://${context.packageName}/$rawResId")
@@ -203,7 +204,7 @@ class AdhanAudioPlayer @Inject constructor(
     }
 
     /** Stops playback, timers, and the wake lock without substituting another source. */
-    fun stop() {
+    override fun stop() {
         autoSilenceJob?.cancel()
         autoSilenceJob = null
 

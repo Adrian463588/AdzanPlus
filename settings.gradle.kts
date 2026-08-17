@@ -24,4 +24,5 @@ dependencyResolutionManagement {
 rootProject.name = "AdzanNotif"
 include(":core-prayer")
 include(":core-astronomy")
+include(":shared")
 include(":app")

@@ -28,7 +28,7 @@ data class UserSettings(
     val ishaAdjustment: Int = 2,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val useAutoLocation: Boolean = true,
-    val selectedLocation: LocationInfo = LocationInfo.JAKARTA,
+    val selectedLocation: LocationInfo? = null,
 ) {
     fun toPrayerAdjustments(): PrayerAdjustments = PrayerAdjustments(
         imsak = ihtiyatMinutes,

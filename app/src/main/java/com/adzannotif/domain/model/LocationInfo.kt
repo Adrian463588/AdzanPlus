@@ -10,25 +10,13 @@ import kotlinx.serialization.Serializable
 data class LocationInfo(
     val id: String,
     val name: String,
-    val country: String = "Indonesia",
+    val country: String,
     val latitude: Double,
     val longitude: Double,
-    val elevation: Double = 0.0,
-    val timeZoneId: String = "Asia/Jakarta",
+    val elevation: Double,
+    val timeZoneId: String,
     val isAutoDetected: Boolean = false,
 ) {
     fun toCoordinates(): Coordinates = Coordinates(latitude, longitude)
 
-    companion object {
-        val JAKARTA = LocationInfo(
-            id = "jakarta",
-            name = "Jakarta",
-            country = "Indonesia",
-            latitude = -6.2088,
-            longitude = 106.8456,
-            elevation = 10.0,
-            timeZoneId = "Asia/Jakarta",
-            isAutoDetected = false,
-        )
-    }
 }

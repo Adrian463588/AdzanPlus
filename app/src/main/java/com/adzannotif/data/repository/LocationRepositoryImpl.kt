@@ -41,7 +41,7 @@ class LocationRepositoryImpl @Inject constructor(
     private val networkMonitor: NetworkMonitor,
 ) : LocationRepository {
 
-    override val currentOrSelectedLocation: Flow<LocationInfo> = appDataStore.userSettingsFlow.map { settings ->
+    override val currentOrSelectedLocation: Flow<LocationInfo?> = appDataStore.userSettingsFlow.map { settings ->
         settings.selectedLocation
     }
 
@@ -110,6 +110,7 @@ class LocationRepositoryImpl @Inject constructor(
     private data class ResolvedName(val name: String, val country: String)
 
     private suspend fun resolveLocationName(lat: Double, lng: Double): ResolvedName {
+        val closest = offlineCityDatabase.findClosestCity(lat, lng)
         if (networkMonitor.isCurrentlyOnline() && Geocoder.isPresent()) {
             try {
                 val geocoder = Geocoder(context, Locale.getDefault())
@@ -128,8 +129,8 @@ class LocationRepositoryImpl @Inject constructor(
 
                 if (!addresses.isNullOrEmpty()) {
                     val addr = addresses[0]
-                    val locality = addr.subLocality ?: addr.locality ?: addr.subAdminArea ?: addr.adminArea ?: "Lokasi GPS"
-                    val country = addr.countryName ?: "Indonesia"
+                    val locality = addr.subLocality ?: addr.locality ?: addr.subAdminArea ?: addr.adminArea ?: closest.name
+                    val country = addr.countryName ?: closest.country
                     return ResolvedName(locality, country)
                 }
             } catch (_: Exception) {
@@ -138,78 +139,13 @@ class LocationRepositoryImpl @Inject constructor(
         }
 
         // Offline spatial proximity fallback
-        val closest = offlineCityDatabase.findClosestCity(lat, lng)
         return ResolvedName("${closest.name} (GPS)", closest.country)
     }
 
     override suspend fun searchLocations(query: String): List<LocationInfo> = withContext(Dispatchers.IO) {
         val trimmed = query.trim()
-        if (trimmed.isEmpty()) {
-            return@withContext offlineCityDatabase.allCities
-        }
-
-        // 1. Search Offline Database first
-        val offlineMatches = offlineCityDatabase.searchCities(trimmed).toMutableList()
-
-        // 2. If online and geocoder available, search online
-        if (networkMonitor.isCurrentlyOnline() && Geocoder.isPresent()) {
-            try {
-                val geocoder = Geocoder(context, Locale.getDefault())
-                val addresses = withTimeoutOrNull(4000L) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        suspendCancellableCoroutine<List<Address>> { cont ->
-                            geocoder.getFromLocationName(trimmed, 8) { resultList ->
-                                cont.resume(resultList)
-                            }
-                        }
-                    } else {
-                        @Suppress("DEPRECATION")
-                        geocoder.getFromLocationName(trimmed, 8) ?: emptyList()
-                    }
-                }
-
-                if (!addresses.isNullOrEmpty()) {
-                    for (addr in addresses) {
-                        val name = addr.locality ?: addr.subAdminArea ?: addr.adminArea ?: addr.featureName ?: trimmed
-                        val country = addr.countryName ?: ""
-                        val lat = addr.latitude
-                        val lng = addr.longitude
-
-                        // Determine approximate timezone based on longitude if in Indonesia
-                        val tz = when {
-                            country.contains("Indonesia", ignoreCase = true) -> {
-                                when {
-                                    lng < 110.0 -> "Asia/Jakarta"
-                                    lng < 125.0 -> "Asia/Makassar"
-                                    else -> "Asia/Jayapura"
-                                }
-                            }
-                            else -> TimeZone.getDefault().id
-                        }
-
-                        val onlineLoc = LocationInfo(
-                            id = "online_${lat.hashCode()}_${lng.hashCode()}",
-                            name = name,
-                            country = country,
-                            latitude = lat,
-                            longitude = lng,
-                            elevation = 10.0,
-                            timeZoneId = tz,
-                            isAutoDetected = false
-                        )
-
-                        // Avoid exact duplicate
-                        if (offlineMatches.none { it.name.equals(name, ignoreCase = true) && it.country.equals(country, ignoreCase = true) }) {
-                            offlineMatches.add(onlineLoc)
-                        }
-                    }
-                }
-            } catch (_: Exception) {
-                // Keep offline matches
-            }
-        }
-
-        offlineMatches
+        if (trimmed.isEmpty()) offlineCityDatabase.allCities
+        else offlineCityDatabase.searchCities(trimmed)
     }
 
     override suspend fun searchOfflineCities(query: String): List<LocationInfo> {

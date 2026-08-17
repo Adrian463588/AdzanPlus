@@ -37,6 +37,7 @@ import com.adzannotif.domain.model.AlarmConfig
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import java.util.Locale
 
 @Composable
 fun PrayerTimeRow(
@@ -49,7 +50,7 @@ fun PrayerTimeRow(
     modifier: Modifier = Modifier,
 ) {
     val localTime = timeInstant.toLocalDateTime(TimeZone.of(timeZoneId))
-    val timeFormatted = String.format("%02d:%02d", localTime.hour, localTime.minute)
+    val timeFormatted = String.format(Locale.ROOT, "%02d:%02d", localTime.hour, localTime.minute)
 
     val icon: ImageVector = when (prayer) {
         Prayer.IMSAK -> Icons.Default.WbTwilight

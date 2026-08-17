@@ -53,6 +53,7 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 @Composable
+@Suppress("DEPRECATION") // statusBarColor remains the compatibility API for pre-edge-to-edge devices.
 fun AdzanNotifTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
     dynamicColor: Boolean = false, // Preserve deep emerald palette by default

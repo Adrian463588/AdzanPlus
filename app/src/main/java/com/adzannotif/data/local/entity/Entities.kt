@@ -24,6 +24,8 @@ data class PrayerScheduleEntity(
     val maghribEpochMs: Long,
     val ishaEpochMs: Long,
     val midnightEpochMs: Long,
+    val firstThirdOfNightEpochMs: Long? = null,
+    val lastThirdOfNightEpochMs: Long? = null,
 ) {
     fun toDomain(): PrayerTimeRecord {
         return PrayerTimeRecord(
@@ -37,6 +39,8 @@ data class PrayerScheduleEntity(
             maghrib = Instant.fromEpochMilliseconds(maghribEpochMs),
             isha = Instant.fromEpochMilliseconds(ishaEpochMs),
             midnight = Instant.fromEpochMilliseconds(midnightEpochMs),
+            firstThirdOfTheNight = firstThirdOfNightEpochMs?.let(Instant::fromEpochMilliseconds),
+            lastThirdOfTheNight = lastThirdOfNightEpochMs?.let(Instant::fromEpochMilliseconds),
         )
     }
 
@@ -56,6 +60,8 @@ data class PrayerScheduleEntity(
                 maghribEpochMs = record.maghrib.toEpochMilliseconds(),
                 ishaEpochMs = record.isha.toEpochMilliseconds(),
                 midnightEpochMs = record.midnight.toEpochMilliseconds(),
+                firstThirdOfNightEpochMs = record.firstThirdOfTheNight?.toEpochMilliseconds(),
+                lastThirdOfNightEpochMs = record.lastThirdOfTheNight?.toEpochMilliseconds(),
             )
         }
     }

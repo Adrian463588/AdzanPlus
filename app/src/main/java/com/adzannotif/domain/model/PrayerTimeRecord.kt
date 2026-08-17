@@ -22,7 +22,7 @@ data class PrayerTimeRecord(
     val firstThirdOfTheNight: Instant? = null,
     val lastThirdOfTheNight: Instant? = null,
 ) {
-    fun getInstantForPrayer(prayer: Prayer): Instant = when (prayer) {
+    fun getInstantForPrayer(prayer: Prayer): Instant? = when (prayer) {
         Prayer.IMSAK -> imsak
         Prayer.FAJR -> fajr
         Prayer.SUNRISE -> sunrise
@@ -31,7 +31,7 @@ data class PrayerTimeRecord(
         Prayer.MAGHRIB -> maghrib
         Prayer.ISHA -> isha
         Prayer.MIDNIGHT -> midnight
-        Prayer.TAHAJJUD -> lastThirdOfTheNight ?: midnight
+        Prayer.TAHAJJUD -> lastThirdOfTheNight
     }
 
     /**

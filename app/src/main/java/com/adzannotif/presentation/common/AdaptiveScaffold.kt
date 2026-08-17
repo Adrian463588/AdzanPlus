@@ -2,6 +2,7 @@ package com.adzannotif.presentation.common
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -46,7 +47,7 @@ fun AdaptiveScaffold(
 
     val navBarContainerColor by animateColorAsState(
         targetValue = if (isAstronomyRoute) AstronomyBackgroundDeep else MaterialTheme.colorScheme.surface,
-        animationSpec = tween(300),
+        animationSpec = if (rememberMotionAnimationsEnabled()) tween(300) else snap(),
         label = "navBarContainerColor"
     )
 

@@ -45,11 +45,20 @@ class MoonDetailViewModel @Inject constructor(
     private fun startMoonUpdates() {
         viewModelScope.launch {
             locationRepository.currentOrSelectedLocation.collectLatest { loc ->
-                _uiState.value = _uiState.value.copy(location = loc, isLoading = true)
+                _uiState.value = _uiState.value.copy(
+                    location = loc,
+                    moonInfo = null,
+                    calendarDays = emptyList(),
+                    isLoading = loc != null,
+                    error = null,
+                )
+                if (loc == null) {
+                    return@collectLatest
+                }
                 while (isActive) {
                     try {
                         val moonInfo = getMoonInfoUseCase(loc, System.currentTimeMillis()).firstOrNull()
-                        val cal = Calendar.getInstance()
+                        val cal = Calendar.getInstance(java.util.TimeZone.getTimeZone(loc.timeZoneId))
                         val calendarDays = getHijriCalendarUseCase(
                             loc,
                             cal.get(Calendar.YEAR),

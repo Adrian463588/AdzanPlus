@@ -25,13 +25,13 @@ class AdhanScheduler @Inject constructor(
     @ApplicationContext private val context: Context,
     private val schedulePrayerAlarmsUseCase: SchedulePrayerAlarmsUseCase,
     private val alarmRepository: AlarmRepository,
-) {
+) : AlarmScheduler {
     private val backgroundScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     /**
      * Checks if the app has exact alarm scheduling capability (Android 12+ SCHEDULE_EXACT_ALARM).
      */
-    fun canScheduleExactAlarms(): Boolean {
+    override fun canScheduleExactAlarms(): Boolean {
         return alarmRepository.canScheduleExactAlarms()
     }
 
@@ -41,7 +41,7 @@ class AdhanScheduler @Inject constructor(
      * A null result means that the permission is not required on this API level,
      * or that it has already been granted.
      */
-    fun exactAlarmPermissionIntent(): Intent? {
+    override fun exactAlarmPermissionIntent(): Intent? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || canScheduleExactAlarms()) {
             return null
         }
@@ -59,7 +59,7 @@ class AdhanScheduler @Inject constructor(
      * exact-alarm access is unavailable, the app must report an actionable state and
      * must not silently downgrade a user-facing prayer alarm to an inexact alarm.
      */
-    suspend fun schedule(): Result<Unit> {
+    override suspend fun schedule(): Result<Unit> {
         if (!canScheduleExactAlarms()) {
             return Result.failure(ExactAlarmPermissionRequiredException())
         }
@@ -78,8 +78,8 @@ class AdhanScheduler @Inject constructor(
     /**
      * Non-blocking trigger to reschedule all upcoming prayer alarms in a background scope.
      */
-    fun rescheduleAllAlarms(scope: CoroutineScope = backgroundScope) {
-        scope.launch {
+    override fun rescheduleAllAlarms() {
+        backgroundScope.launch {
             schedule().onFailure { error ->
                 if (error is ExactAlarmPermissionRequiredException) {
                     Log.w(TAG, "Exact alarm permission is required; prayer alarms were not scheduled")
@@ -93,7 +93,7 @@ class AdhanScheduler @Inject constructor(
     /**
      * Cancels all scheduled prayer and pre-reminder alarms.
      */
-    suspend fun cancelAllAlarms() {
+    override suspend fun cancelAllAlarms() {
         alarmRepository.cancelAllAlarms()
     }
 

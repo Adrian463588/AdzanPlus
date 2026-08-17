@@ -2,6 +2,7 @@ package com.adzannotif.presentation.qibla
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -56,6 +57,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.adzannotif.presentation.common.WindowWidthSizeClass
+import com.adzannotif.presentation.common.rememberMotionAnimationsEnabled
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
@@ -68,6 +70,8 @@ fun QiblaScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val haptic = LocalHapticFeedback.current
+    val motionEnabled = rememberMotionAnimationsEnabled()
+    val locationName = state.location?.name ?: "Lokasi belum tersedia"
 
     var continuousHeading by remember { mutableFloatStateOf(0f) }
     LaunchedEffect(state.deviceHeading) {
@@ -84,16 +88,19 @@ fun QiblaScreen(
 
     val animatedDialRotation by animateFloatAsState(
         targetValue = -continuousHeading,
-        animationSpec = tween(durationMillis = 100),
+        animationSpec = if (motionEnabled) tween(durationMillis = 100) else snap(),
         label = "compassDialRotation"
     )
 
     val animatedStatusColor by animateColorAsState(
-        targetValue = if (state.isFacingQibla) {
+        targetValue = if (state.qiblaDirection == null || !state.isSensorAvailable) {
+            MaterialTheme.colorScheme.outline
+        } else if (state.isFacingQibla) {
             MaterialTheme.colorScheme.primary
         } else {
             MaterialTheme.colorScheme.tertiary
         },
+        animationSpec = if (motionEnabled) tween(durationMillis = 180) else snap(),
         label = "statusColor"
     )
 
@@ -181,7 +188,9 @@ fun QiblaScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "Kiblat: ${String.format(java.util.Locale.US, "%.1f°", state.qiblaBearing)} (${state.location.name})",
+                                text = state.qiblaBearing?.let { bearing ->
+                                    "Kiblat: ${String.format(java.util.Locale.US, "%.1f°", bearing)} ($locationName)"
+                                } ?: "Kiblat belum tersedia ($locationName)",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -284,28 +293,29 @@ fun QiblaScreen(
                         }
 
                         // Kaaba Direction Marker (Gold Dial Marker at qiblaBearing)
-                        val qiblaAngle = state.qiblaBearing.toFloat()
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .rotate(qiblaAngle),
-                            contentAlignment = Alignment.TopCenter
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.padding(top = 10.dp)
+                        state.qiblaBearing?.let { qiblaBearing ->
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .rotate(qiblaBearing.toFloat()),
+                                contentAlignment = Alignment.TopCenter
                             ) {
-                                Surface(
-                                    shape = CircleShape,
-                                    color = animatedStatusColor,
-                                    modifier = Modifier.size(38.dp),
-                                    shadowElevation = 4.dp
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.padding(top = 10.dp)
                                 ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Text(
-                                            text = "🕋",
-                                            fontSize = 18.sp
-                                        )
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = animatedStatusColor,
+                                        modifier = Modifier.size(38.dp),
+                                        shadowElevation = 4.dp
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Text(
+                                                text = "🕋",
+                                                fontSize = 18.sp
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -369,7 +379,7 @@ fun QiblaScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("Arah Ka'bah", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(
-                                text = "${state.qiblaBearing.toInt()}°",
+                                text = state.qiblaBearing?.let { "${it.toInt()}°" } ?: "—",
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary

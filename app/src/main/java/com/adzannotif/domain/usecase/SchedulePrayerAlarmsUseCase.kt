@@ -29,7 +29,7 @@ class SchedulePrayerAlarmsUseCase @Inject constructor(
     private val alarmRepository: AlarmRepository,
 ) {
     suspend operator fun invoke() {
-        val location = locationRepository.currentOrSelectedLocation.first()
+        val location = locationRepository.currentOrSelectedLocation.first() ?: return
         val tz = TimeZone.of(location.timeZoneId)
         val now = Clock.System.now()
         val todayDate = now.toLocalDateTime(tz).date
@@ -39,27 +39,33 @@ class SchedulePrayerAlarmsUseCase @Inject constructor(
         val tomorrowRecord = getTodayPrayerTimesUseCase(tomorrowDate).first()
         val alarmSettings = settingsRepository.alarmSettings.first()
 
-        // Mandatory daily prayers to schedule
-        val standardPrayers = listOf(
+        // Fard prayers plus the optional sunrise alert exposed in Settings.
+        val scheduledPrayers = listOf(
             Prayer.FAJR,
+            Prayer.SUNRISE,
             Prayer.DHUHR,
             Prayer.ASR,
             Prayer.MAGHRIB,
             Prayer.ISHA
         )
 
-        for (prayer in standardPrayers) {
+        for (prayer in scheduledPrayers) {
             val config = alarmSettings.getConfigForPrayer(prayer)
+            // Reconcile both the main alarm and the previous pre-reminder before
+            // writing the current real occurrence.
+            alarmRepository.cancelAlarm(prayer)
             if (!config.isEnabled) {
-                alarmRepository.cancelAlarm(prayer)
                 continue
             }
 
             val todayTime = getInstantForPrayer(todayRecord, prayer)
             val tomorrowTime = getInstantForPrayer(tomorrowRecord, prayer)
 
-            // Determine the next upcoming target instant (today if future, otherwise tomorrow)
-            val targetInstant = if (todayTime > now) todayTime else tomorrowTime
+            // Schedule only a real computed occurrence. An unavailable day is never
+        // never substitutes a computed time with an invented fallback.
+            val targetInstant = listOfNotNull(todayTime, tomorrowTime)
+                .firstOrNull { it > now }
+                ?: continue
 
             if (targetInstant > now) {
                 alarmRepository.scheduleExactAlarm(
@@ -85,6 +91,6 @@ class SchedulePrayerAlarmsUseCase @Inject constructor(
         }
     }
 
-    private fun getInstantForPrayer(record: PrayerTimeRecord, prayer: Prayer): Instant =
-        record.getInstantForPrayer(prayer)
+    private fun getInstantForPrayer(record: PrayerTimeRecord?, prayer: Prayer): Instant? =
+        record?.getInstantForPrayer(prayer)
 }

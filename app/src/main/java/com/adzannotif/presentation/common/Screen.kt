@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Stars
 import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.adzannotif.shared.SharedRoute
 
 sealed class Screen(
     val route: String,
@@ -40,35 +41,35 @@ sealed class Screen(
     }
 
     data object Home : Screen(
-        route = "home",
+        route = SharedRoute.HOME.id,
         title = "Beranda",
         selectedIcon = Icons.Filled.Home,
         unselectedIcon = Icons.Outlined.Home,
     )
 
     data object Schedule : Screen(
-        route = "schedule",
+        route = SharedRoute.SCHEDULE.id,
         title = "Jadwal",
         selectedIcon = Icons.Filled.CalendarMonth,
         unselectedIcon = Icons.Outlined.CalendarMonth,
     )
 
     data object Qibla : Screen(
-        route = "qibla",
+        route = SharedRoute.QIBLA.id,
         title = "Kiblat",
         selectedIcon = Icons.Filled.Explore,
         unselectedIcon = Icons.Outlined.Explore,
     )
 
     data object Settings : Screen(
-        route = "settings",
+        route = SharedRoute.SETTINGS.id,
         title = "Pengaturan",
         selectedIcon = Icons.Filled.Settings,
         unselectedIcon = Icons.Outlined.Settings,
     )
 
     data object AstronomyDashboard : Screen(
-        route = "astronomy_dashboard",
+        route = SharedRoute.ASTRONOMY.id,
         title = "Astronomi",
         selectedIcon = Icons.Filled.AutoAwesome,
         unselectedIcon = Icons.Outlined.AutoAwesome,

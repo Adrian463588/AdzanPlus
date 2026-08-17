@@ -10,6 +10,6 @@ class GetStarMapUseCase @Inject constructor(
     private val repository: AstronomyRepository
 ) {
     operator fun invoke(location: LocationInfo, epochMillis: Long = System.currentTimeMillis()): Flow<StarMapData> {
-        return repository.getStarMapData(location.latitude, location.longitude, epochMillis)
+        return repository.getStarMapData(location, epochMillis)
     }
 }

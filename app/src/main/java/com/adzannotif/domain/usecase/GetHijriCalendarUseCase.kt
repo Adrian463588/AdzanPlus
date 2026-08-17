@@ -9,6 +9,6 @@ class GetHijriCalendarUseCase @Inject constructor(
     private val repository: AstronomyRepository
 ) {
     suspend operator fun invoke(location: LocationInfo, year: Int, month: Int): List<CalendarDay> {
-        return repository.getMonthCalendar(location.latitude, location.longitude, year, month)
+        return repository.getMonthCalendar(location, year, month)
     }
 }

@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -102,7 +103,7 @@ class HomeViewModel @Inject constructor(
         settingsStateFlow,
         connectivityFlow
     ) { (location, todayRecord, nextInfo), settings, connectivity ->
-        val current = nextInfo?.currentPrayer ?: todayRecord.findCurrentPrayer(Clock.System.now())
+        val current = nextInfo?.currentPrayer ?: todayRecord?.findCurrentPrayer(Clock.System.now())
 
         HomeUiState(
             location = location,
@@ -133,8 +134,15 @@ class HomeViewModel @Inject constructor(
 
     private fun refreshHijriDate() {
         viewModelScope.launch {
+            val location = locationRepository.currentOrSelectedLocation.first() ?: run {
+                _hijriDateFormatted.value = null
+                return@launch
+            }
             runCatching {
-                astronomyRepository.getHijriDate(Clock.System.now().toEpochMilliseconds())
+                astronomyRepository.getHijriDate(
+                    gregorianEpochMillis = Clock.System.now().toEpochMilliseconds(),
+                    timeZoneId = location.timeZoneId,
+                )
             }.onSuccess { hijriDate ->
                 _hijriDateFormatted.value =
                     "${hijriDate.day} ${hijriDate.monthName} ${hijriDate.year} H"

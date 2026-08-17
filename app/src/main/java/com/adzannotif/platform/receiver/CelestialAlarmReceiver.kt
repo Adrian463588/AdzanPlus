@@ -3,13 +3,13 @@ package com.adzannotif.platform.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.adzannotif.platform.notification.NotificationHelper
+import com.adzannotif.platform.notification.NotificationGateway
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class CelestialAlarmReceiver : BroadcastReceiver() {
-    @Inject lateinit var notificationHelper: NotificationHelper
+    @Inject lateinit var notificationGateway: NotificationGateway
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != ACTION_CELESTIAL_ALARM) return
@@ -17,7 +17,7 @@ class CelestialAlarmReceiver : BroadcastReceiver() {
         val eventTypeStr = intent.getStringExtra(EXTRA_EVENT_TYPE) ?: return
         val eventLabel = intent.getStringExtra(EXTRA_EVENT_LABEL) ?: return
         if (eventLabel.isBlank()) return
-        notificationHelper.showCelestialEventNotification(eventTypeStr, eventLabel)
+        notificationGateway.showCelestialEventNotification(eventTypeStr, eventLabel)
     }
 
     companion object {

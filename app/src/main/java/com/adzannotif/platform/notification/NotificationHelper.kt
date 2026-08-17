@@ -19,7 +19,7 @@ import javax.inject.Singleton
 @Singleton
 class NotificationHelper @Inject constructor(
     @ApplicationContext private val context: Context,
-) {
+) : NotificationGateway {
     companion object {
         const val CHANNEL_ADHAN_ID = "channel_adhan_alerts"
         const val CHANNEL_REMINDER_ID = "channel_prayer_reminders"
@@ -89,11 +89,11 @@ class NotificationHelper @Inject constructor(
         }
     }
 
-    fun showAdhanNotification(
+    override fun showAdhanNotification(
         prayer: Prayer,
         prayerTitle: String,
         locationName: String,
-        vibrate: Boolean = true,
+        vibrate: Boolean,
     ) {
         val contentIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -146,11 +146,11 @@ class NotificationHelper @Inject constructor(
         postNotification(NOTIFICATION_ID_ADHAN + prayer.ordinal, builder)
     }
 
-    fun showPreReminderNotification(
+    override fun showPreReminderNotification(
         prayer: Prayer,
         minutesBefore: Int,
         locationName: String,
-        vibrate: Boolean = true,
+        vibrate: Boolean,
     ) {
         val contentIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -174,7 +174,7 @@ class NotificationHelper @Inject constructor(
         postNotification(NOTIFICATION_ID_REMINDER + prayer.ordinal, builder)
     }
 
-    fun showCelestialEventNotification(eventType: String, label: String) {
+    override fun showCelestialEventNotification(eventType: String, label: String) {
         if (eventType.isBlank() || label.isBlank()) return
 
         val contentIntent = Intent(context, MainActivity::class.java).apply {
@@ -198,7 +198,7 @@ class NotificationHelper @Inject constructor(
         postNotification(stableNotificationId(eventType), builder)
     }
 
-    fun areNotificationsEnabled(): Boolean =
+    override fun areNotificationsEnabled(): Boolean =
         NotificationManagerCompat.from(context).areNotificationsEnabled()
 
     private fun postNotification(

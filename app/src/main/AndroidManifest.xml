@@ -31,6 +31,7 @@
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
             tools:node="merge">
             <meta-data
                 android:name="androidx.work.WorkManagerInitializer"
@@ -130,7 +131,7 @@
         <receiver
             android:name=".widget.MoonWidgetReceiver"
             android:exported="true"
-            android:label="Moon Widget">
+            android:label="@string/moon_widget_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -141,7 +142,7 @@
         <receiver
             android:name=".widget.SunWidgetReceiver"
             android:exported="true"
-            android:label="Sun Widget">
+            android:label="@string/sun_widget_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>

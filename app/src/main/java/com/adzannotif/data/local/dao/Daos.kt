@@ -19,6 +19,12 @@ interface PrayerScheduleDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSchedules(schedules: List<PrayerScheduleEntity>)
 
+    @Query(
+        "DELETE FROM prayer_schedules " +
+            "WHERE locationId = :locationId AND (dateString < :firstDate OR dateString > :lastDate)",
+    )
+    suspend fun deleteOutsideWindow(locationId: String, firstDate: String, lastDate: String)
+
     @Query("DELETE FROM prayer_schedules WHERE locationId = :locationId")
     suspend fun clearSchedulesForLocation(locationId: String)
 }
@@ -48,4 +54,7 @@ interface AstronomyCacheDao {
 
     @Query("DELETE FROM astronomy_cache WHERE cachedAtMillis < :cutoffMillis")
     suspend fun deleteStale(cutoffMillis: Long)
+
+    @Query("DELETE FROM astronomy_cache WHERE dateEpochMillis < :firstMillis OR dateEpochMillis > :lastMillis")
+    suspend fun deleteOutsideWindow(firstMillis: Long, lastMillis: Long)
 }

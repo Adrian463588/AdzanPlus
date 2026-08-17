@@ -74,7 +74,7 @@ object WidgetRenderer {
 
     /**
      * Renders an explicit unavailable state when the repository cannot provide a
-     * snapshot. This prevents the preview/sample text in the XML from reaching the
+     * snapshot. This prevents static preview text in the XML from reaching the
      * user's launcher as if it were current data.
      */
     fun buildUnavailableWidget(context: Context, detailed: Boolean): RemoteViews {

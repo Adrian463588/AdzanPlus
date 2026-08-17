@@ -80,6 +80,15 @@ class HijriCalendarViewModel @Inject constructor(
         viewModelScope.launch {
             locationRepository.currentOrSelectedLocation.collectLatest { loc ->
                 _uiState.value = _uiState.value.copy(location = loc)
+                if (loc == null) {
+                    _uiState.value = _uiState.value.copy(
+                        days = emptyList(),
+                        selectedDay = null,
+                        isLoading = false,
+                        error = "Lokasi belum tersedia",
+                    )
+                    return@collectLatest
+                }
                 loadCalendar()
             }
         }

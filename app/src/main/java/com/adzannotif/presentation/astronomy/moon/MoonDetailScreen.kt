@@ -36,6 +36,7 @@ import com.adzannotif.presentation.theme.*
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +56,7 @@ fun MoonDetailScreen(
                     Column {
                         Text("Detail & Fase Bulan", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = AstronomyStarWhite)
                         Text(
-                    text = if (loc != null) "📍 ${loc.name} (${String.format("%.2f°", loc.latitude)}, ${String.format("%.2f°", loc.longitude)})" else "Fase, Iluminasi & Orbit",
+                    text = if (loc != null) "📍 ${loc.name} (${String.format(Locale.ROOT, "%.2f°", loc.latitude)}, ${String.format(Locale.ROOT, "%.2f°", loc.longitude)})" else "Fase, Iluminasi & Orbit",
                             style = MaterialTheme.typography.bodySmall,
                             color = AstronomyTwilightCivil
                         )
@@ -90,8 +91,15 @@ fun MoonDetailScreen(
                 }
             } else if (uiState.error != null) {
                 item { Text(text = uiState.error!!, color = MaterialTheme.colorScheme.error) }
+            } else if (uiState.moonInfo == null) {
+                item {
+                    Text(
+                        text = "Data bulan belum tersedia untuk lokasi dan tanggal ini.",
+                        color = AstronomyTwilightCivil,
+                    )
+                }
             } else {
-                val moonInfo = uiState.moonInfo
+                val moonInfo = checkNotNull(uiState.moonInfo)
 
                 item {
                     Box(
@@ -101,8 +109,8 @@ fun MoonDetailScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         MoonPhaseHeroIllustration(
-                            phaseOrdinal = moonInfo?.phaseOrdinal ?: 0,
-                            phaseName = moonInfo?.phaseName ?: "Bulan",
+                            phaseOrdinal = moonInfo.phaseOrdinal,
+                            phaseName = moonInfo.phaseName,
                             modifier = Modifier.size(160.dp)
                         )
                     }
@@ -113,7 +121,7 @@ fun MoonDetailScreen(
                 }
 
                 item {
-                    RiseSetTransitCard(moonInfo)
+                    RiseSetTransitCard(moonInfo, uiState.location?.timeZoneId)
                 }
 
                 item {
@@ -246,7 +254,7 @@ fun PhaseInfoRow(moonInfo: MoonInfo?) {
                 Text("Fase", color = AstronomyTwilightCivil, style = MaterialTheme.typography.labelSmall)
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    moonInfo?.phaseName ?: "-",
+                    moonInfo?.phaseName ?: "Data tidak tersedia",
                     color = AstronomyMoonGold,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
@@ -255,7 +263,7 @@ fun PhaseInfoRow(moonInfo: MoonInfo?) {
                 Text("Iluminasi", color = AstronomyTwilightCivil, style = MaterialTheme.typography.labelSmall)
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    moonInfo?.let { String.format("%.1f%%", it.illuminationPercent) } ?: "-",
+                    moonInfo?.let { String.format(Locale.ROOT, "%.1f%%", it.illuminationPercent) } ?: "Data tidak tersedia",
                     color = AstronomyStarWhite,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
@@ -264,7 +272,7 @@ fun PhaseInfoRow(moonInfo: MoonInfo?) {
                 Text("Umur Bulan", color = AstronomyTwilightCivil, style = MaterialTheme.typography.labelSmall)
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    moonInfo?.let { String.format("%.1f hari", it.ageInDays) } ?: "-",
+                    moonInfo?.let { String.format(Locale.ROOT, "%.1f hari", it.ageInDays) } ?: "Data tidak tersedia",
                     color = AstronomyStarWhite,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
@@ -274,8 +282,10 @@ fun PhaseInfoRow(moonInfo: MoonInfo?) {
 }
 
 @Composable
-fun RiseSetTransitCard(moonInfo: MoonInfo?) {
-    val fmt = SimpleDateFormat("HH:mm", Locale.getDefault())
+fun RiseSetTransitCard(moonInfo: MoonInfo?, timeZoneId: String? = null) {
+    val fmt = SimpleDateFormat("HH:mm", Locale.ROOT).apply {
+        timeZoneId?.let { timeZone = TimeZone.getTimeZone(it) }
+    }
     Card(
         colors = CardDefaults.cardColors(containerColor = AstronomySurface),
         shape = RoundedCornerShape(16.dp),
@@ -286,17 +296,17 @@ fun RiseSetTransitCard(moonInfo: MoonInfo?) {
             Spacer(modifier = Modifier.height(12.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Bulan Terbit (Moonrise)", color = AstronomyStarWhite, style = MaterialTheme.typography.bodyMedium)
-                Text(moonInfo?.riseMillis?.let { fmt.format(Date(it)) } ?: "--:--", color = AstronomyMoonGold, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
+                Text(moonInfo?.riseMillis?.let { fmt.format(Date(it)) } ?: "—", color = AstronomyMoonGold, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
             }
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Transit (Titik Tertinggi)", color = AstronomyStarWhite, style = MaterialTheme.typography.bodyMedium)
-                Text(moonInfo?.transitMillis?.let { fmt.format(Date(it)) } ?: "--:--", color = AstronomyStarWhite, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
+                Text(moonInfo?.transitMillis?.let { fmt.format(Date(it)) } ?: "—", color = AstronomyStarWhite, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
             }
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Bulan Terbenam (Moonset)", color = AstronomyStarWhite, style = MaterialTheme.typography.bodyMedium)
-                Text(moonInfo?.setMillis?.let { fmt.format(Date(it)) } ?: "--:--", color = AstronomyStarWhite, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
+                Text(moonInfo?.setMillis?.let { fmt.format(Date(it)) } ?: "—", color = AstronomyStarWhite, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
             }
         }
     }
@@ -304,8 +314,10 @@ fun RiseSetTransitCard(moonInfo: MoonInfo?) {
 
 @Composable
 fun DistanceCard(moonInfo: MoonInfo?) {
-    val dist = moonInfo?.distanceKm ?: 0.0
-    val distText = if (dist > 0) String.format("%,.0f km", dist) else "-"
+    val distText = moonInfo?.distanceKm
+        ?.takeIf { it > 0.0 }
+        ?.let { String.format(Locale.ROOT, "%,.0f km", it) }
+        ?: "Data tidak tersedia"
     val status = when {
         moonInfo?.isPerigee == true -> "Perigee (Terdekat ke Bumi)"
         moonInfo?.isApogee == true -> "Apogee (Terjauh dari Bumi)"
@@ -380,7 +392,7 @@ fun InteractiveMiniPhaseCalendar(
                         Text(icon, fontSize = 20.sp)
                         Spacer(modifier = Modifier.height(4.dp))
                         Text("Tgl ${day.gregorianDay}", color = if (isSelected) AstronomyMoonGold else AstronomyStarWhite, style = MaterialTheme.typography.labelSmall)
-                        Text(String.format("%.0f%%", day.moonIlluminationPercent), color = AstronomyTwilightCivil, style = MaterialTheme.typography.labelSmall)
+                Text(String.format(Locale.ROOT, "%.0f%%", day.moonIlluminationPercent), color = AstronomyTwilightCivil, style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }

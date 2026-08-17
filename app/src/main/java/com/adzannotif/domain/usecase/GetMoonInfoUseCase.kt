@@ -10,6 +10,6 @@ class GetMoonInfoUseCase @Inject constructor(
     private val repository: AstronomyRepository
 ) {
     operator fun invoke(location: LocationInfo, epochMillis: Long): Flow<MoonInfo> {
-        return repository.getMoonInfo(location.latitude, location.longitude, epochMillis)
+        return repository.getMoonInfo(location, epochMillis)
     }
 }

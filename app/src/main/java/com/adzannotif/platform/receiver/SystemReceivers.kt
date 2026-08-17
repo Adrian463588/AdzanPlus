@@ -6,7 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
-import com.adzannotif.platform.alarm.AdhanScheduler
+import com.adzannotif.platform.alarm.AlarmScheduler
+import com.adzannotif.platform.audio.AudioGateway
 import com.adzannotif.platform.worker.PrayerSyncWorker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -22,7 +23,7 @@ import javax.inject.Inject
 class BootReceiver : BroadcastReceiver() {
 
     @Inject
-    lateinit var adhanScheduler: AdhanScheduler
+    lateinit var alarmScheduler: AlarmScheduler
 
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
@@ -40,7 +41,7 @@ class BootReceiver : BroadcastReceiver() {
             val pendingResult = goAsync()
             CoroutineScope(Dispatchers.Default).launch {
                 try {
-                    adhanScheduler.schedule().onFailure { error ->
+                    alarmScheduler.schedule().onFailure { error ->
                         Log.e("BootReceiver", "Prayer alarm reconciliation was not completed", error)
                     }
                 } catch (e: Exception) {
@@ -61,7 +62,7 @@ class BootReceiver : BroadcastReceiver() {
 class TimeChangeReceiver : BroadcastReceiver() {
 
     @Inject
-    lateinit var adhanScheduler: AdhanScheduler
+    lateinit var alarmScheduler: AlarmScheduler
 
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
@@ -73,7 +74,7 @@ class TimeChangeReceiver : BroadcastReceiver() {
             val pendingResult = goAsync()
             CoroutineScope(Dispatchers.Default).launch {
                 try {
-                    adhanScheduler.schedule().onFailure { error ->
+                    alarmScheduler.schedule().onFailure { error ->
                         Log.e("TimeChangeReceiver", "Prayer alarm reconciliation was not completed", error)
                     }
                 } catch (e: Exception) {
@@ -94,7 +95,7 @@ class TimeChangeReceiver : BroadcastReceiver() {
 class ExactAlarmPermissionReceiver : BroadcastReceiver() {
 
     @Inject
-    lateinit var adhanScheduler: AdhanScheduler
+    lateinit var alarmScheduler: AlarmScheduler
 
     override fun onReceive(context: Context, intent: Intent) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -103,7 +104,7 @@ class ExactAlarmPermissionReceiver : BroadcastReceiver() {
                 val pendingResult = goAsync()
                 CoroutineScope(Dispatchers.Default).launch {
                     try {
-                        adhanScheduler.schedule().onFailure { error ->
+                        alarmScheduler.schedule().onFailure { error ->
                             Log.e("ExactAlarmPermissionReceiver", "Prayer alarm reconciliation was not completed", error)
                         }
                     } catch (e: Exception) {
@@ -124,7 +125,7 @@ class ExactAlarmPermissionReceiver : BroadcastReceiver() {
 class StopAdhanReceiver : BroadcastReceiver() {
 
     @Inject
-    lateinit var audioPlayer: com.adzannotif.platform.audio.AdhanAudioPlayer
+    lateinit var audioGateway: AudioGateway
 
     companion object {
         const val ACTION_STOP_ADHAN = "com.adzannotif.ACTION_STOP_ADHAN"
@@ -134,7 +135,7 @@ class StopAdhanReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == ACTION_STOP_ADHAN) {
             Log.d("StopAdhanReceiver", "Stopping adhan playback")
-            audioPlayer.stop()
+            audioGateway.stop()
             val notificationId = intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1)
             if (notificationId != -1) {
                 val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager

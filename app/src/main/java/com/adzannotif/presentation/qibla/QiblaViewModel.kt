@@ -18,18 +18,18 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 data class QiblaUiState(
-    val location: LocationInfo = LocationInfo.JAKARTA,
+    val location: LocationInfo? = null,
     val qiblaDirection: QiblaDirection? = null,
     val deviceHeading: Float = 0f,
     val accuracy: Int = 3,
-    val isSensorAvailable: Boolean = true,
+    val isSensorAvailable: Boolean = false,
     val isLoading: Boolean = false,
 ) {
-    val qiblaBearing: Double
-        get() = qiblaDirection?.directionDegrees ?: 295.0
+    val qiblaBearing: Double?
+        get() = qiblaDirection?.directionDegrees
 
     val qiblaOffsetFromDevice: Float
-        get() = ((qiblaBearing.toFloat() - deviceHeading + 360f) % 360f)
+        get() = qiblaBearing?.let { ((it.toFloat() - deviceHeading + 360f) % 360f) } ?: 0f
 
     /**
      * Shortest angle difference between current phone heading and Qibla (-180° to +180°).
@@ -39,10 +39,11 @@ data class QiblaUiState(
         get() = ((qiblaOffsetFromDevice + 180f) % 360f + 360f) % 360f - 180f
 
     val isFacingQibla: Boolean
-        get() = abs(shortestOffset) <= 2.5f
+        get() = qiblaBearing != null && isSensorAvailable && abs(shortestOffset) <= 2.5f
 
     val turnInstruction: String
         get() {
+            if (qiblaDirection == null) return "Lokasi belum tersedia untuk menghitung arah kiblat"
             if (!isSensorAvailable) return "Sensor Kompas tidak terdeteksi pada perangkat ini"
             if (isFacingQibla) return "Sempurna! Anda menghadap tepat ke Ka'bah"
             val offsetInt = shortestOffset.roundToInt()
@@ -61,7 +62,7 @@ class QiblaViewModel @Inject constructor(
     private val compassSensorManager: CompassSensorManager,
 ) : ViewModel() {
 
-    private val _sensorData = MutableStateFlow(CompassSensorData(0f, 3, true))
+    private val _sensorData = MutableStateFlow(CompassSensorData(0f, 3, false))
 
     val uiState: StateFlow<QiblaUiState> = combine(
         locationRepository.currentOrSelectedLocation,

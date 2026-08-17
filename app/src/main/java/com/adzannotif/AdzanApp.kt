@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.adzannotif.platform.worker.PrayerSyncWorker
-import com.adzannotif.platform.alarm.AdhanScheduler
+import com.adzannotif.platform.alarm.AlarmScheduler
 import com.adzannotif.widget.PrayerTimesWidgetReceiver
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
@@ -16,7 +16,7 @@ class AdzanApp : Application(), Configuration.Provider {
     lateinit var workerFactory: HiltWorkerFactory
 
     @Inject
-    lateinit var adhanScheduler: AdhanScheduler
+    lateinit var alarmScheduler: AlarmScheduler
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
@@ -29,7 +29,7 @@ class AdzanApp : Application(), Configuration.Provider {
         PrayerSyncWorker.enqueuePeriodicWork(this)
         
         // Immediately arm all upcoming prayer alarms and sync widgets
-        adhanScheduler.rescheduleAllAlarms()
+        alarmScheduler.rescheduleAllAlarms()
         PrayerTimesWidgetReceiver.updateAll(this)
     }
 }

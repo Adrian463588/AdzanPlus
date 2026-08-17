@@ -14,7 +14,7 @@ import kotlinx.serialization.Serializable
 data class SunnahTimes(
     val middleOfTheNight: Instant,
     val lastThirdOfTheNight: Instant,
-    val firstThirdOfTheNight: Instant? = null
+    val firstThirdOfTheNight: Instant?
 ) {
     companion object {
         /**
@@ -34,4 +34,3 @@ data class SunnahTimes(
         }
     }
 }
-

@@ -5,7 +5,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import com.adzannotif.core.prayer.Prayer
 import com.adzannotif.domain.repository.AlarmRepository
 import com.adzannotif.platform.receiver.AlarmReceiver
@@ -53,40 +52,11 @@ class AlarmRepositoryImpl @Inject constructor(
 
         val triggerAtMillis = targetInstant.toEpochMilliseconds()
 
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerAtMillis,
-                    pendingIntent
-                )
-            } else {
-                alarmManager.setExact(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerAtMillis,
-                    pendingIntent
-                )
-            }
-        } catch (e: SecurityException) {
-            Log.w(
-                "AlarmRepositoryImpl",
-                "SCHEDULE_EXACT_ALARM denied on Android 12+, falling back to setAndAllowWhileIdle",
-                e
-            )
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerAtMillis,
-                    pendingIntent
-                )
-            } else {
-                alarmManager.set(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerAtMillis,
-                    pendingIntent
-                )
-            }
-        }
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            triggerAtMillis,
+            pendingIntent,
+        )
     }
 
     override suspend fun cancelAlarm(prayer: Prayer) {

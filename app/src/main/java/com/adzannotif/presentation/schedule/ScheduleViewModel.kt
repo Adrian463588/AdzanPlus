@@ -21,13 +21,16 @@ import kotlinx.datetime.toLocalDateTime
 import javax.inject.Inject
 
 data class ScheduleUiState(
-    val currentMonth: Int = 8,
-    val currentYear: Int = 2026,
-    val location: LocationInfo = LocationInfo.JAKARTA,
+    val currentMonth: Int = currentLocalDate().monthNumber,
+    val currentYear: Int = currentLocalDate().year,
+    val location: LocationInfo? = null,
     val monthlyRecords: List<PrayerTimeRecord> = emptyList(),
-    val todayDate: LocalDate = LocalDate(2026, 8, 16),
+    val todayDate: LocalDate = currentLocalDate(),
     val isLoading: Boolean = false,
 )
+
+private fun currentLocalDate(): LocalDate =
+    Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
 
 @HiltViewModel
 class ScheduleViewModel @Inject constructor(
@@ -53,7 +56,11 @@ class ScheduleViewModel @Inject constructor(
                 currentYear = year,
                 location = location,
                 monthlyRecords = records,
-                todayDate = nowLocal.date,
+                todayDate = location?.let { selectedLocation ->
+                    Clock.System.now()
+                        .toLocalDateTime(TimeZone.of(selectedLocation.timeZoneId))
+                        .date
+                } ?: nowLocal.date,
                 isLoading = false
             )
         }

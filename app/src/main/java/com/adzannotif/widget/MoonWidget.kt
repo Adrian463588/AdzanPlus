@@ -36,9 +36,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.first
+import java.util.Locale
 
 @Composable
-fun MoonWidgetContent(moonInfo: MoonInfo?, locationName: String = "Jakarta") {
+fun MoonWidgetContent(moonInfo: MoonInfo?, locationName: String) {
     val context = LocalContext.current
 
     Column(
@@ -58,17 +59,24 @@ fun MoonWidgetContent(moonInfo: MoonInfo?, locationName: String = "Jakarta") {
                 5 -> "🌖"
                 6 -> "🌗"
                 7 -> "🌘"
-                else -> "🌑"
+                else -> null
             }
-            Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.Vertical.CenterVertically) {
+            if (emoji == null) {
                 Text(
-                    text = "$emoji ${moonInfo.phaseName}",
-                    style = TextStyle(
-                        color = ColorProvider(Color.White),
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    text = "Data fase bulan tidak tersedia",
+                    style = TextStyle(color = ColorProvider(Color.White), fontSize = 15.sp),
                 )
+            } else {
+                Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.Vertical.CenterVertically) {
+                    Text(
+                        text = "$emoji ${moonInfo.phaseName}",
+                        style = TextStyle(
+                            color = ColorProvider(Color.White),
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
             }
             Spacer(modifier = GlanceModifier.height(2.dp))
             Text(
@@ -79,8 +87,8 @@ fun MoonWidgetContent(moonInfo: MoonInfo?, locationName: String = "Jakarta") {
                 )
             )
             Spacer(modifier = GlanceModifier.height(4.dp))
-            val dist = String.format("%.0f km", moonInfo.distanceKm)
-            val illum = String.format("%.1f%%", moonInfo.illuminationPercent)
+            val dist = String.format(Locale.ROOT, "%.0f km", moonInfo.distanceKm)
+            val illum = String.format(Locale.ROOT, "%.1f%%", moonInfo.illuminationPercent)
             Text(
                 text = "Iluminasi: $illum • Jarak: $dist",
                 style = TextStyle(
@@ -115,7 +123,7 @@ fun MoonWidgetContent(moonInfo: MoonInfo?, locationName: String = "Jakarta") {
             }
         } else {
             Text(
-                text = "🌑 Memuat Bulan...",
+                text = "• Data bulan tidak tersedia",
                 style = TextStyle(color = ColorProvider(Color.White), fontSize = 15.sp, fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = GlanceModifier.height(4.dp))
@@ -125,7 +133,7 @@ fun MoonWidgetContent(moonInfo: MoonInfo?, locationName: String = "Jakarta") {
             )
             Spacer(modifier = GlanceModifier.height(4.dp))
             Text(
-                text = "Iluminasi: -- • Jarak: --",
+                text = "Iluminasi dan jarak: Data tidak tersedia",
                 style = TextStyle(color = ColorProvider(Color(0xFFAAAAAA)), fontSize = 11.sp)
             )
         }
@@ -149,11 +157,16 @@ class MoonWidget : GlanceAppWidget() {
         val astronomyRepository = entryPoint.astronomyRepository()
 
         val location = locationRepository.currentOrSelectedLocation.first()
+        if (location == null) {
+            provideContent {
+                MoonWidgetContent(moonInfo = null, locationName = "Lokasi belum tersedia")
+            }
+            return
+        }
         val epochMillis = System.currentTimeMillis()
         val moonInfo = runCatching {
             astronomyRepository.getMoonInfo(
-                location.latitude,
-                location.longitude,
+                location,
                 epochMillis,
             ).first()
         }.onFailure { error ->

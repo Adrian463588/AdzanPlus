@@ -51,7 +51,16 @@ class AstronomyDashboardViewModel @Inject constructor(
     private fun startAstronomyUpdates() {
         viewModelScope.launch {
             locationRepository.currentOrSelectedLocation.collectLatest { loc ->
-                _uiState.value = _uiState.value.copy(location = loc, isLoading = true)
+                _uiState.value = _uiState.value.copy(
+                    location = loc,
+                    sunInfo = null,
+                    moonInfo = null,
+                    isLoading = loc != null,
+                    error = null,
+                )
+                if (loc == null) {
+                    return@collectLatest
+                }
                 while (isActive) {
                     try {
                         val sunInfo = getSunInfoUseCase(loc, System.currentTimeMillis()).firstOrNull()

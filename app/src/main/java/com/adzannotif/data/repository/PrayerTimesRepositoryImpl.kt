@@ -10,10 +10,14 @@ import com.adzannotif.domain.model.PrayerTimeRecord
 import com.adzannotif.domain.model.UserSettings
 import com.adzannotif.domain.repository.PrayerTimesRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.datetime.Clock
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
+import kotlinx.datetime.toLocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,9 +31,22 @@ class PrayerTimesRepositoryImpl @Inject constructor(
         location: LocationInfo,
         settings: UserSettings
     ): Flow<PrayerTimeRecord> = flow {
-        // Calculate immediately via KMP engine (sub-millisecond pure math)
-        val computed = calculatePrayerTime(date, location, settings)
-        emit(computed)
+        val cacheLocationId = cacheLocationId(location, settings)
+        val cached = prayerScheduleDao
+            .getScheduleForDate(date.toString(), cacheLocationId)
+            .first()
+            ?.toDomain()
+        if (cached != null && isWithinCacheWindow(date, location)) {
+            emit(cached)
+        } else {
+            val computed = calculatePrayerTime(date, location, settings)
+            if (isWithinCacheWindow(date, location)) {
+                prayerScheduleDao.insertSchedules(
+                    listOf(PrayerScheduleEntity.fromDomain(computed, cacheLocationId))
+                )
+            }
+            emit(computed)
+        }
     }
 
     override fun getMonthlyPrayerTimes(
@@ -43,9 +60,23 @@ class PrayerTimesRepositoryImpl @Inject constructor(
             4, 6, 9, 11 -> 30
             else -> 31
         }
+        val cacheLocationId = cacheLocationId(location, settings)
+        val cached = prayerScheduleDao
+            .getMonthlySchedules("%04d-%02d".format(java.util.Locale.ROOT, year, month), cacheLocationId)
+            .first()
+            .filter { isWithinCacheWindow(LocalDate.parse(it.dateString), location) }
+        if (cached.size == daysInMonth) {
+            emit(cached.map(PrayerScheduleEntity::toDomain))
+            return@flow
+        }
         val records = (1..daysInMonth).map { day ->
-            val date = LocalDate(year, month, day)
-            calculatePrayerTime(date, location, settings)
+            calculatePrayerTime(LocalDate(year, month, day), location, settings)
+        }
+        val cacheableRecords = records.filter { isWithinCacheWindow(it.date, location) }
+        if (cacheableRecords.isNotEmpty()) {
+            prayerScheduleDao.insertSchedules(
+                cacheableRecords.map { PrayerScheduleEntity.fromDomain(it, cacheLocationId) }
+            )
         }
         emit(records)
     }
@@ -56,17 +87,26 @@ class PrayerTimesRepositoryImpl @Inject constructor(
         location: LocationInfo,
         settings: UserSettings
     ): List<PrayerTimeRecord> {
+        if (daysCount <= 0) return emptyList()
+
         val records = mutableListOf<PrayerTimeRecord>()
         val entities = mutableListOf<PrayerScheduleEntity>()
+        val cacheLocationId = cacheLocationId(location, settings)
 
         for (i in 0 until daysCount) {
             val date = startDate.plus(DatePeriod(days = i))
             val record = calculatePrayerTime(date, location, settings)
             records.add(record)
-            entities.add(PrayerScheduleEntity.fromDomain(record, location.id))
+            entities.add(PrayerScheduleEntity.fromDomain(record, cacheLocationId))
         }
 
         prayerScheduleDao.insertSchedules(entities)
+        val lastDate = startDate.plus(DatePeriod(days = daysCount - 1))
+        prayerScheduleDao.deleteOutsideWindow(
+            locationId = cacheLocationId,
+            firstDate = startDate.toString(),
+            lastDate = lastDate.toString(),
+        )
         return records
     }
 
@@ -105,12 +145,40 @@ class PrayerTimesRepositoryImpl @Inject constructor(
             maghrib = prayerTimes.maghrib,
             isha = prayerTimes.isha,
             midnight = prayerTimes.timeForPrayer(com.adzannotif.core.prayer.Prayer.MIDNIGHT),
-            firstThirdOfTheNight = null,
+            firstThirdOfTheNight = prayerTimes.sunnahTimes.firstThirdOfTheNight,
             lastThirdOfTheNight = prayerTimes.timeForPrayer(com.adzannotif.core.prayer.Prayer.TAHAJJUD),
         )
     }
 
     private fun isLeapYear(year: Int): Boolean {
         return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)
+    }
+
+    private fun isWithinCacheWindow(date: LocalDate, location: LocationInfo): Boolean {
+        val today = Clock.System.now()
+            .toLocalDateTime(TimeZone.of(location.timeZoneId))
+            .date
+        val lastDate = today.plus(DatePeriod(days = CACHE_DAYS - 1))
+        return date in today..lastDate
+    }
+
+    private fun cacheLocationId(location: LocationInfo, settings: UserSettings): String = buildString {
+        append(location.id)
+        append('|').append(location.latitude)
+        append('|').append(location.longitude)
+        append('|').append(location.timeZoneId)
+        append('|').append(settings.calculationMethod.name)
+        append('|').append(settings.madhab.name)
+        append('|').append(settings.highLatitudeRule.name)
+        append('|').append(settings.ihtiyatMinutes)
+        append('|').append(settings.fajrAdjustment)
+        append('|').append(settings.dhuhrAdjustment)
+        append('|').append(settings.asrAdjustment)
+        append('|').append(settings.maghribAdjustment)
+        append('|').append(settings.ishaAdjustment)
+    }
+
+    private companion object {
+        const val CACHE_DAYS = 30
     }
 }

@@ -4,12 +4,8 @@
     <string name="widget_description">Widget jadwal sholat dan hitung mundur waktu sholat berikutnya secara realtime</string>
     <string name="moon_widget_description">Widget fase bulan dan hitung mundur moonrise</string>
     <string name="sun_widget_description">Widget fase matahari dan hitung mundur golden hour</string>
-
-    <!-- Navigation -->
-    <string name="nav_home">Beranda</string>
-    <string name="nav_schedule">Jadwal</string>
-    <string name="nav_qibla">Kiblat</string>
-    <string name="nav_settings">Pengaturan</string>
+    <string name="moon_widget_name">Widget bulan</string>
+    <string name="sun_widget_name">Widget matahari</string>
 
     <!-- Prayers -->
     <string name="prayer_imsak">Imsak</string>
@@ -22,19 +18,7 @@
     <string name="prayer_midnight">Tengah Malam</string>
     <string name="prayer_tahajjud">Tahajjud</string>
 
-    <!-- UI Labels -->
-    <string name="next_prayer">Sholat Berikutnya</string>
     <string name="remaining_time">Menuju Waktu Sholat</string>
-    <string name="qibla_heading">Arah Kiblat</string>
-    <string name="current_location">Lokasi Saat Ini</string>
-    <string name="select_city">Pilih Kota</string>
-    <string name="calculation_method">Metode Perhitungan Hisab</string>
-    <string name="madhab">Madhab (Ashar)</string>
-    <string name="adhan_tone">Suara Adzan</string>
-    <string name="pre_adhan_reminder">Pengingat Sebelum Adzan</string>
-    <string name="dismiss">Tutup</string>
-    <string name="snooze">Tunda 5 Menit</string>
-    <string name="adhan_call_msg">Waktu Sholat Telah Tiba</string>
 
     <!-- Compose presentation states -->
     <string name="location_gps_auto">%1$s (GPS otomatis)</string>

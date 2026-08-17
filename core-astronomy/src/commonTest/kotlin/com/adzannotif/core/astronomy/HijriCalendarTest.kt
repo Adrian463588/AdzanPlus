@@ -10,16 +10,16 @@ import kotlin.test.assertEquals
 class HijriCalendarTest {
     @Test
     fun testToHijri() {
-        // 17 Aug 2026 UTC -> 3 Rabi'ul Awwal 1448 in the civil tabular calendar.
+        // 17 Aug 2026 UTC -> 4 Rabi' al-Awwal 1448 in the Umm al-Qura table.
         val epochMillis = 1786924800000L
         val date = HijriCalendar.toHijri(epochMillis)
         assertEquals(1448, date.year)
         assertEquals(3, date.month)
-        assertEquals(3, date.day)
+        assertEquals(4, date.day)
     }
 
     @Test
-    fun timezoneControlsCivilHijriDateBoundary() {
+    fun timezoneControlsUmmAlQuraDateBoundary() {
         val localMidnight = LocalDateTime(2026, 8, 17, 0, 30)
             .toInstant(TimeZone.of("Asia/Jakarta"))
             .toEpochMilliseconds()
@@ -27,7 +27,7 @@ class HijriCalendarTest {
         val utcDate = HijriCalendar.toHijri(localMidnight, TimeZone.UTC)
         val jakartaDate = HijriCalendar.toHijri(localMidnight, TimeZone.of("Asia/Jakarta"))
 
-        assertEquals(2, utcDate.day)
-        assertEquals(3, jakartaDate.day)
+        assertEquals(3, utcDate.day)
+        assertEquals(4, jakartaDate.day)
     }
 }

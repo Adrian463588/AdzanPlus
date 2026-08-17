@@ -5,7 +5,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -23,9 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -38,10 +34,12 @@ import com.adzannotif.domain.model.astronomy.MoonInfo
 import com.adzannotif.domain.model.astronomy.SunInfo
 import com.adzannotif.presentation.common.Screen
 import com.adzannotif.presentation.common.WindowWidthSizeClass
+import com.adzannotif.presentation.common.rememberMotionAnimationsEnabled
 import com.adzannotif.presentation.theme.*
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -134,7 +132,7 @@ fun AstronomyDashboardScreen(
                                     )
                                 }
                                 Text(
-                                    text = "${String.format("%.2f°", loc.latitude)}, ${String.format("%.2f°", loc.longitude)}",
+                        text = "${String.format(Locale.ROOT, "%.2f°", loc.latitude)}, ${String.format(Locale.ROOT, "%.2f°", loc.longitude)}",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = AstronomyTwilightCivil
                                 )
@@ -151,7 +149,11 @@ fun AstronomyDashboardScreen(
                     item {
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             Box(modifier = Modifier.weight(1f)) {
-                                SunCard(sunInfo, onClick = { navController.navigate(Screen.SunDetail.route) })
+                                SunCard(
+                                    sunInfo = sunInfo,
+                                    timeZoneId = loc?.timeZoneId,
+                                    onClick = { navController.navigate(Screen.SunDetail.route) },
+                                )
                             }
                             Box(modifier = Modifier.weight(1f)) {
                                 MoonCard(moonInfo, onClick = { navController.navigate(Screen.MoonDetail.route) })
@@ -159,12 +161,18 @@ fun AstronomyDashboardScreen(
                         }
                     }
                 } else {
-                    item { SunCard(sunInfo, onClick = { navController.navigate(Screen.SunDetail.route) }) }
+                    item {
+                        SunCard(
+                            sunInfo = sunInfo,
+                            timeZoneId = loc?.timeZoneId,
+                            onClick = { navController.navigate(Screen.SunDetail.route) },
+                        )
+                    }
                     item { MoonCard(moonInfo, onClick = { navController.navigate(Screen.MoonDetail.route) }) }
                 }
 
                 item {
-                    GoldenBlueHourTimeline(sunInfo = sunInfo)
+                    GoldenBlueHourTimeline(sunInfo = sunInfo, timeZoneId = loc?.timeZoneId)
                 }
 
                 item {
@@ -302,7 +310,7 @@ fun AstronomyWidgetPinningCard() {
 
 @Composable
 fun SolarPhaseBadge(sunInfo: SunInfo?) {
-    val phaseName = sunInfo?.currentPhase ?: "Matahari"
+    val phaseName = sunInfo?.currentPhase ?: "Data belum tersedia"
     val phaseColor = when {
         phaseName.contains("Golden", ignoreCase = true) -> AstronomyGoldenHour
         phaseName.contains("Blue", ignoreCase = true) -> AstronomyBlueHour
@@ -313,16 +321,21 @@ fun SolarPhaseBadge(sunInfo: SunInfo?) {
         else -> AstronomySurface
     }
 
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 0.85f,
-        targetValue = 1.15f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulseScale"
-    )
+    val pulseScale = if (rememberMotionAnimationsEnabled()) {
+        val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+        val animatedScale by infiniteTransition.animateFloat(
+            initialValue = 0.85f,
+            targetValue = 1.15f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1200),
+                repeatMode = RepeatMode.Reverse,
+            ),
+            label = "pulseScale",
+        )
+        animatedScale
+    } else {
+        1f
+    }
 
     Surface(
         color = AstronomySurface,
@@ -360,7 +373,7 @@ fun SolarPhaseBadge(sunInfo: SunInfo?) {
             if (sunInfo != null) {
                 val alt = sunInfo.altitude
                 Text(
-                    "Alt: ${String.format("%.1f°", alt)}",
+                    "Alt: ${String.format(Locale.ROOT, "%.1f°", alt)}",
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
                     color = phaseColor
                 )
@@ -370,9 +383,22 @@ fun SolarPhaseBadge(sunInfo: SunInfo?) {
 }
 
 @Composable
-fun SunCard(sunInfo: SunInfo?, onClick: () -> Unit) {
-    val fmt = SimpleDateFormat("HH:mm", Locale.getDefault())
-    fun formatTime(ms: Long?): String = ms?.let { fmt.format(Date(it)) } ?: "--:--"
+fun SunCard(
+    sunInfo: SunInfo?,
+    timeZoneId: String? = null,
+    onClick: () -> Unit,
+) {
+    fun formatTime(ms: Long?): String {
+        if (ms == null || timeZoneId == null) return "—"
+        return SimpleDateFormat("HH:mm", Locale.ROOT).apply {
+            timeZone = TimeZone.getTimeZone(timeZoneId)
+        }.format(Date(ms))
+    }
+
+    fun formatWindow(start: Long?, end: Long?): String {
+        if (start == null || end == null || timeZoneId == null) return "—"
+        return "${formatTime(start)} - ${formatTime(end)}"
+    }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = AstronomySurface),
@@ -444,12 +470,14 @@ fun SunCard(sunInfo: SunInfo?, onClick: () -> Unit) {
             HorizontalDivider(color = AstronomyConstellationLine.copy(alpha = 0.2f), thickness = 0.5.dp)
             Spacer(modifier = Modifier.height(8.dp))
 
-            val goldenMorning = if (sunInfo?.morningGoldenHourStartMillis != null && sunInfo.morningGoldenHourEndMillis != null) {
-                "${fmt.format(Date(sunInfo.morningGoldenHourStartMillis))} - ${fmt.format(Date(sunInfo.morningGoldenHourEndMillis))}"
-            } else "--:--"
-            val goldenEvening = if (sunInfo?.eveningGoldenHourStartMillis != null && sunInfo.eveningGoldenHourEndMillis != null) {
-                "${fmt.format(Date(sunInfo.eveningGoldenHourStartMillis))} - ${fmt.format(Date(sunInfo.eveningGoldenHourEndMillis))}"
-            } else "--:--"
+            val goldenMorning = formatWindow(
+                sunInfo?.morningGoldenHourStartMillis,
+                sunInfo?.morningGoldenHourEndMillis,
+            )
+            val goldenEvening = formatWindow(
+                sunInfo?.eveningGoldenHourStartMillis,
+                sunInfo?.eveningGoldenHourEndMillis,
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -482,7 +510,7 @@ fun MoonCard(moonInfo: MoonInfo?, onClick: () -> Unit) {
         5 -> "🌖"
         6 -> "🌗"
         7 -> "🌘"
-        else -> "🌙"
+        else -> "—"
     }
 
     Card(
@@ -523,7 +551,7 @@ fun MoonCard(moonInfo: MoonInfo?, onClick: () -> Unit) {
                 Column {
                     Text("Fase", style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
                     Text(
-                        moonInfo?.phaseName ?: "--",
+                        moonInfo?.phaseName ?: "Belum tersedia",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = AstronomyMoonGold
                     )
@@ -531,7 +559,7 @@ fun MoonCard(moonInfo: MoonInfo?, onClick: () -> Unit) {
                 Column {
                     Text("Iluminasi", style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
                     Text(
-                        moonInfo?.let { String.format("%.1f%%", it.illuminationPercent) } ?: "--%",
+                    moonInfo?.let { String.format(Locale.ROOT, "%.1f%%", it.illuminationPercent) } ?: "—",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = AstronomyStarWhite
                     )
@@ -539,7 +567,7 @@ fun MoonCard(moonInfo: MoonInfo?, onClick: () -> Unit) {
                 Column {
                     Text("Umur", style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
                     Text(
-                        moonInfo?.let { String.format("%.1f h", it.ageInDays) } ?: "--",
+                    moonInfo?.let { String.format(Locale.ROOT, "%.1f h", it.ageInDays) } ?: "—",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = AstronomyStarWhite
                     )
@@ -550,74 +578,17 @@ fun MoonCard(moonInfo: MoonInfo?, onClick: () -> Unit) {
 }
 
 @Composable
-fun GoldenBlueHourTimeline(sunInfo: SunInfo?) {
+fun GoldenBlueHourTimeline(sunInfo: SunInfo?, timeZoneId: String? = null) {
     Card(
         colors = CardDefaults.cardColors(containerColor = AstronomySurface),
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                "Pita Senja & Waktu 24 Jam",
-                color = AstronomyStarWhite,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-            )
-            Text(
-                "Visualisasi rentang Fajar, Golden Hour, Siang, dan Senja",
-                color = AstronomyTwilightCivil,
-                style = MaterialTheme.typography.bodySmall
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Canvas(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(28.dp)
-                    .clip(RoundedCornerShape(8.dp))
-            ) {
-                val w = size.width
-                val h = size.height
-
-                // Draw gradient background of 24h
-                drawRect(AstronomyTwilightAstro, Offset(0f, 0f), Size(w * 0.18f, h))
-                drawRect(AstronomyTwilightNautical, Offset(w * 0.18f, 0f), Size(w * 0.04f, h))
-                drawRect(AstronomyBlueHour, Offset(w * 0.22f, 0f), Size(w * 0.03f, h))
-                drawRect(AstronomyGoldenHour, Offset(w * 0.25f, 0f), Size(w * 0.05f, h))
-                drawRect(AstronomySunAmber, Offset(w * 0.30f, 0f), Size(w * 0.40f, h))
-                drawRect(AstronomyGoldenHour, Offset(w * 0.70f, 0f), Size(w * 0.05f, h))
-                drawRect(AstronomyBlueHour, Offset(w * 0.75f, 0f), Size(w * 0.03f, h))
-                drawRect(AstronomyTwilightNautical, Offset(w * 0.78f, 0f), Size(w * 0.04f, h))
-                drawRect(AstronomyTwilightAstro, Offset(w * 0.82f, 0f), Size(w * 0.18f, h))
-
-                // Draw indicator for current time of day
-                val cal = java.util.Calendar.getInstance()
-                val hourFraction = (cal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + cal.get(java.util.Calendar.MINUTE)) / 1440f
-                val nowX = w * hourFraction
-                drawLine(
-                    color = Color.White,
-                    start = Offset(nowX, 0f),
-                    end = Offset(nowX, h),
-                    strokeWidth = 3f
-                )
-                drawCircle(
-                    color = Color.White,
-                    radius = 4f,
-                    center = Offset(nowX, h / 2)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("00:00", style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
-                Text("06:00 (Fajar)", style = MaterialTheme.typography.labelSmall, color = AstronomyGoldenHour)
-                Text("12:00 (Siang)", style = MaterialTheme.typography.labelSmall, color = AstronomySunAmber)
-                Text("18:00 (Senja)", style = MaterialTheme.typography.labelSmall, color = AstronomyGoldenHour)
-                Text("24:00", style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
-            }
-        }
+        SolarEventTimeline(
+            sunInfo = sunInfo,
+            timeZoneId = timeZoneId,
+            modifier = Modifier.padding(16.dp),
+        )
     }
 }
 

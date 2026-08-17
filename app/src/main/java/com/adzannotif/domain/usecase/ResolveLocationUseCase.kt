@@ -11,7 +11,7 @@ class ResolveLocationUseCase @Inject constructor(
     private val locationRepository: LocationRepository,
     private val settingsRepository: SettingsRepository,
 ) {
-    operator fun invoke(): Flow<LocationInfo> {
+    operator fun invoke(): Flow<LocationInfo?> {
         return locationRepository.currentOrSelectedLocation
     }
 

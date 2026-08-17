@@ -11,8 +11,10 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlinx.datetime.Instant
+import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atTime
+import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 
@@ -81,9 +83,7 @@ public object MoonMath {
     private fun tan(x: Double): Double = sin(x) / cos(x)
 
     fun computeMoonPhase(epochMillis: Long): MoonPhase {
-        val jd = julianDay(epochMillis)
-        val t = julianCentury(jd)
-        val d = (297.8501921 + 445267.1114034 * t - 0.0018819 * t * t).unwindAngle()
+        val d = computeMeanElongation(epochMillis)
 
         val fraction = d / 360.0
         return when {
@@ -98,6 +98,51 @@ public object MoonMath {
         }
     }
 
+    /**
+     * Finds a true phase-angle crossing in the requested local civil day.
+     * The underlying elongation is the same astronomical term used by the
+     * phase and illumination calculations; no calendar date is hardcoded.
+     */
+    fun computePhaseEvent(
+        dateMillis: Long,
+        targetPhase: MoonPhase,
+        timeZone: TimeZone = TimeZone.UTC,
+    ): Long? {
+        val localDate = Instant.fromEpochMilliseconds(dateMillis)
+            .toLocalDateTime(timeZone)
+            .date
+        val startMillis = localDate.atTime(0, 0).toInstant(timeZone).toEpochMilliseconds()
+        val endMillis = localDate.plus(DatePeriod(days = 1))
+            .atTime(0, 0)
+            .toInstant(timeZone)
+            .toEpochMilliseconds()
+        val targetAngle = if (targetPhase == MoonPhase.FULL_MOON) 180.0 else 0.0
+        var previousMillis = startMillis
+        var previousAngle = computeMeanElongation(previousMillis)
+
+        for (step in 1..24) {
+            val currentMillis = startMillis + (endMillis - startMillis) * step / 24
+            val currentAngle = computeMeanElongation(currentMillis)
+            val advance = forwardAngle(previousAngle, currentAngle)
+            val targetOffset = forwardAngle(previousAngle, targetAngle)
+
+            if (targetOffset > 0.0 && targetOffset <= advance) {
+                var low = previousMillis
+                var high = currentMillis
+                repeat(40) {
+                    val middle = (low + high) / 2
+                    val middleOffset = forwardAngle(previousAngle, computeMeanElongation(middle))
+                    if (middleOffset >= targetOffset) high = middle else low = middle
+                }
+                return high
+            }
+
+            previousMillis = currentMillis
+            previousAngle = currentAngle
+        }
+        return null
+    }
+
     fun computeMoonIllumination(epochMillis: Long): Double {
         val jd = julianDay(epochMillis)
         val t = julianCentury(jd)
@@ -106,9 +151,7 @@ public object MoonMath {
     }
 
     fun computeMoonAgeInDays(epochMillis: Long): Double {
-        val jd = julianDay(epochMillis)
-        val t = julianCentury(jd)
-        val d = (297.8501921 + 445267.1114034 * t).unwindAngle()
+        val d = computeMeanElongation(epochMillis)
         return (d / 360.0) * 29.530588853
     }
 
@@ -186,4 +229,13 @@ public object MoonMath {
         val localDate = Instant.fromEpochMilliseconds(millis).toLocalDateTime(timeZone).date
         return localDate.atTime(0, 0).toInstant(timeZone).toEpochMilliseconds()
     }
+
+    private fun computeMeanElongation(epochMillis: Long): Double {
+        val jd = julianDay(epochMillis)
+        val t = julianCentury(jd)
+        return (297.8501921 + 445267.1114034 * t - 0.0018819 * t * t).unwindAngle()
+    }
+
+    private fun forwardAngle(from: Double, to: Double): Double =
+        ((to - from) % 360.0 + 360.0) % 360.0
 }

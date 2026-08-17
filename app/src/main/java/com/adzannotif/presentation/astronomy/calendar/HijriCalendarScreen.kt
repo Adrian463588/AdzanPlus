@@ -54,7 +54,7 @@ fun HijriCalendarScreen(
                     Column {
                         Text("Kalender Hijriah & Masehi", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = AstronomyStarWhite)
                         Text(
-                    text = if (loc != null) "📍 ${loc.name} (${String.format("%.2f°", loc.latitude)}, ${String.format("%.2f°", loc.longitude)})" else "Waktu Shalat & Fase Bulan Harian",
+                    text = if (loc != null) "📍 ${loc.name} (${String.format(Locale.ROOT, "%.2f°", loc.latitude)}, ${String.format(Locale.ROOT, "%.2f°", loc.longitude)})" else "Waktu Shalat & Fase Bulan Harian",
                             style = MaterialTheme.typography.bodySmall,
                             color = AstronomyTwilightCivil
                         )
@@ -228,7 +228,7 @@ fun HijriCalendarScreen(
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Iluminasi Bulan", color = AstronomyTwilightCivil)
-                        Text(String.format("%.1f%%", day.moonIlluminationPercent), color = AstronomyMoonGold, fontWeight = FontWeight.SemiBold)
+                Text(String.format(Locale.ROOT, "%.1f%%", day.moonIlluminationPercent), color = AstronomyMoonGold, fontWeight = FontWeight.SemiBold)
                     }
 
                     Spacer(modifier = Modifier.height(28.dp))

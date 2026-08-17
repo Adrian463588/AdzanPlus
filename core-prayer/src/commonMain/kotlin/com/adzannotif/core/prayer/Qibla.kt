@@ -18,7 +18,7 @@ import kotlin.math.sqrt
 @Serializable
 data class Qibla(
     val direction: Double,
-    val distanceKm: Double = 0.0
+    val distanceKm: Double
 ) {
     companion object {
         /**
@@ -89,4 +89,3 @@ data class Qibla(
         }
     }
 }
-

@@ -11,8 +11,15 @@ import com.adzannotif.domain.model.LocationInfo
 import com.adzannotif.domain.model.astronomy.SkyEvent
 import com.adzannotif.domain.model.astronomy.SkyEventType
 import com.adzannotif.domain.repository.AstronomyRepository
+import com.adzannotif.domain.repository.LocationRepository
+import com.adzannotif.domain.repository.SettingsRepository
 import com.adzannotif.platform.receiver.CelestialAlarmReceiver
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,8 +32,11 @@ import javax.inject.Singleton
 class CelestialAlarmScheduler @Inject constructor(
     @ApplicationContext private val context: Context,
     private val astronomyRepository: AstronomyRepository,
+    private val locationRepository: LocationRepository,
+    private val settingsRepository: SettingsRepository,
 ) {
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    private val backgroundScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     suspend fun reconcile(
         location: LocationInfo,
@@ -37,17 +47,21 @@ class CelestialAlarmScheduler @Inject constructor(
             return Result.failure(AdhanScheduler.ExactAlarmPermissionRequiredException())
         }
 
+        val celestialSettings = settingsRepository.alarmSettings.first().celestialAlerts
         val events = astronomyRepository
-            .getUpcomingEvents(location.latitude, location.longitude, fromMillis, days)
+            .getUpcomingEvents(location, fromMillis, days)
             .asSequence()
             .filter { it.epochMillis > System.currentTimeMillis() }
+            .filter { event -> celestialSettings.isEnabled(event.type) }
             .distinctBy { event -> event.type to event.epochMillis }
             .toList()
+
+        val minutesBefore = celestialSettings.minutesBefore
 
         cancelReconciledWindow(fromMillis, days)
 
         return try {
-            events.forEach { event -> scheduleExact(event) }
+            events.forEach { event -> scheduleExact(event, minutesBefore) }
             Result.success(events.size)
         } catch (error: SecurityException) {
             Log.e(TAG, "Exact celestial alarm permission was revoked during reconciliation", error)
@@ -55,20 +69,27 @@ class CelestialAlarmScheduler @Inject constructor(
         }
     }
 
+    /** Reconciles using the currently selected location when settings change or the app resumes. */
+    fun rescheduleAllAlarms() {
+        backgroundScope.launch {
+            val location = locationRepository.currentOrSelectedLocation.first() ?: return@launch
+            reconcile(location).onFailure { error ->
+                Log.w(TAG, "Celestial alarms were not rescheduled", error)
+            }
+        }
+    }
+
     fun canScheduleExactAlarms(): Boolean =
         Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()
 
-    private fun scheduleExact(event: SkyEvent) {
+    private fun scheduleExact(event: SkyEvent, minutesBefore: Int) {
         val pendingIntent = pendingIntent(event, PendingIntent.FLAG_UPDATE_CURRENT)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                event.epochMillis,
-                pendingIntent,
-            )
-        } else {
-            alarmManager.setExact(AlarmManager.RTC_WAKEUP, event.epochMillis, pendingIntent)
-        }
+        val triggerAtMillis = event.epochMillis - minutesBefore.coerceAtLeast(0) * MINUTE_MILLIS
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            triggerAtMillis.coerceAtLeast(System.currentTimeMillis() + MINUTE_MILLIS),
+            pendingIntent,
+        )
     }
 
     private fun cancelReconciledWindow(fromMillis: Long, days: Int) {
@@ -169,5 +190,6 @@ class CelestialAlarmScheduler @Inject constructor(
         const val REQUEST_DAY_BUCKETS = 100_000L
         const val LEGACY_REQUEST_BASE = 1_000
         const val LEGACY_EVENT_REQUEST_COUNT = 256
+        const val MINUTE_MILLIS = 60_000L
     }
 }

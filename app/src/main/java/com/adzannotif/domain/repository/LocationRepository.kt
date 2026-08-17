@@ -4,7 +4,7 @@ import com.adzannotif.domain.model.LocationInfo
 import kotlinx.coroutines.flow.Flow
 
 interface LocationRepository {
-    val currentOrSelectedLocation: Flow<LocationInfo>
+    val currentOrSelectedLocation: Flow<LocationInfo?>
     val favoriteLocations: Flow<List<LocationInfo>>
     
     suspend fun getDeviceLocation(): Result<LocationInfo>

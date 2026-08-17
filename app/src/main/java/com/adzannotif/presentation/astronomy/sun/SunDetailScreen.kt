@@ -27,10 +27,12 @@ import androidx.navigation.NavController
 import com.adzannotif.core.astronomy.internal.SunMath
 import com.adzannotif.domain.model.LocationInfo
 import com.adzannotif.domain.model.astronomy.SunInfo
+import com.adzannotif.presentation.astronomy.SolarEventTimeline
 import com.adzannotif.presentation.theme.*
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +51,7 @@ fun SunDetailScreen(
                     Column {
                         Text("Detail Matahari & Fotografi", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = AstronomyStarWhite)
                         Text(
-                    text = if (loc != null) "📍 ${loc.name} (${String.format("%.2f°", loc.latitude)}, ${String.format("%.2f°", loc.longitude)})" else "Elevasi Fisik & Hisab Cahaya",
+                    text = if (loc != null) "📍 ${loc.name} (${String.format(Locale.ROOT, "%.2f°", loc.latitude)}, ${String.format(Locale.ROOT, "%.2f°", loc.longitude)})" else "Elevasi Fisik & Hisab Cahaya",
                             style = MaterialTheme.typography.bodySmall,
                             color = AstronomyTwilightCivil
                         )
@@ -84,9 +86,23 @@ fun SunDetailScreen(
                 }
             } else if (uiState.error != null) {
                 item { Text(text = uiState.error!!, color = MaterialTheme.colorScheme.error) }
+            } else if (uiState.location == null) {
+                item {
+                    Text(
+                        text = "Lokasi belum tersedia. Pilih kota offline atau izinkan lokasi perangkat.",
+                        color = AstronomyTwilightCivil,
+                    )
+                }
+            } else if (uiState.sunInfo == null) {
+                item {
+                    Text(
+                        text = "Data matahari belum tersedia untuk lokasi dan tanggal ini.",
+                        color = AstronomyTwilightCivil,
+                    )
+                }
             } else {
-                val sunInfo = uiState.sunInfo
-                val location = uiState.location ?: LocationInfo.JAKARTA
+                val sunInfo = checkNotNull(uiState.sunInfo)
+                val location = checkNotNull(uiState.location)
 
                 item {
                     PhysicallyAccurateSunArc(
@@ -98,19 +114,19 @@ fun SunDetailScreen(
                 }
 
                 item {
-                    GoldenBlueHourDetailCards(sunInfo)
+                    GoldenBlueHourDetailCards(sunInfo, location.timeZoneId)
                 }
 
                 item {
-                    PhotographyTipsCard(sunInfo)
+                    PhotographyTipsCard()
                 }
 
                 item {
-                    TwilightBandTimeline()
+                    SolarEventTimeline(sunInfo = sunInfo, timeZoneId = location.timeZoneId)
                 }
 
                 item {
-                    KeyTimesList(sunInfo)
+                    KeyTimesList(sunInfo, location.timeZoneId)
                 }
             }
         }
@@ -119,7 +135,7 @@ fun SunDetailScreen(
 
 @Composable
 fun PhysicallyAccurateSunArc(
-    sunInfo: SunInfo?,
+    sunInfo: SunInfo,
     location: LocationInfo,
     scrubbedTime: Long?,
     onScrubTime: (Long?) -> Unit
@@ -129,23 +145,29 @@ fun PhysicallyAccurateSunArc(
 
     // Compute active real solar coordinates
     val activePos = remember(activeTime, location) {
-        SunMath.computeSunPosition(location.latitude, location.longitude, 0.0, activeTime)
+        SunMath.computeSunPosition(location.latitude, location.longitude, location.elevation, activeTime)
     }
 
-    val noonMillis = sunInfo?.noonMillis ?: currentTime
+    val noonMillis = sunInfo.noonMillis
+    if (noonMillis == null) {
+        Text("Waktu tengah hari belum tersedia.", color = AstronomyTwilightCivil)
+        return
+    }
     val dayStart = noonMillis - 43200000L // 12 hours before noon
     val dayEnd = noonMillis + 43200000L   // 12 hours after noon
 
-    // Sample 48 real points across 24h
-    val sampledPoints = remember(location, noonMillis) {
+    // Compute 48 real points across 24h
+    val computedPoints = remember(location, noonMillis) {
         (0..48).map { step ->
             val t = dayStart + step * 1800000L // 30 min step
-            val pos = SunMath.computeSunPosition(location.latitude, location.longitude, 0.0, t)
+            val pos = SunMath.computeSunPosition(location.latitude, location.longitude, location.elevation, t)
             t to pos.altitude
         }
     }
 
-    val fmt = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val fmt = SimpleDateFormat("HH:mm", Locale.ROOT).apply {
+        timeZone = TimeZone.getTimeZone(location.timeZoneId)
+    }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = AstronomySurface),
@@ -166,7 +188,7 @@ fun PhysicallyAccurateSunArc(
                         color = AstronomyStarWhite
                     )
                     Text(
-                        "Waktu: ${fmt.format(Date(activeTime))} • Alt: ${String.format("%.1f°", activePos.altitude)} • Az: ${String.format("%.1f°", activePos.azimuth)}",
+                        "Waktu: ${fmt.format(Date(activeTime))} • Alt: ${String.format(Locale.ROOT, "%.1f°", activePos.altitude)} • Az: ${String.format(Locale.ROOT, "%.1f°", activePos.azimuth)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = if (activePos.altitude >= 0) AstronomySunAmber else AstronomyTwilightCivil
                     )
@@ -217,7 +239,7 @@ fun PhysicallyAccurateSunArc(
 
                 // 3. Draw Continuous Real Astronomical Curve
                 val curvePath = Path()
-                sampledPoints.forEachIndexed { index, (time, alt) ->
+                computedPoints.forEachIndexed { index, (time, alt) ->
                     val fraction = index / 48f
                     val x = w * fraction
                     // Map altitude: alt = 90 -> peakY, alt = 0 -> horizonY, alt = -90 -> below
@@ -306,13 +328,15 @@ fun PhysicallyAccurateSunArc(
 }
 
 @Composable
-fun GoldenBlueHourDetailCards(sunInfo: SunInfo?) {
-    val fmt = SimpleDateFormat("HH:mm", Locale.getDefault())
+fun GoldenBlueHourDetailCards(sunInfo: SunInfo?, timeZoneId: String? = null) {
+    val fmt = SimpleDateFormat("HH:mm", Locale.ROOT).apply {
+        timeZoneId?.let { timeZone = TimeZone.getTimeZone(it) }
+    }
     fun formatWindow(start: Long?, end: Long?): String {
         return if (start != null && end != null) {
             "${fmt.format(Date(start))} - ${fmt.format(Date(end))}"
         } else {
-            "--:-- - --:--"
+            "Data tidak tersedia"
         }
     }
 
@@ -358,7 +382,7 @@ fun GoldenBlueHourDetailCards(sunInfo: SunInfo?) {
 }
 
 @Composable
-fun PhotographyTipsCard(sunInfo: SunInfo?) {
+fun PhotographyTipsCard() {
     Card(
         colors = CardDefaults.cardColors(containerColor = AstronomySurface),
         shape = RoundedCornerShape(16.dp),
@@ -393,30 +417,11 @@ fun PhotographyTipsCard(sunInfo: SunInfo?) {
 }
 
 @Composable
-fun TwilightBandTimeline() {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text("Pita Gradasi Fajar & Senja", color = AstronomyStarWhite, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
-        Spacer(modifier = Modifier.height(8.dp))
-        Canvas(modifier = Modifier.fillMaxWidth().height(28.dp)) {
-            val w = size.width
-            val h = size.height
-            drawRect(AstronomyTwilightAstro, Offset(0f, 0f), Size(w * 0.1f, h))
-            drawRect(AstronomyTwilightNautical, Offset(w * 0.1f, 0f), Size(w * 0.1f, h))
-            drawRect(AstronomyBlueHour, Offset(w * 0.2f, 0f), Size(w * 0.1f, h))
-            drawRect(AstronomyGoldenHour, Offset(w * 0.3f, 0f), Size(w * 0.1f, h))
-            drawRect(AstronomySunAmber, Offset(w * 0.4f, 0f), Size(w * 0.2f, h))
-            drawRect(AstronomyGoldenHour, Offset(w * 0.6f, 0f), Size(w * 0.1f, h))
-            drawRect(AstronomyBlueHour, Offset(w * 0.7f, 0f), Size(w * 0.1f, h))
-            drawRect(AstronomyTwilightNautical, Offset(w * 0.8f, 0f), Size(w * 0.1f, h))
-            drawRect(AstronomyTwilightAstro, Offset(w * 0.9f, 0f), Size(w * 0.1f, h))
-        }
+fun KeyTimesList(sunInfo: SunInfo?, timeZoneId: String? = null) {
+    val fmt = SimpleDateFormat("HH:mm", Locale.ROOT).apply {
+        timeZoneId?.let { timeZone = TimeZone.getTimeZone(it) }
     }
-}
-
-@Composable
-fun KeyTimesList(sunInfo: SunInfo?) {
-    val fmt = SimpleDateFormat("HH:mm", Locale.getDefault())
-    fun formatTime(ms: Long?): String = ms?.let { fmt.format(Date(it)) } ?: "--:--"
+    fun formatTime(ms: Long?): String = ms?.let { fmt.format(Date(it)) } ?: "—"
 
     Card(
         colors = CardDefaults.cardColors(containerColor = AstronomySurface),

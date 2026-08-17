@@ -46,8 +46,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.adzannotif.domain.model.ThemeMode
-import com.adzannotif.platform.audio.AdhanAudioPlayer
+import com.adzannotif.platform.audio.AudioGateway
 import com.adzannotif.presentation.theme.AdzanNotifTheme
+import com.adzannotif.presentation.common.rememberMotionAnimationsEnabled
 import com.adzannotif.core.prayer.Prayer
 import com.adzannotif.domain.repository.AlarmRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -65,7 +66,7 @@ import kotlin.time.Duration.Companion.minutes
 class AlarmFullscreenActivity : ComponentActivity() {
 
     @Inject
-    lateinit var audioPlayer: AdhanAudioPlayer
+    lateinit var audioGateway: AudioGateway
 
     @Inject
     lateinit var alarmRepository: AlarmRepository
@@ -80,9 +81,14 @@ class AlarmFullscreenActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         turnScreenOnAndShowOnLockScreen()
 
-        val prayerName = intent.getStringExtra(EXTRA_PRAYER_NAME) ?: "DHUHR"
-        val prayerTitle = intent.getStringExtra(EXTRA_PRAYER_TITLE) ?: "Waktu Dzuhur"
-        val locationName = intent.getStringExtra(EXTRA_LOCATION_NAME) ?: "Jakarta"
+        val prayer = intent.getStringExtra(EXTRA_PRAYER_NAME)
+            ?.let { name -> runCatching { Prayer.valueOf(name) }.getOrNull() }
+        val prayerTitle = intent.getStringExtra(EXTRA_PRAYER_TITLE)
+            ?.takeIf(String::isNotBlank)
+            ?: "Peringatan waktu sholat"
+        val locationName = intent.getStringExtra(EXTRA_LOCATION_NAME)
+            ?.takeIf(String::isNotBlank)
+            ?: "Lokasi belum tersedia"
 
         setContent {
             AdzanNotifTheme(themeMode = ThemeMode.DARK) {
@@ -90,20 +96,21 @@ class AlarmFullscreenActivity : ComponentActivity() {
                     prayerTitle = prayerTitle,
                     locationName = locationName,
                     onDismiss = {
-                        audioPlayer.stop()
+                        audioGateway.stop()
                         finish()
                     },
                     onSnooze = {
-                        audioPlayer.stop()
-                        val prayer = try { Prayer.valueOf(prayerName) } catch (e: Exception) { Prayer.DHUHR }
-                        CoroutineScope(Dispatchers.Default).launch {
-                            val snoozeInstant = Clock.System.now().plus(10.minutes)
-                            alarmRepository.scheduleExactAlarm(
-                                prayer = prayer,
-                                targetInstant = snoozeInstant,
-                                title = "Tunda: $prayerTitle",
-                                isPreReminder = false
-                            )
+                        audioGateway.stop()
+                        prayer?.let { prayerToSnooze ->
+                            CoroutineScope(Dispatchers.Default).launch {
+                                val snoozeInstant = Clock.System.now().plus(10.minutes)
+                                alarmRepository.scheduleExactAlarm(
+                                    prayer = prayerToSnooze,
+                                    targetInstant = snoozeInstant,
+                                    title = "Tunda: $prayerTitle",
+                                    isPreReminder = false,
+                                )
+                            }
                         }
                         finish()
                     }
@@ -112,6 +119,7 @@ class AlarmFullscreenActivity : ComponentActivity() {
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun turnScreenOnAndShowOnLockScreen() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
@@ -136,18 +144,23 @@ fun AlarmFullscreenScreen(
     onDismiss: () -> Unit,
     onSnooze: () -> Unit,
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.15f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "scale"
-    )
+    val pulseScale = if (rememberMotionAnimationsEnabled()) {
+        val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+        val animatedScale by infiniteTransition.animateFloat(
+            initialValue = 1f,
+            targetValue = 1.15f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1200, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+            label = "scale",
+        )
+        animatedScale
+    } else {
+        1f
+    }
 
-    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val timeFormat = SimpleDateFormat("HH:mm", Locale.ROOT)
     val currentTime = timeFormat.format(Date())
 
     Box(

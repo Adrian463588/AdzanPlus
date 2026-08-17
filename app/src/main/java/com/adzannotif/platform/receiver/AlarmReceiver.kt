@@ -8,9 +8,9 @@ import com.adzannotif.core.prayer.Prayer
 import com.adzannotif.domain.model.AdhanSoundType
 import com.adzannotif.domain.repository.LocationRepository
 import com.adzannotif.domain.repository.SettingsRepository
-import com.adzannotif.platform.alarm.AdhanScheduler
-import com.adzannotif.platform.audio.AdhanAudioPlayer
-import com.adzannotif.platform.notification.NotificationHelper
+import com.adzannotif.platform.alarm.AlarmScheduler
+import com.adzannotif.platform.audio.AudioGateway
+import com.adzannotif.platform.notification.NotificationGateway
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,10 +22,10 @@ import javax.inject.Inject
 class AlarmReceiver : BroadcastReceiver() {
 
     @Inject
-    lateinit var notificationHelper: NotificationHelper
+    lateinit var notificationGateway: NotificationGateway
 
     @Inject
-    lateinit var audioPlayer: AdhanAudioPlayer
+    lateinit var audioGateway: AudioGateway
 
     @Inject
     lateinit var settingsRepository: SettingsRepository
@@ -34,7 +34,7 @@ class AlarmReceiver : BroadcastReceiver() {
     lateinit var locationRepository: LocationRepository
 
     @Inject
-    lateinit var adhanScheduler: AdhanScheduler
+    lateinit var alarmScheduler: AlarmScheduler
 
     companion object {
         const val ACTION_ALARM_FIRE = "com.adzannotif.ACTION_ALARM_FIRE"
@@ -58,29 +58,30 @@ class AlarmReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.Default).launch {
             try {
                 val location = locationRepository.currentOrSelectedLocation.first()
+                val locationName = location?.name ?: "Lokasi belum tersedia"
                 val alarmSettings = settingsRepository.alarmSettings.first()
                 val config = alarmSettings.getConfigForPrayer(prayer)
 
                 if (isPreReminder) {
-                    notificationHelper.showPreReminderNotification(
+                    notificationGateway.showPreReminderNotification(
                         prayer = prayer,
                         minutesBefore = config.preReminderMinutes,
-                        locationName = location.name,
+                        locationName = locationName,
                         vibrate = config.isVibrate,
                     )
                 } else {
                     // Show High Importance Adzan Notification & Fullscreen Intent
-                    notificationHelper.showAdhanNotification(
+                    notificationGateway.showAdhanNotification(
                         prayer = prayer,
                         prayerTitle = prayerTitle,
-                        locationName = location.name,
+                        locationName = locationName,
                         vibrate = config.isVibrate,
                     )
 
                     // Play Audio based on sound configuration
                     when (config.soundType) {
                         AdhanSoundType.FULL_ADHAN, AdhanSoundType.SHORT_TAKBEER -> {
-                            audioPlayer.playAdhan(
+                            audioGateway.playAdhan(
                                 voice = config.adhanVoice,
                                 customUriString = config.customSoundUri,
                                 durationMinutes = alarmSettings.dndAutoSilenceMinutes
@@ -95,7 +96,7 @@ class AlarmReceiver : BroadcastReceiver() {
                     }
 
                     // Reschedule for next prayers / tomorrow
-                    adhanScheduler.schedule().onFailure { error ->
+                    alarmScheduler.schedule().onFailure { error ->
                         Log.e(TAG, "Failed to reconcile alarms after prayer alarm", error)
                     }
                 }

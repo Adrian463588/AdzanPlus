@@ -62,16 +62,16 @@ class StarMapViewModel @Inject constructor(
                         isLoading = false,
                         error = null
                     )
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = e.message
+                        error = "Data peta langit belum tersedia. Pastikan katalog bintang aplikasi dapat dibaca."
                     )
                 }
             } else {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Location not available"
+                    error = "Lokasi belum tersedia. Pilih lokasi sebelum membuka peta langit."
                 )
             }
         }

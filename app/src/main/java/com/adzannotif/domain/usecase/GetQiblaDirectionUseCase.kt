@@ -12,9 +12,9 @@ import javax.inject.Inject
 class GetQiblaDirectionUseCase @Inject constructor(
     private val locationRepository: LocationRepository,
 ) {
-    operator fun invoke(): Flow<QiblaDirection> {
+    operator fun invoke(): Flow<QiblaDirection?> {
         return locationRepository.currentOrSelectedLocation.map { location ->
-            computeQibla(location)
+            location?.let(::computeQibla)
         }
     }
 

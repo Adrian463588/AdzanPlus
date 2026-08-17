@@ -146,13 +146,26 @@ class AstronomyEngine(
 
     fun getDayEvents(location: ObserverLocation, dateEpochMillis: Long): List<AstronomyEvent> {
         val events = mutableListOf<AstronomyEvent>()
+        val timeZone = TimeZone.of(location.timeZoneId)
         val sun = getSunState(location, dateEpochMillis)
         val moon = getMoonState(location, dateEpochMillis)
 
-        sun.riseMillis?.let { events.add(AstronomyEvent.Sunrise(it, sun.azimuthAtRise ?: 0.0)) }
-        sun.setMillis?.let { events.add(AstronomyEvent.Sunset(it, sun.azimuthAtSet ?: 0.0)) }
+        sun.riseMillis?.let { riseMillis ->
+            sun.azimuthAtRise?.let { azimuth ->
+                events.add(AstronomyEvent.Sunrise(riseMillis, azimuth))
+            }
+        }
+        sun.setMillis?.let { setMillis ->
+            sun.azimuthAtSet?.let { azimuth ->
+                events.add(AstronomyEvent.Sunset(setMillis, azimuth))
+            }
+        }
 
-        moon.riseMillis?.let { events.add(AstronomyEvent.Moonrise(it, moon.azimuthAtRise ?: 0.0)) }
+        moon.riseMillis?.let { riseMillis ->
+            moon.azimuthAtRise?.let { azimuth ->
+                events.add(AstronomyEvent.Moonrise(riseMillis, azimuth))
+            }
+        }
         moon.setMillis?.let { events.add(AstronomyEvent.Moonset(it)) }
 
         sun.goldenBlueHour.morningGoldenHour?.startMillis?.let { events.add(AstronomyEvent.GoldenHourStart(it, true)) }
@@ -164,6 +177,11 @@ class AstronomyEngine(
         sun.goldenBlueHour.morningBlueHour?.endMillis?.let { events.add(AstronomyEvent.BlueHourEnd(it, true)) }
         sun.goldenBlueHour.eveningBlueHour?.startMillis?.let { events.add(AstronomyEvent.BlueHourStart(it, false)) }
         sun.goldenBlueHour.eveningBlueHour?.endMillis?.let { events.add(AstronomyEvent.BlueHourEnd(it, false)) }
+
+        MoonMath.computePhaseEvent(dateEpochMillis, MoonPhase.FULL_MOON, timeZone)
+            ?.let { events.add(AstronomyEvent.FullMoon(it)) }
+        MoonMath.computePhaseEvent(dateEpochMillis, MoonPhase.NEW_MOON, timeZone)
+            ?.let { events.add(AstronomyEvent.NewMoon(it)) }
 
         return events.sortedBy { it.epochMillis }
     }

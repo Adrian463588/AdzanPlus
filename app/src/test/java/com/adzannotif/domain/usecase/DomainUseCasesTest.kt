@@ -15,27 +15,28 @@ class DomainUseCasesTest {
 
     @Test
     fun testGetQiblaDirectionCalculation() = runTest {
-        val fakeLocation = LocationInfo(
-            id = "test_jakarta",
+        val knownLocation = LocationInfo(
+            id = "known_jakarta",
             name = "Jakarta",
             country = "Indonesia",
             latitude = -6.2088,
             longitude = 106.8456,
+            elevation = 10.0,
             timeZoneId = "Asia/Jakarta"
         )
-        val fakeLocationRepo = object : LocationRepository {
-            override val currentOrSelectedLocation = flowOf(fakeLocation)
-            override val favoriteLocations = flowOf(listOf(fakeLocation))
-            override suspend fun getDeviceLocation() = Result.success(fakeLocation)
-            override suspend fun searchLocations(query: String) = listOf(fakeLocation)
-            override suspend fun searchOfflineCities(query: String) = listOf(fakeLocation)
-            override suspend fun getAllOfflineCities() = listOf(fakeLocation)
+        val knownLocationRepo = object : LocationRepository {
+            override val currentOrSelectedLocation = flowOf(knownLocation)
+            override val favoriteLocations = flowOf(listOf(knownLocation))
+            override suspend fun getDeviceLocation() = Result.success(knownLocation)
+            override suspend fun searchLocations(query: String) = listOf(knownLocation)
+            override suspend fun searchOfflineCities(query: String) = listOf(knownLocation)
+            override suspend fun getAllOfflineCities() = listOf(knownLocation)
             override suspend fun saveLocation(location: LocationInfo) {}
             override suspend fun deleteLocation(locationId: String) {}
             override suspend fun setSelectedLocation(location: LocationInfo) {}
         }
 
-        val useCase = GetQiblaDirectionUseCase(fakeLocationRepo)
+        val useCase = GetQiblaDirectionUseCase(knownLocationRepo)
         val qibla = useCase().first()
 
         assertNotNull(qibla)

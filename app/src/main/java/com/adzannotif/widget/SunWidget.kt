@@ -32,18 +32,18 @@ import kotlinx.coroutines.flow.first
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 @Composable
-fun SunWidgetContent(sunInfo: SunInfo?, locationName: String = "Jakarta") {
+fun SunWidgetContent(sunInfo: SunInfo?, locationName: String, timeZoneId: String?) {
     val context = LocalContext.current
-    val fmt = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     fun formatWindow(start: Long?, end: Long?): String {
-        return if (start != null && end != null) {
-            "${fmt.format(Date(start))} - ${fmt.format(Date(end))}"
-        } else {
-            "--:--"
+        if (start == null || end == null || timeZoneId == null) return "Data tidak tersedia"
+        val fmt = SimpleDateFormat("HH:mm", Locale.ROOT).apply {
+            timeZone = TimeZone.getTimeZone(timeZoneId)
         }
+        return "${fmt.format(Date(start))} - ${fmt.format(Date(end))}"
     }
 
     Column(
@@ -53,7 +53,7 @@ fun SunWidgetContent(sunInfo: SunInfo?, locationName: String = "Jakarta") {
             .padding(14.dp),
         horizontalAlignment = Alignment.Horizontal.Start
     ) {
-        if (sunInfo != null) {
+        if (sunInfo != null && timeZoneId != null) {
             Text(
                 text = "☀️ ${sunInfo.currentPhase}",
                 style = TextStyle(
@@ -113,7 +113,7 @@ fun SunWidgetContent(sunInfo: SunInfo?, locationName: String = "Jakarta") {
                 sunInfo.eveningGoldenHourStartMillis -> "Golden Hour Sore"
                 sunInfo.eveningBlueHourStartMillis -> "Blue Hour Sore"
                 sunInfo.setMillis -> "Matahari Terbenam"
-                else -> "Acara Berikutnya"
+                else -> "Acara surya tidak tersedia"
             }
 
             if (nextEventMillis != null) {
@@ -134,13 +134,13 @@ fun SunWidgetContent(sunInfo: SunInfo?, locationName: String = "Jakarta") {
                 )
             } else {
                 Text(
-                    text = "Matahari Terbenam Selesai",
+                    text = "Acara surya berikutnya tidak tersedia",
                     style = TextStyle(color = ColorProvider(Color(0xFFAAAAAA)), fontSize = 12.sp)
                 )
             }
         } else {
             Text(
-                text = "☀️ Memuat Surya...",
+                text = "☀️ Data surya tidak tersedia",
                 style = TextStyle(color = ColorProvider(Color.White), fontSize = 15.sp, fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = GlanceModifier.height(2.dp))
@@ -150,7 +150,7 @@ fun SunWidgetContent(sunInfo: SunInfo?, locationName: String = "Jakarta") {
             )
             Spacer(modifier = GlanceModifier.height(4.dp))
             Text(
-                text = "Golden Hour: --:-- | --:--",
+                text = "Golden Hour: Data tidak tersedia",
                 style = TextStyle(color = ColorProvider(Color(0xFFFFB347)), fontSize = 11.sp)
             )
         }
@@ -167,11 +167,20 @@ class SunWidget : GlanceAppWidget() {
         val astronomyRepository = entryPoint.astronomyRepository()
 
         val location = locationRepository.currentOrSelectedLocation.first()
+        if (location == null) {
+            provideContent {
+                SunWidgetContent(
+                    sunInfo = null,
+                    locationName = "Lokasi belum tersedia",
+                    timeZoneId = null,
+                )
+            }
+            return
+        }
         val epochMillis = System.currentTimeMillis()
         val sunInfo = runCatching {
             astronomyRepository.getSunInfo(
-                location.latitude,
-                location.longitude,
+                location,
                 epochMillis,
             ).first()
         }.onFailure { error ->
@@ -179,7 +188,11 @@ class SunWidget : GlanceAppWidget() {
         }.getOrNull()
 
         provideContent {
-        SunWidgetContent(sunInfo = sunInfo, locationName = location.name)
+        SunWidgetContent(
+            sunInfo = sunInfo,
+            locationName = location.name,
+            timeZoneId = location.timeZoneId,
+        )
         }
     }
 }

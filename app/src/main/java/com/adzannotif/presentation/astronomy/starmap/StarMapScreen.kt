@@ -30,6 +30,7 @@ import com.adzannotif.presentation.theme.*
 import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.sin
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,7 +51,7 @@ fun StarMapScreen(
                     Column {
                         Text("Peta Langit & Bintang", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = AstronomyStarWhite)
                         Text(
-                    text = if (loc != null) "📍 ${loc.name} (${String.format("%.2f°", loc.latitude)}, ${String.format("%.2f°", loc.longitude)})" else "500 Bintang & 40 Rasi",
+                    text = if (loc != null) "📍 ${loc.name} (${String.format(Locale.ROOT, "%.2f°", loc.latitude)}, ${String.format(Locale.ROOT, "%.2f°", loc.longitude)})" else "Lokasi belum tersedia",
                             style = MaterialTheme.typography.bodySmall,
                             color = AstronomyTwilightCivil
                         )
@@ -88,12 +89,37 @@ fun StarMapScreen(
                 .background(AstronomyBackgroundDeep)
         ) {
             Box(modifier = Modifier.weight(1f)) {
-                InteractiveSkyChart(
-                    data = uiState.starMapData,
-                    resetKey = resetTrigger,
-                    onStarTapped = { selectedStar = it },
-                    modifier = Modifier.fillMaxSize()
-                )
+                if (uiState.isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator(color = AstronomyMoonGold)
+                    }
+                } else if (uiState.starMapData == null) {
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(24.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Surface(
+                            color = AstronomySurface,
+                            shape = RoundedCornerShape(16.dp),
+                        ) {
+                            Text(
+                                text = uiState.error ?: "Data peta langit belum tersedia untuk lokasi ini.",
+                                color = AstronomyStarWhite,
+                                modifier = Modifier.padding(20.dp),
+                            )
+                        }
+                    }
+                } else {
+                    InteractiveSkyChart(
+                        data = uiState.starMapData,
+                        resetKey = resetTrigger,
+                        onStarTapped = { selectedStar = it },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
 
                 // Selected Star Info Sheet / Card overlay
                 if (selectedStar != null) {
@@ -119,12 +145,12 @@ fun StarMapScreen(
                                     color = AstronomyMoonGold
                                 )
                                 Text(
-                                    "Magnitudo: ${String.format("%.2f", star.magnitude)} • HIP: ${star.hipId}",
+                            "Magnitudo: ${String.format(Locale.ROOT, "%.2f", star.magnitude)} • HIP: ${star.hipId}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = AstronomyStarWhite
                                 )
                                 Text(
-                                    "Alt: ${String.format("%.1f°", star.altitude)} | Az: ${String.format("%.1f°", star.azimuth)}",
+                            "Alt: ${String.format(Locale.ROOT, "%.1f°", star.altitude)} | Az: ${String.format(Locale.ROOT, "%.1f°", star.azimuth)}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = AstronomyTwilightCivil
                                 )
@@ -137,17 +163,19 @@ fun StarMapScreen(
                 }
 
                 // Legend Chip
-                Surface(
-                    color = AstronomySurface.copy(alpha = 0.85f),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.align(Alignment.BottomStart).padding(16.dp)
-                ) {
-                    Text(
-                        "🔍 Cubit/Geser untuk Zoom • Ketuk Bintang untuk Info",
-                        color = AstronomyTwilightCivil,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelSmall
-                    )
+                if (uiState.starMapData != null) {
+                    Surface(
+                        color = AstronomySurface.copy(alpha = 0.85f),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.align(Alignment.BottomStart).padding(16.dp)
+                    ) {
+                        Text(
+                            "🔍 Cubit/Geser untuk Zoom • Ketuk Bintang untuk Info",
+                            color = AstronomyTwilightCivil,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
                 }
             }
 

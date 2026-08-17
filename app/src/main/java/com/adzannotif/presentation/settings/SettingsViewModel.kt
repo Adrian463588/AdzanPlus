@@ -8,13 +8,15 @@ import com.adzannotif.core.prayer.Madhab
 import com.adzannotif.core.prayer.Prayer
 import com.adzannotif.domain.model.AdhanVoice
 import com.adzannotif.domain.model.AllAlarmSettings
+import com.adzannotif.domain.model.CelestialAlertType
 import com.adzannotif.domain.model.LocationInfo
 import com.adzannotif.domain.model.ThemeMode
 import com.adzannotif.domain.model.UserSettings
 import com.adzannotif.domain.repository.LocationRepository
 import com.adzannotif.domain.repository.SettingsRepository
 import com.adzannotif.domain.usecase.SchedulePrayerAlarmsUseCase
-import com.adzannotif.platform.audio.AdhanAudioPlayer
+import com.adzannotif.platform.alarm.CelestialAlarmScheduler
+import com.adzannotif.platform.audio.AudioGateway
 import com.adzannotif.platform.network.NetworkMonitor
 import android.content.Context
 import com.adzannotif.widget.PrayerTimesWidgetReceiver
@@ -38,7 +40,7 @@ data class SettingsUiState(
     val isLocationPickerVisible: Boolean = false,
     val isSearching: Boolean = false,
     val isRefreshingGps: Boolean = false,
-    val isOnline: Boolean = true,
+    val isOnline: Boolean = false,
     val currentlyPlayingVoice: AdhanVoice? = null,
     val isLoading: Boolean = false,
 )
@@ -49,10 +51,14 @@ sealed interface SettingsUiAction {
     data class SetHighLatitudeRule(val rule: HighLatitudeRule) : SettingsUiAction
     data class SetThemeMode(val themeMode: ThemeMode) : SettingsUiAction
     data class SetPrayerAdjustment(val prayer: Prayer, val minutes: Int) : SettingsUiAction
+    data class SetPrayerEnabled(val prayer: Prayer, val enabled: Boolean) : SettingsUiAction
     data class SetAdhanVoice(val prayer: Prayer, val voice: AdhanVoice) : SettingsUiAction
+    data class SetCustomSound(val prayer: Prayer, val uriString: String?) : SettingsUiAction
     data class ToggleAdhanPreview(val voice: AdhanVoice) : SettingsUiAction
     data class SetPreReminder(val prayer: Prayer, val minutesBefore: Int) : SettingsUiAction
     data class SetDndSilenceMinutes(val minutes: Int) : SettingsUiAction
+    data class SetCelestialAlert(val type: CelestialAlertType, val enabled: Boolean) : SettingsUiAction
+    data class SetCelestialAlertOffset(val minutesBefore: Int) : SettingsUiAction
     data class SearchLocation(val query: String) : SettingsUiAction
     data class SelectLocation(val location: LocationInfo) : SettingsUiAction
     data class DeleteSavedLocation(val locationId: String) : SettingsUiAction
@@ -60,8 +66,8 @@ sealed interface SettingsUiAction {
         val name: String,
         val latitude: Double,
         val longitude: Double,
-        val elevation: Double = 0.0,
-        val timeZoneId: String = "Asia/Jakarta"
+        val elevation: Double,
+        val timeZoneId: String,
     ) : SettingsUiAction
     data object RefreshGpsLocation : SettingsUiAction
     data class SetLocationPickerVisible(val visible: Boolean) : SettingsUiAction
@@ -73,7 +79,8 @@ class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val locationRepository: LocationRepository,
     private val schedulePrayerAlarmsUseCase: SchedulePrayerAlarmsUseCase,
-    private val audioPlayer: AdhanAudioPlayer,
+    private val celestialAlarmScheduler: CelestialAlarmScheduler,
+    private val audioGateway: AudioGateway,
     private val networkMonitor: NetworkMonitor,
 ) : ViewModel() {
 
@@ -176,6 +183,16 @@ class SettingsViewModel @Inject constructor(
                     PrayerTimesWidgetReceiver.updateAll(context)
                 }
             }
+            is SettingsUiAction.SetPrayerEnabled -> {
+                viewModelScope.launch {
+                    val currentConfig = uiState.value.alarmSettings.getConfigForPrayer(action.prayer)
+                    settingsRepository.updateAlarmSettings {
+                        it.updateConfig(currentConfig.copy(isEnabled = action.enabled))
+                    }
+                    schedulePrayerAlarmsUseCase()
+                    PrayerTimesWidgetReceiver.updateAll(context)
+                }
+            }
             is SettingsUiAction.SetAdhanVoice -> {
                 viewModelScope.launch {
                     val currentConfig = uiState.value.alarmSettings.getConfigForPrayer(action.prayer)
@@ -183,13 +200,21 @@ class SettingsViewModel @Inject constructor(
                     settingsRepository.updateAlarmSettings { it.updateConfig(updated) }
                 }
             }
+            is SettingsUiAction.SetCustomSound -> {
+                viewModelScope.launch {
+                    val currentConfig = uiState.value.alarmSettings.getConfigForPrayer(action.prayer)
+                    settingsRepository.updateAlarmSettings {
+                        it.updateConfig(currentConfig.copy(customSoundUri = action.uriString))
+                    }
+                }
+            }
             is SettingsUiAction.ToggleAdhanPreview -> {
                 if (_currentlyPlayingVoice.value == action.voice) {
-                    audioPlayer.stop()
+                    audioGateway.stop()
                     _currentlyPlayingVoice.value = null
                 } else {
                     _currentlyPlayingVoice.value = action.voice
-                    audioPlayer.playAdhan(
+                    audioGateway.playAdhan(
                         voice = action.voice,
                         durationMinutes = 1,
                         onCompletion = {
@@ -210,6 +235,26 @@ class SettingsViewModel @Inject constructor(
             is SettingsUiAction.SetDndSilenceMinutes -> {
                 viewModelScope.launch {
                     settingsRepository.updateAlarmSettings { it.copy(dndAutoSilenceMinutes = action.minutes) }
+                }
+            }
+            is SettingsUiAction.SetCelestialAlert -> {
+                viewModelScope.launch {
+                    settingsRepository.updateAlarmSettings {
+                        it.copy(celestialAlerts = it.celestialAlerts.withEnabled(action.type, action.enabled))
+                    }
+                    celestialAlarmScheduler.rescheduleAllAlarms()
+                }
+            }
+            is SettingsUiAction.SetCelestialAlertOffset -> {
+                viewModelScope.launch {
+                    settingsRepository.updateAlarmSettings {
+                        it.copy(
+                            celestialAlerts = it.celestialAlerts.copy(
+                                minutesBefore = action.minutesBefore.coerceIn(0, 60),
+                            ),
+                        )
+                    }
+                    celestialAlarmScheduler.rescheduleAllAlarms()
                 }
             }
             is SettingsUiAction.SearchLocation -> {
@@ -291,7 +336,7 @@ class SettingsViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        audioPlayer.stop()
+        audioGateway.stop()
     }
 
     private data class LocationStateTuple(

@@ -1,6 +1,7 @@
 package com.adzannotif.domain.model
 
 import com.adzannotif.core.prayer.Prayer
+import com.adzannotif.domain.model.astronomy.SkyEventType
 import kotlinx.serialization.Serializable
 
 enum class AdhanSoundType {
@@ -34,6 +35,56 @@ data class AlarmConfig(
     val preReminderMinutes: Int = 0, // 0 = off, 5, 10, 15
 )
 
+enum class CelestialAlertType {
+    GOLDEN_HOUR_START,
+    BLUE_HOUR_START,
+    MOONRISE,
+    MOONSET,
+    FULL_MOON,
+    NEW_MOON,
+}
+
+@Serializable
+data class CelestialAlertSettings(
+    val goldenHourStart: Boolean = false,
+    val blueHourStart: Boolean = false,
+    val moonrise: Boolean = false,
+    val moonset: Boolean = false,
+    val fullMoon: Boolean = false,
+    val newMoon: Boolean = false,
+    val minutesBefore: Int = 0,
+) {
+    fun isEnabled(eventType: SkyEventType): Boolean = when (eventType) {
+        SkyEventType.GOLDEN_HOUR_MORNING_START,
+        SkyEventType.GOLDEN_HOUR_EVENING_START -> goldenHourStart
+        SkyEventType.BLUE_HOUR_MORNING_START,
+        SkyEventType.BLUE_HOUR_EVENING_START -> blueHourStart
+        SkyEventType.MOONRISE -> moonrise
+        SkyEventType.MOONSET -> moonset
+        SkyEventType.FULL_MOON -> fullMoon
+        SkyEventType.NEW_MOON -> newMoon
+        else -> false
+    }
+
+    fun isEnabled(alertType: CelestialAlertType): Boolean = when (alertType) {
+        CelestialAlertType.GOLDEN_HOUR_START -> goldenHourStart
+        CelestialAlertType.BLUE_HOUR_START -> blueHourStart
+        CelestialAlertType.MOONRISE -> moonrise
+        CelestialAlertType.MOONSET -> moonset
+        CelestialAlertType.FULL_MOON -> fullMoon
+        CelestialAlertType.NEW_MOON -> newMoon
+    }
+
+    fun withEnabled(alertType: CelestialAlertType, enabled: Boolean): CelestialAlertSettings = when (alertType) {
+        CelestialAlertType.GOLDEN_HOUR_START -> copy(goldenHourStart = enabled)
+        CelestialAlertType.BLUE_HOUR_START -> copy(blueHourStart = enabled)
+        CelestialAlertType.MOONRISE -> copy(moonrise = enabled)
+        CelestialAlertType.MOONSET -> copy(moonset = enabled)
+        CelestialAlertType.FULL_MOON -> copy(fullMoon = enabled)
+        CelestialAlertType.NEW_MOON -> copy(newMoon = enabled)
+    }
+}
+
 @Serializable
 data class AllAlarmSettings(
     val fajr: AlarmConfig = AlarmConfig(Prayer.FAJR, adhanVoice = AdhanVoice.FAJR_SPECIAL),
@@ -43,6 +94,7 @@ data class AllAlarmSettings(
     val maghrib: AlarmConfig = AlarmConfig(Prayer.MAGHRIB),
     val isha: AlarmConfig = AlarmConfig(Prayer.ISHA),
     val dndAutoSilenceMinutes: Int = 15,
+    val celestialAlerts: CelestialAlertSettings = CelestialAlertSettings(),
 ) {
     fun getConfigForPrayer(prayer: Prayer): AlarmConfig = when (prayer) {
         Prayer.FAJR -> fajr

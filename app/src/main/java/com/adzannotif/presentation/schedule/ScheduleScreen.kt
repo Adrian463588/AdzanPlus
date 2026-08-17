@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -92,7 +93,24 @@ fun ScheduleScreen(
             ) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
+        } else if (state.location == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                    Text(
+                        text = "Lokasi belum tersedia. Pilih kota offline atau izinkan lokasi perangkat.",
+                        modifier = Modifier.padding(20.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         } else {
+            val location = checkNotNull(state.location)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -130,7 +148,7 @@ fun ScheduleScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "${state.location.name} • ${state.monthlyRecords.size} Hari",
+                                text = "${location.name} • ${state.monthlyRecords.size} Hari",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
                             )
@@ -147,84 +165,196 @@ fun ScheduleScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Table Header
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp, horizontal = 6.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                val timeZoneId = location.timeZoneId
+                if (state.monthlyRecords.isEmpty()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        ),
                     ) {
-                        Text("Tgl", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(0.8f), textAlign = TextAlign.Center)
-                        Text("Subuh", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                        Text("Dzuhur", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                        Text("Ashar", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                        Text("Maghrib", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                        Text("Isya", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                        Text(
+                            text = "Jadwal belum tersedia untuk bulan ini. Periksa lokasi dan data waktu matahari.",
+                            modifier = Modifier.padding(20.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
+                } else if (widthSizeClass == WindowWidthSizeClass.COMPACT) {
+                    CompactScheduleList(
+                        records = state.monthlyRecords,
+                        todayDate = state.todayDate,
+                        timeZoneId = timeZoneId,
+                        listState = listState,
+                    )
+                } else {
+                    MonthlyScheduleTable(
+                        records = state.monthlyRecords,
+                        todayDate = state.todayDate,
+                        timeZoneId = timeZoneId,
+                        listState = listState,
+                    )
                 }
+            }
+        }
+    }
+}
 
-                Spacer(modifier = Modifier.height(6.dp))
-
-                // Monthly Table Rows
-                val tz = TimeZone.of(state.location.timeZoneId)
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    items(state.monthlyRecords) { record ->
-                        val isToday = record.date == state.todayDate
-
-                        val fSubuh = record.fajr.toLocalDateTime(tz)
-                        val fDzuhur = record.dhuhr.toLocalDateTime(tz)
-                        val fAshar = record.asr.toLocalDateTime(tz)
-                        val fMaghrib = record.maghrib.toLocalDateTime(tz)
-                        val fIsya = record.isha.toLocalDateTime(tz)
-
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = if (isToday) {
-                                MaterialTheme.colorScheme.primaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-                            },
+@Composable
+private fun CompactScheduleList(
+    records: List<com.adzannotif.domain.model.PrayerTimeRecord>,
+    todayDate: kotlinx.datetime.LocalDate,
+    timeZoneId: String,
+    listState: androidx.compose.foundation.lazy.LazyListState,
+) {
+    val timeZone = TimeZone.of(timeZoneId)
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 16.dp),
+    ) {
+        items(records) { record ->
+            val isToday = record.date == todayDate
+            val times = listOf(
+                "Subuh" to record.fajr,
+                "Dzuhur" to record.dhuhr,
+                "Ashar" to record.asr,
+                "Maghrib" to record.maghrib,
+                "Isya" to record.isha,
+            )
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isToday) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+                    },
+                ),
+                elevation = CardDefaults.cardElevation(if (isToday) 2.dp else 0.dp),
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text(
+                        text = if (isToday) "${record.date.dayOfMonth} • Hari ini" else "${record.date.dayOfMonth}",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    times.chunked(2).forEach { rowTimes ->
+                        Row(
                             modifier = Modifier.fillMaxWidth(),
-                            shadowElevation = if (isToday) 2.dp else 0.dp
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 10.dp, horizontal = 6.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "${record.date.dayOfMonth}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = if (isToday) FontWeight.Bold else FontWeight.Medium,
-                                    modifier = Modifier.weight(0.8f),
-                                    textAlign = TextAlign.Center,
-                                    color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(String.format(Locale.US, "%02d:%02d", fSubuh.hour, fSubuh.minute), style = MaterialTheme.typography.bodyMedium, fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                                Text(String.format(Locale.US, "%02d:%02d", fDzuhur.hour, fDzuhur.minute), style = MaterialTheme.typography.bodyMedium, fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                                Text(String.format(Locale.US, "%02d:%02d", fAshar.hour, fAshar.minute), style = MaterialTheme.typography.bodyMedium, fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                                Text(String.format(Locale.US, "%02d:%02d", fMaghrib.hour, fMaghrib.minute), style = MaterialTheme.typography.bodyMedium, fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                                Text(String.format(Locale.US, "%02d:%02d", fIsya.hour, fIsya.minute), style = MaterialTheme.typography.bodyMedium, fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                            rowTimes.forEach { (label, instant) ->
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    val local = instant.toLocalDateTime(timeZone)
+                                    Text(
+                                        text = String.format(Locale.US, "%02d:%02d", local.hour, local.minute),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                }
+                            }
+                            if (rowTimes.size == 1) {
+                                Spacer(modifier = Modifier.weight(1f))
                             }
                         }
-                    }
-
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun MonthlyScheduleTable(
+    records: List<com.adzannotif.domain.model.PrayerTimeRecord>,
+    todayDate: kotlinx.datetime.LocalDate,
+    timeZoneId: String,
+    listState: androidx.compose.foundation.lazy.LazyListState,
+) {
+    val timeZone = TimeZone.of(timeZoneId)
+    Surface(
+        shape = RoundedCornerShape(10.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp, horizontal = 6.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            TableHeaderCell("Tgl", 0.8f)
+            TableHeaderCell("Subuh", 1f)
+            TableHeaderCell("Dzuhur", 1f)
+            TableHeaderCell("Ashar", 1f)
+            TableHeaderCell("Maghrib", 1f)
+            TableHeaderCell("Isya", 1f)
+        }
+    }
+
+    Spacer(modifier = Modifier.height(6.dp))
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 16.dp),
+    ) {
+        items(records) { record ->
+            val isToday = record.date == todayDate
+            val localTimes = listOf(record.fajr, record.dhuhr, record.asr, record.maghrib, record.isha)
+                .map { it.toLocalDateTime(timeZone) }
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = if (isToday) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                modifier = Modifier.fillMaxWidth(),
+                shadowElevation = if (isToday) 2.dp else 0.dp,
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp, horizontal = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    TableBodyCell("${record.date.dayOfMonth}", 0.8f, isToday)
+                    localTimes.forEach { local ->
+                        TableBodyCell(String.format(Locale.US, "%02d:%02d", local.hour, local.minute), 1f, isToday)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RowScope.TableHeaderCell(text: String, weight: Float) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelMedium,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.weight(weight),
+        textAlign = TextAlign.Center,
+    )
+}
+
+@Composable
+private fun RowScope.TableBodyCell(text: String, weight: Float, isToday: Boolean) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+        modifier = Modifier.weight(weight),
+        textAlign = TextAlign.Center,
+        color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+    )
 }

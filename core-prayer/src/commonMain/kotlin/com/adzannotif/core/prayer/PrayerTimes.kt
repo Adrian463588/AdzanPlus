@@ -11,7 +11,6 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.serialization.Serializable
 import kotlin.math.roundToLong
-import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -30,7 +29,7 @@ class PrayerTimes(
     val maghrib: Instant,
     val isha: Instant,
     val imsak: Instant,
-    val sunnahTimes: SunnahTimes = SunnahTimes.from(maghrib, fajr.plus(24.hours))
+    val sunnahTimes: SunnahTimes
 ) {
     /**
      * Returns the [Instant] corresponding to a specific [Prayer].

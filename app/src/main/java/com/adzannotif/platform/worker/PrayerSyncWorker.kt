@@ -13,7 +13,7 @@ import androidx.work.WorkerParameters
 import com.adzannotif.domain.repository.LocationRepository
 import com.adzannotif.domain.repository.PrayerTimesRepository
 import com.adzannotif.domain.repository.SettingsRepository
-import com.adzannotif.platform.alarm.AdhanScheduler
+import com.adzannotif.platform.alarm.AlarmScheduler
 import com.adzannotif.platform.alarm.CelestialAlarmScheduler
 import com.adzannotif.widget.MoonWidget
 import com.adzannotif.widget.SunWidget
@@ -37,7 +37,7 @@ class PrayerSyncWorker @AssistedInject constructor(
     private val prayerTimesRepository: PrayerTimesRepository,
     private val settingsRepository: SettingsRepository,
     private val locationRepository: LocationRepository,
-    private val adhanScheduler: AdhanScheduler,
+    private val alarmScheduler: AlarmScheduler,
     private val celestialAlarmScheduler: CelestialAlarmScheduler,
 ) : CoroutineWorker(appContext, workerParams) {
 
@@ -45,6 +45,7 @@ class PrayerSyncWorker @AssistedInject constructor(
         return try {
             Log.d(TAG, "Starting daily midnight prayer times sync and alarm reconciliation")
             val location = locationRepository.currentOrSelectedLocation.first()
+                ?: return Result.success()
             val settings = settingsRepository.userSettings.first()
             val today = Clock.System.now().toLocalDateTime(TimeZone.of(location.timeZoneId)).date
 
@@ -58,7 +59,7 @@ class PrayerSyncWorker @AssistedInject constructor(
 
             // Reconcile prayer alarms only when exact alarm access is available.
             // A denied permission is actionable but not a transient worker failure.
-            adhanScheduler.schedule().onFailure { error ->
+            alarmScheduler.schedule().onFailure { error ->
                 Log.w(TAG, "Prayer alarms were not scheduled during sync", error)
             }
 

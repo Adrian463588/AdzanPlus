@@ -1,5 +1,8 @@
 package com.adzannotif.presentation.settings
 
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,6 +48,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -70,14 +74,19 @@ import com.adzannotif.core.prayer.HighLatitudeRule
 import com.adzannotif.core.prayer.Madhab
 import com.adzannotif.core.prayer.Prayer
 import com.adzannotif.domain.model.AdhanVoice
+import com.adzannotif.domain.model.AlarmConfig
+import com.adzannotif.domain.model.CelestialAlertType
 import com.adzannotif.domain.model.LocationInfo
 import com.adzannotif.domain.model.ThemeMode
 import com.adzannotif.presentation.common.WindowWidthSizeClass
+import java.util.TimeZone
 
 private data class MethodItem(val method: CalculationMethod, val label: String)
 private data class RuleItem(val rule: HighLatitudeRule, val label: String)
 private data class PrayerAdjustmentItem(val prayer: Prayer, val name: String, val minutes: Int)
 private data class VoiceItem(val voice: AdhanVoice, val label: String)
+private data class CelestialAlertItem(val type: CelestialAlertType, val label: String, val enabled: Boolean)
+private data class PrayerAlarmItem(val prayer: Prayer, val label: String, val config: AlarmConfig)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,6 +96,23 @@ fun SettingsScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var customSoundPrayer by remember { mutableStateOf<Prayer?>(null) }
+    val audioPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        val prayer = customSoundPrayer
+        if (uri != null && prayer != null) {
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
+            }
+            viewModel.onAction(SettingsUiAction.SetCustomSound(prayer, uri.toString()))
+        }
+        customSoundPrayer = null
+    }
 
     Scaffold(
         topBar = {
@@ -142,13 +168,15 @@ fun SettingsScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
-                                    text = state.userSettings.selectedLocation.name,
+                                    text = state.userSettings.selectedLocation?.name ?: "Lokasi belum tersedia",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "${String.format(java.util.Locale.US, "%.4f", state.userSettings.selectedLocation.latitude)}°, ${String.format(java.util.Locale.US, "%.4f", state.userSettings.selectedLocation.longitude)}° • ${state.userSettings.selectedLocation.timeZoneId}",
+                                    text = state.userSettings.selectedLocation?.let { location ->
+                                        "${String.format(java.util.Locale.US, "%.4f", location.latitude)}°, ${String.format(java.util.Locale.US, "%.4f", location.longitude)}° • ${location.timeZoneId}"
+                                    } ?: "Pilih kota atau gunakan GPS untuk mengaktifkan perhitungan",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -333,6 +361,125 @@ fun SettingsScreen(
                 }
             }
 
+            // Prayer alarm controls
+            item {
+                Text(
+                    text = "NOTIFIKASI & ALARM SHOLAT",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                    shape = RoundedCornerShape(16.dp),
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Aktifkan pengingat dan pilih sumber audio yang tersedia.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        val alarmItems = Prayer.STANDARD_TIMELINE.map { prayer ->
+                            PrayerAlarmItem(
+                                prayer = prayer,
+                                label = prayer.displayNameId,
+                                config = state.alarmSettings.getConfigForPrayer(prayer),
+                            )
+                        }
+                        val voiceOptions = AdhanVoice.entries
+
+                        alarmItems.forEachIndexed { index, alarm ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = alarm.label,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                androidx.compose.material3.Switch(
+                                    checked = alarm.config.isEnabled,
+                                    onCheckedChange = { enabled ->
+                                        viewModel.onAction(SettingsUiAction.SetPrayerEnabled(alarm.prayer, enabled))
+                                    },
+                                )
+                            }
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(voiceOptions) { voice ->
+                                    FilterChip(
+                                        selected = alarm.config.adhanVoice == voice,
+                                        onClick = {
+                                            viewModel.onAction(SettingsUiAction.SetAdhanVoice(alarm.prayer, voice))
+                                        },
+                                        label = { Text(voice.title) },
+                                    )
+                                }
+                            }
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(listOf(0, 5, 10, 15)) { minutes ->
+                                    FilterChip(
+                                        selected = alarm.config.preReminderMinutes == minutes,
+                                        onClick = {
+                                            viewModel.onAction(SettingsUiAction.SetPreReminder(alarm.prayer, minutes))
+                                        },
+                                        label = {
+                                            Text(if (minutes == 0) "Tanpa pengingat" else "-${minutes} m")
+                                        },
+                                    )
+                                }
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = alarm.config.customSoundUri?.let { "Audio kustom tersimpan" }
+                                        ?: "Audio bawaan: ${alarm.config.adhanVoice.title}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    OutlinedButton(
+                                        onClick = {
+                                            customSoundPrayer = alarm.prayer
+                                            audioPicker.launch(arrayOf("audio/*"))
+                                        },
+                                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp),
+                                    ) {
+                                        Text("Pilih audio")
+                                    }
+                                    if (alarm.config.customSoundUri != null) {
+                                        IconButton(
+                                            onClick = {
+                                                viewModel.onAction(SettingsUiAction.SetCustomSound(alarm.prayer, null))
+                                            },
+                                        ) {
+                                            Icon(Icons.Default.Close, contentDescription = "Hapus audio kustom")
+                                        }
+                                    }
+                                }
+                            }
+                            if (index < alarmItems.lastIndex) {
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             // Per-Prayer Minute Adjustments
             item {
                 Text(
@@ -478,6 +625,109 @@ fun SettingsScreen(
                                         tint = if (isPlaying) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Celestial notification preferences
+            item {
+                Text(
+                    text = "NOTIFIKASI ASTRONOMI",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Pengingat event langit",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Hanya event yang dihitung engine nyata yang akan dijadwalkan.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        val celestialAlerts = listOf(
+                            CelestialAlertItem(
+                                CelestialAlertType.GOLDEN_HOUR_START,
+                                "Mulai Golden Hour",
+                                state.alarmSettings.celestialAlerts.goldenHourStart,
+                            ),
+                            CelestialAlertItem(
+                                CelestialAlertType.BLUE_HOUR_START,
+                                "Mulai Blue Hour",
+                                state.alarmSettings.celestialAlerts.blueHourStart,
+                            ),
+                            CelestialAlertItem(
+                                CelestialAlertType.MOONRISE,
+                                "Bulan terbit",
+                                state.alarmSettings.celestialAlerts.moonrise,
+                            ),
+                            CelestialAlertItem(
+                                CelestialAlertType.MOONSET,
+                                "Bulan terbenam",
+                                state.alarmSettings.celestialAlerts.moonset,
+                            ),
+                            CelestialAlertItem(
+                                CelestialAlertType.FULL_MOON,
+                                "Bulan purnama",
+                                state.alarmSettings.celestialAlerts.fullMoon,
+                            ),
+                            CelestialAlertItem(
+                                CelestialAlertType.NEW_MOON,
+                                "Bulan baru",
+                                state.alarmSettings.celestialAlerts.newMoon,
+                            ),
+                        )
+                        celestialAlerts.forEach { alert ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = alert.label,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                Switch(
+                                    checked = alert.enabled,
+                                    onCheckedChange = { enabled ->
+                                        viewModel.onAction(SettingsUiAction.SetCelestialAlert(alert.type, enabled))
+                                    },
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Ingatkan sebelum event",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(listOf(0, 5, 10, 15)) { minutes ->
+                                FilterChip(
+                                    selected = state.alarmSettings.celestialAlerts.minutesBefore == minutes,
+                                    onClick = {
+                                        viewModel.onAction(SettingsUiAction.SetCelestialAlertOffset(minutes))
+                                    },
+                                    label = { Text(if (minutes == 0) "Tepat waktu" else "${minutes} m") },
+                                )
                             }
                         }
                     }
@@ -733,7 +983,7 @@ private fun LocationPickerContent(
             ) {
                 items(state.favoriteLocations) { loc ->
                     InputChip(
-                        selected = state.userSettings.selectedLocation.id == loc.id,
+                        selected = state.userSettings.selectedLocation?.id == loc.id,
                         onClick = { onSelectLocation(loc) },
                         label = { Text(loc.name) },
                         trailingIcon = {
@@ -758,7 +1008,7 @@ private fun LocationPickerContent(
                     value = state.searchQuery,
                     onValueChange = onSearch,
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Cari kota di Indonesia atau Dunia...") },
+                    label = { Text("Cari kota offline...") },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     trailingIcon = {
                         if (state.isSearching) {
@@ -783,7 +1033,7 @@ private fun LocationPickerContent(
                                 .fillMaxWidth()
                                 .clickable { onSelectLocation(city) },
                             shape = RoundedCornerShape(8.dp),
-                            color = if (state.userSettings.selectedLocation.id == city.id) {
+                            color = if (state.userSettings.selectedLocation?.id == city.id) {
                                 MaterialTheme.colorScheme.primaryContainer
                             } else {
                                 Color.Transparent
@@ -807,7 +1057,7 @@ private fun LocationPickerContent(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
-                                if (state.userSettings.selectedLocation.id == city.id) {
+                                if (state.userSettings.selectedLocation?.id == city.id) {
                                     Icon(
                                         imageVector = Icons.Default.Check,
                                         contentDescription = "Terpilih",
@@ -839,7 +1089,7 @@ private fun LocationPickerContent(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "Deteksi Lokasi GPS Presisi",
+                        text = "Deteksi lokasi perangkat",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -877,8 +1127,8 @@ private fun LocationPickerContent(
                 var customName by remember { mutableStateOf("") }
                 var customLat by remember { mutableStateOf("") }
                 var customLng by remember { mutableStateOf("") }
-                var customElev by remember { mutableStateOf("10") }
-                var selectedTz by remember { mutableStateOf("Asia/Jakarta") }
+                var customElev by remember { mutableStateOf("") }
+                var selectedTz by remember { mutableStateOf(TimeZone.getDefault().id) }
 
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -942,12 +1192,17 @@ private fun LocationPickerContent(
 
                     Button(
                         onClick = {
-                            val lat = customLat.toDoubleOrNull() ?: 0.0
-                            val lng = customLng.toDoubleOrNull() ?: 0.0
-                            val elev = customElev.toDoubleOrNull() ?: 0.0
-                            onSaveCustomCoordinates(customName, lat, lng, elev, selectedTz)
+                            val lat = customLat.toDoubleOrNull()
+                            val lng = customLng.toDoubleOrNull()
+                            val elev = customElev.toDoubleOrNull()
+                            if (lat != null && lng != null && elev != null) {
+                                onSaveCustomCoordinates(customName, lat, lng, elev, selectedTz)
+                            }
                         },
-                        enabled = customLat.toDoubleOrNull() != null && customLng.toDoubleOrNull() != null,
+                        enabled = customLat.toDoubleOrNull()?.takeIf { it in -90.0..90.0 } != null &&
+                            customLng.toDoubleOrNull()?.takeIf { it in -180.0..180.0 } != null &&
+                            customElev.toDoubleOrNull() != null &&
+                            selectedTz in TimeZone.getAvailableIDs(),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     ) {

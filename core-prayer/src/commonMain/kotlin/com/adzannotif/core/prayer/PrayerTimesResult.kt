@@ -12,6 +12,9 @@ sealed interface PrayerTimesResult {
     data class Unavailable(val reason: PrayerTimesUnavailableReason) : PrayerTimesResult
 }
 
+/** Stable contract name used by shared/platform adapters. */
+typealias PrayerComputationResult = PrayerTimesResult
+
 enum class PrayerTimesUnavailableReason {
     SUNRISE_NOT_VISIBLE,
     SUNSET_NOT_VISIBLE,

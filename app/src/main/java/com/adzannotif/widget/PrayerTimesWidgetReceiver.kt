@@ -66,6 +66,10 @@ class PrayerTimesWidgetReceiver : AppWidgetProvider() {
         CoroutineScope(Dispatchers.Default).launch {
             try {
                 val location = locationRepository.currentOrSelectedLocation.first()
+                if (location == null) {
+                    updateUnavailableWidgets(context, appWidgetManager, appWidgetIds)
+                    return@launch
+                }
                 val nextInfo = getNextPrayerUseCase().first()
                 if (nextInfo == null) {
                     updateUnavailableWidgets(context, appWidgetManager, appWidgetIds)
