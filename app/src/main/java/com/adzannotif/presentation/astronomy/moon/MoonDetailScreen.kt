@@ -58,9 +58,13 @@ fun MoonDetailScreen(
                 title = {
                     val loc = uiState.location
                     Column {
-                        Text("Detail & Fase Bulan", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = AstronomyStarWhite)
                         Text(
-                    text = if (loc != null) "📍 ${loc.name} (${String.format(Locale.ROOT, "%.2f°", loc.latitude)}, ${String.format(Locale.ROOT, "%.2f°", loc.longitude)})" else "Fase, Iluminasi & Orbit",
+                            androidx.compose.ui.res.stringResource(com.adzannotif.R.string.moon_detail_title),
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            color = AstronomyStarWhite
+                        )
+                        Text(
+                            text = if (loc != null) "📍 ${loc.name} (${String.format(Locale.ROOT, "%.2f°", loc.latitude)}, ${String.format(Locale.ROOT, "%.2f°", loc.longitude)})" else androidx.compose.ui.res.stringResource(com.adzannotif.R.string.moon_detail_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             color = AstronomyTwilightCivil
                         )
@@ -70,7 +74,7 @@ fun MoonDetailScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Kembali",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.action_back),
                             tint = AstronomyStarWhite
                         )
                     }

@@ -54,9 +54,13 @@ fun StarMapScreen(
                 title = {
                     val loc = uiState.location
                     Column {
-                        Text("Peta Langit & Bintang", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = AstronomyStarWhite)
                         Text(
-                    text = if (loc != null) "📍 ${loc.name} (${String.format(Locale.ROOT, "%.2f°", loc.latitude)}, ${String.format(Locale.ROOT, "%.2f°", loc.longitude)})" else "Lokasi belum tersedia",
+                            androidx.compose.ui.res.stringResource(com.adzannotif.R.string.star_map_title),
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            color = AstronomyStarWhite
+                        )
+                        Text(
+                            text = if (loc != null) "📍 ${loc.name} (${String.format(Locale.ROOT, "%.2f°", loc.latitude)}, ${String.format(Locale.ROOT, "%.2f°", loc.longitude)})" else androidx.compose.ui.res.stringResource(com.adzannotif.R.string.star_map_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             color = AstronomyTwilightCivil
                         )
@@ -66,7 +70,7 @@ fun StarMapScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Kembali",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.action_back),
                             tint = AstronomyStarWhite
                         )
                     }
@@ -78,7 +82,7 @@ fun StarMapScreen(
                     }) {
                         Icon(
                             Icons.Filled.CenterFocusStrong,
-                            contentDescription = "Reset Posisi",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.action_reset_position),
                             tint = AstronomyStarWhite
                         )
                     }

@@ -57,12 +57,12 @@ fun AstronomyDashboardScreen(
                 title = {
                     Column {
                         Text(
-                            "Dashboard Astronomi",
+                            androidx.compose.ui.res.stringResource(com.adzannotif.R.string.astronomy_dashboard_title),
                             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                             color = AstronomyStarWhite
                         )
                         Text(
-                            "Pergerakan Matahari, Bulan & Bintang",
+                            androidx.compose.ui.res.stringResource(com.adzannotif.R.string.astronomy_dashboard_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             color = AstronomyTwilightCivil
                         )

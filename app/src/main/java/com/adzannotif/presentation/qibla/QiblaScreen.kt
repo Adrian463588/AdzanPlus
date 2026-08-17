@@ -62,6 +62,10 @@ import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
+import androidx.compose.ui.res.stringResource
+import com.adzannotif.R
+import kotlin.math.roundToInt
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QiblaScreen(
@@ -70,7 +74,7 @@ fun QiblaScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val motionEnabled = rememberMotionAnimationsEnabled()
-    val locationName = state.location?.name ?: "Lokasi belum tersedia"
+    val locationName = state.location?.name ?: stringResource(R.string.location_unavailable)
 
     val context = androidx.compose.ui.platform.LocalContext.current
     val view = androidx.compose.ui.platform.LocalView.current
@@ -111,12 +115,30 @@ fun QiblaScreen(
         label = "statusColor"
     )
 
+    val instructionText = when {
+        state.qiblaDirection == null -> stringResource(R.string.qibla_no_location)
+        !state.isSensorAvailable -> stringResource(R.string.qibla_no_sensor)
+        state.isFacingQibla -> stringResource(R.string.qibla_facing_kaaba)
+        else -> {
+            val offsetInt = state.shortestOffset.roundToInt()
+            if (offsetInt > 0) {
+                stringResource(R.string.qibla_turn_right, offsetInt)
+            } else {
+                stringResource(R.string.qibla_turn_left, kotlin.math.abs(offsetInt))
+            }
+        }
+    }
+
+    val bearingText = state.qiblaBearing?.let { bearing ->
+        stringResource(R.string.qibla_bearing_formatted, bearing, locationName)
+    } ?: stringResource(R.string.qibla_bearing_unavailable, locationName)
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Kompas Arah Kiblat",
+                        text = stringResource(R.string.qibla_compass_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -198,14 +220,12 @@ fun QiblaScreen(
 
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = state.turnInstruction,
+                                text = instructionText,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = state.qiblaBearing?.let { bearing ->
-                                    "Kiblat: ${String.format(java.util.Locale.US, "%.1f°", bearing)} ($locationName)"
-                                } ?: "Kiblat belum tersedia ($locationName)",
+                                text = bearingText,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

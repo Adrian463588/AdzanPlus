@@ -20,11 +20,14 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Stars
 import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.annotation.StringRes
+import com.adzannotif.R
 import com.adzannotif.shared.SharedRoute
 
 sealed class Screen(
     val route: String,
     val title: String,
+    @StringRes val titleRes: Int,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
 ) {
@@ -43,6 +46,7 @@ sealed class Screen(
     data object Home : Screen(
         route = SharedRoute.HOME.id,
         title = "Beranda",
+        titleRes = R.string.nav_home,
         selectedIcon = Icons.Filled.Home,
         unselectedIcon = Icons.Outlined.Home,
     )
@@ -50,6 +54,7 @@ sealed class Screen(
     data object Schedule : Screen(
         route = SharedRoute.SCHEDULE.id,
         title = "Jadwal",
+        titleRes = R.string.nav_schedule,
         selectedIcon = Icons.Filled.CalendarMonth,
         unselectedIcon = Icons.Outlined.CalendarMonth,
     )
@@ -57,6 +62,7 @@ sealed class Screen(
     data object Qibla : Screen(
         route = SharedRoute.QIBLA.id,
         title = "Kiblat",
+        titleRes = R.string.nav_qibla,
         selectedIcon = Icons.Filled.Explore,
         unselectedIcon = Icons.Outlined.Explore,
     )
@@ -64,6 +70,7 @@ sealed class Screen(
     data object Settings : Screen(
         route = SharedRoute.SETTINGS.id,
         title = "Pengaturan",
+        titleRes = R.string.nav_settings,
         selectedIcon = Icons.Filled.Settings,
         unselectedIcon = Icons.Outlined.Settings,
     )
@@ -71,6 +78,7 @@ sealed class Screen(
     data object AstronomyDashboard : Screen(
         route = SharedRoute.ASTRONOMY.id,
         title = "Astronomi",
+        titleRes = R.string.nav_astronomy,
         selectedIcon = Icons.Filled.AutoAwesome,
         unselectedIcon = Icons.Outlined.AutoAwesome,
     )
@@ -78,6 +86,7 @@ sealed class Screen(
     data object MoonDetail : Screen(
         route = "moon_detail",
         title = "Bulan",
+        titleRes = R.string.moon_detail_title,
         selectedIcon = Icons.Filled.NightsStay,
         unselectedIcon = Icons.Outlined.NightsStay,
     )
@@ -85,6 +94,7 @@ sealed class Screen(
     data object SunDetail : Screen(
         route = "sun_detail",
         title = "Matahari",
+        titleRes = R.string.sun_detail_title,
         selectedIcon = Icons.Filled.WbSunny,
         unselectedIcon = Icons.Outlined.WbSunny,
     )
@@ -92,6 +102,7 @@ sealed class Screen(
     data object StarMap : Screen(
         route = "star_map",
         title = "Peta Bintang",
+        titleRes = R.string.star_map_title,
         selectedIcon = Icons.Filled.Stars,
         unselectedIcon = Icons.Outlined.Stars,
     )
@@ -99,6 +110,7 @@ sealed class Screen(
     data object HijriCalendar : Screen(
         route = "hijri_calendar",
         title = "Kalender Hijriah",
+        titleRes = R.string.hijri_calendar_title,
         selectedIcon = Icons.Filled.Event,
         unselectedIcon = Icons.Outlined.Event,
     )

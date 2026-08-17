@@ -28,6 +28,8 @@ import com.adzannotif.presentation.theme.AstronomyMoonGold
 import com.adzannotif.presentation.theme.AstronomyStarWhite
 import com.adzannotif.presentation.theme.AstronomyTwilightCivil
 
+import androidx.compose.ui.res.stringResource
+
 enum class WindowWidthSizeClass {
     COMPACT,
     MEDIUM,
@@ -74,16 +76,17 @@ fun AdaptiveScaffold(
                     ) {
                         Screen.items.forEach { screen ->
                             val selected = screen.matchesRoute(currentRoute)
+                            val title = stringResource(screen.titleRes)
                             NavigationBarItem(
                                 selected = selected,
                                 onClick = { onNavigate(screen) },
                                 icon = {
                                     Icon(
                                         imageVector = if (selected) screen.selectedIcon else screen.unselectedIcon,
-                                        contentDescription = screen.title
+                                        contentDescription = title
                                     )
                                 },
-                                label = { Text(screen.title) },
+                                label = { Text(title) },
                                 colors = if (isAstronomyRoute) {
                                     NavigationBarItemDefaults.colors(
                                         indicatorColor = AstronomyMoonGold.copy(alpha = 0.2f),
@@ -124,16 +127,17 @@ fun AdaptiveScaffold(
                 ) {
                     Screen.items.forEach { screen ->
                         val selected = screen.matchesRoute(currentRoute)
+                        val title = stringResource(screen.titleRes)
                         NavigationRailItem(
                             selected = selected,
                             onClick = { onNavigate(screen) },
                             icon = {
                                 Icon(
                                     imageVector = if (selected) screen.selectedIcon else screen.unselectedIcon,
-                                    contentDescription = screen.title
+                                    contentDescription = title
                                 )
                             },
-                            label = { Text(screen.title) },
+                            label = { Text(title) },
                             alwaysShowLabel = widthClass == WindowWidthSizeClass.EXPANDED,
                             colors = if (isAstronomyRoute) {
                                 NavigationRailItemDefaults.colors(

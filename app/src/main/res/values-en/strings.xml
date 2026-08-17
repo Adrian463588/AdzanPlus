@@ -163,4 +163,42 @@
     <string name="golden_hour_title">Golden Hour</string>
     <string name="sun_card_morning">Morning: %1$s • Evening: %2$s</string>
     <string name="action_astronomy">Astronomy Dashboard</string>
+
+    <!-- Navigation Bar Labels -->
+    <string name="nav_home">Home</string>
+    <string name="nav_schedule">Schedule</string>
+    <string name="nav_qibla">Qibla</string>
+    <string name="nav_astronomy">Astronomy</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Schedule Screen -->
+    <string name="schedule_monthly_title">Monthly Prayer Timetable</string>
+    <string name="schedule_prev_month">Previous Month</string>
+    <string name="schedule_next_month">Next Month</string>
+    <string name="schedule_days_count">%1$s Days</string>
+    <string name="schedule_location_unavailable">Location unavailable. Choose an offline city or enable GPS.</string>
+
+    <!-- Qibla Screen -->
+    <string name="qibla_compass_title">Qibla Direction Compass</string>
+    <string name="qibla_facing_kaaba">Perfect! You are facing the Ka\'bah</string>
+    <string name="qibla_turn_right">Turn %1$d° Right</string>
+    <string name="qibla_turn_left">Turn %1$d° Left</string>
+    <string name="qibla_bearing_formatted">Qibla: %1$.1f° (%2$s)</string>
+    <string name="qibla_bearing_unavailable">Qibla unavailable (%1$s)</string>
+    <string name="qibla_no_location">Location not available for Qibla calculation</string>
+    <string name="qibla_no_sensor">Compass sensor not detected on this device</string>
+
+    <!-- Astronomy Screen Titles & Subtitles -->
+    <string name="astronomy_dashboard_title">Astronomy Dashboard</string>
+    <string name="astronomy_dashboard_subtitle">Sun, Moon &amp; Star Celestial Motion</string>
+    <string name="moon_detail_title">Moon Details &amp; Phases</string>
+    <string name="moon_detail_subtitle">Phases, Illumination &amp; Orbit</string>
+    <string name="sun_detail_title">Sun Details &amp; Photography</string>
+    <string name="sun_detail_subtitle">Solar Altitude &amp; Twilight Angles</string>
+    <string name="star_map_title">Star Map</string>
+    <string name="star_map_subtitle">Zenith 2D Polar Projection</string>
+    <string name="hijri_calendar_title">Hijri &amp; Gregorian Calendar</string>
+    <string name="hijri_calendar_subtitle">Daily Prayer Times &amp; Moon Phases</string>
+    <string name="action_back">Back</string>
+    <string name="action_reset_position">Reset Position</string>
 </resources>

@@ -163,4 +163,42 @@
     <string name="golden_hour_title">Golden Hour</string>
     <string name="sun_card_morning">Pagi: %1$s • Sore: %2$s</string>
     <string name="action_astronomy">Dashboard Astronomi</string>
+
+    <!-- Navigation Bar Labels -->
+    <string name="nav_home">Beranda</string>
+    <string name="nav_schedule">Jadwal</string>
+    <string name="nav_qibla">Kiblat</string>
+    <string name="nav_astronomy">Astronomi</string>
+    <string name="nav_settings">Pengaturan</string>
+
+    <!-- Schedule Screen -->
+    <string name="schedule_monthly_title">Jadwal Sholat Bulanan</string>
+    <string name="schedule_prev_month">Bulan Sebelumnya</string>
+    <string name="schedule_next_month">Bulan Berikutnya</string>
+    <string name="schedule_days_count">%1$s Hari</string>
+    <string name="schedule_location_unavailable">Lokasi belum tersedia. Pilih kota offline atau izinkan lokasi perangkat.</string>
+
+    <!-- Qibla Screen -->
+    <string name="qibla_compass_title">Kompas Arah Kiblat</string>
+    <string name="qibla_facing_kaaba">Sempurna! Anda menghadap tepat ke Ka\'bah</string>
+    <string name="qibla_turn_right">Putar %1$d° ke Kanan</string>
+    <string name="qibla_turn_left">Putar %1$d° ke Kiri</string>
+    <string name="qibla_bearing_formatted">Kiblat: %1$.1f° (%2$s)</string>
+    <string name="qibla_bearing_unavailable">Kiblat belum tersedia (%1$s)</string>
+    <string name="qibla_no_location">Lokasi belum tersedia untuk menghitung arah kiblat</string>
+    <string name="qibla_no_sensor">Sensor Kompas tidak terdeteksi pada perangkat ini</string>
+
+    <!-- Astronomy Screen Titles & Subtitles -->
+    <string name="astronomy_dashboard_title">Dashboard Astronomi</string>
+    <string name="astronomy_dashboard_subtitle">Pergerakan Matahari, Bulan &amp; Bintang</string>
+    <string name="moon_detail_title">Detail &amp; Fase Bulan</string>
+    <string name="moon_detail_subtitle">Fase, Iluminasi &amp; Orbit</string>
+    <string name="sun_detail_title">Detail Matahari &amp; Fotografi</string>
+    <string name="sun_detail_subtitle">Elevasi Fisik &amp; Hisab Cahaya</string>
+    <string name="star_map_title">Peta Bintang</string>
+    <string name="star_map_subtitle">Zenith 2D Polar Projection</string>
+    <string name="hijri_calendar_title">Kalender Hijriah &amp; Masehi</string>
+    <string name="hijri_calendar_subtitle">Waktu Shalat &amp; Fase Bulan Harian</string>
+    <string name="action_back">Kembali</string>
+    <string name="action_reset_position">Reset Posisi</string>
 </resources>

@@ -33,6 +33,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -43,6 +44,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.adzannotif.presentation.common.WindowWidthSizeClass
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import androidx.compose.ui.res.stringResource
+import com.adzannotif.R
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,10 +59,10 @@ fun ScheduleScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
-    val monthNames = listOf(
-        "", "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-    )
+    val monthYearText = remember(state.currentYear, state.currentMonth) {
+        YearMonth.of(state.currentYear, state.currentMonth)
+            .format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()))
+    }
 
     LaunchedEffect(state.monthlyRecords) {
         val todayIndex = state.monthlyRecords.indexOfFirst { it.date == state.todayDate }
@@ -71,7 +76,7 @@ fun ScheduleScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Jadwal Sholat Bulanan",
+                        text = stringResource(R.string.schedule_monthly_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -103,7 +108,7 @@ fun ScheduleScreen(
             ) {
                 Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                     Text(
-                        text = "Lokasi belum tersedia. Pilih kota offline atau izinkan lokasi perangkat.",
+                        text = stringResource(R.string.schedule_location_unavailable),
                         modifier = Modifier.padding(20.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -111,6 +116,7 @@ fun ScheduleScreen(
             }
         } else {
             val location = checkNotNull(state.location)
+            val daysCountText = stringResource(R.string.schedule_days_count, state.monthlyRecords.size)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -137,18 +143,18 @@ fun ScheduleScreen(
                         IconButton(onClick = { viewModel.onPreviousMonth() }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Bulan Sebelumnya"
+                                contentDescription = stringResource(R.string.schedule_prev_month)
                             )
                         }
 
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = "${monthNames[state.currentMonth]} ${state.currentYear}",
+                                text = monthYearText,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "${location.name} • ${state.monthlyRecords.size} Hari",
+                                text = "${location.name} • $daysCountText",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
                             )
@@ -157,7 +163,7 @@ fun ScheduleScreen(
                         IconButton(onClick = { viewModel.onNextMonth() }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                contentDescription = "Bulan Berikutnya"
+                                contentDescription = stringResource(R.string.schedule_next_month)
                             )
                         }
                     }

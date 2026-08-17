@@ -125,13 +125,32 @@ class MainActivity : ComponentActivity() {
                 AdaptiveScaffold(
                     currentRoute = currentRoute,
                     onNavigate = { screen ->
-                        if (currentRoute != screen.route) {
-                            navController.navigate(screen.route) {
-                                popUpTo(Screen.Home.route) {
-                                    saveState = true
+                        if (screen == Screen.Home) {
+                            if (currentRoute != Screen.Home.route) {
+                                navController.navigate(Screen.Home.route) {
+                                    popUpTo(Screen.Home.route) {
+                                        inclusive = true
+                                    }
+                                    launchSingleTop = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
+                            }
+                        } else if (screen == Screen.AstronomyDashboard) {
+                            if (currentRoute != Screen.AstronomyDashboard.route) {
+                                navController.navigate(Screen.AstronomyDashboard.route) {
+                                    popUpTo(Screen.Home.route) {
+                                        saveState = false
+                                    }
+                                    launchSingleTop = true
+                                }
+                            }
+                        } else {
+                            if (currentRoute != screen.route) {
+                                navController.navigate(screen.route) {
+                                    popUpTo(Screen.Home.route) {
+                                        saveState = false
+                                    }
+                                    launchSingleTop = true
+                                }
                             }
                         }
                     }

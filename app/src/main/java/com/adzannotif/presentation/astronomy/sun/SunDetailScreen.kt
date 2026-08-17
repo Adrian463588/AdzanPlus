@@ -53,9 +53,13 @@ fun SunDetailScreen(
                 title = {
                     val loc = uiState.location
                     Column {
-                        Text("Detail Matahari & Fotografi", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = AstronomyStarWhite)
                         Text(
-                    text = if (loc != null) "📍 ${loc.name} (${String.format(Locale.ROOT, "%.2f°", loc.latitude)}, ${String.format(Locale.ROOT, "%.2f°", loc.longitude)})" else "Elevasi Fisik & Hisab Cahaya",
+                            androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_detail_title),
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            color = AstronomyStarWhite
+                        )
+                        Text(
+                            text = if (loc != null) "📍 ${loc.name} (${String.format(Locale.ROOT, "%.2f°", loc.latitude)}, ${String.format(Locale.ROOT, "%.2f°", loc.longitude)})" else androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_detail_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             color = AstronomyTwilightCivil
                         )
@@ -65,7 +69,7 @@ fun SunDetailScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Kembali",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.action_back),
                             tint = AstronomyStarWhite
                         )
                     }
