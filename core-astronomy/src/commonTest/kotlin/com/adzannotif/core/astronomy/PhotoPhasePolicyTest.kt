@@ -127,6 +127,37 @@ class PhotoPhasePolicyTest {
         assertAltitudeNear(-7.7956, 110.3695, morningGolden.endMillis, PhotoPhasePolicy.GOLDEN_HOUR_HIGH_DEG)
     }
 
+    @Test
+    fun windowsRemainOnSelectedCivilDateAcrossDstTransition() {
+        val timeZone = TimeZone.of("America/New_York")
+        val selectedDate = LocalDate(2026, 3, 8)
+        val dateMillis = LocalDateTime(2026, 3, 8, 12, 0)
+            .toInstant(timeZone)
+            .toEpochMilliseconds()
+
+        val result = PhotoPhasePolicy.computeGoldenBlueHour(
+            lat = 40.7128,
+            lon = -74.0060,
+            dateMillis = dateMillis,
+            timeZone = timeZone,
+        )
+        val windows = listOfNotNull(
+            result.morningBlueHour,
+            result.morningGoldenHour,
+            result.eveningGoldenHour,
+            result.eveningBlueHour,
+        )
+
+        assertEquals(4, windows.size)
+        windows.flatMap { listOf(it.startMillis, it.endMillis) }.forEach { eventMillis ->
+            assertEquals(
+                selectedDate,
+                Instant.fromEpochMilliseconds(eventMillis).toLocalDateTime(timeZone).date,
+            )
+        }
+        assertTrue(windows.zipWithNext().all { (current, next) -> current.endMillis <= next.startMillis })
+    }
+
     private fun assertAltitudeNear(lat: Double, lon: Double, epochMillis: Long, expected: Double) {
         val actual = com.adzannotif.core.astronomy.internal.SunMath
             .computeSunPosition(lat, lon, 0.0, epochMillis)

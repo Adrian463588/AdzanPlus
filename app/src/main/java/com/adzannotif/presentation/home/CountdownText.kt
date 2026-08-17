@@ -7,5 +7,5 @@ internal fun formatCountdown(secondsRemaining: Long): String {
     val hours = safeSeconds / 3_600L
     val minutes = (safeSeconds % 3_600L) / 60L
     val seconds = safeSeconds % 60L
-    return String.format(Locale.ROOT, "-%02d:%02d:%02d", hours, minutes, seconds)
+    return String.format(Locale.ROOT, "%02d:%02d:%02d", hours, minutes, seconds)
 }
