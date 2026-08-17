@@ -37,6 +37,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -759,28 +760,44 @@ fun SettingsScreen(
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
+                        Text(
+                            text = "Pilih mode warna aplikasi",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        val themeModeChipColors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                        LazyRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            FilterChip(
-                                selected = state.userSettings.themeMode == ThemeMode.SYSTEM,
-                                onClick = { viewModel.onAction(SettingsUiAction.SetThemeMode(ThemeMode.SYSTEM)) },
-                                label = { Text("Sistem") },
-                                modifier = Modifier.weight(1f)
-                            )
-                            FilterChip(
-                                selected = state.userSettings.themeMode == ThemeMode.LIGHT,
-                                onClick = { viewModel.onAction(SettingsUiAction.SetThemeMode(ThemeMode.LIGHT)) },
-                                label = { Text("Terang") },
-                                modifier = Modifier.weight(1f)
-                            )
-                            FilterChip(
-                                selected = state.userSettings.themeMode == ThemeMode.DARK,
-                                onClick = { viewModel.onAction(SettingsUiAction.SetThemeMode(ThemeMode.DARK)) },
-                                label = { Text("Gelap") },
-                                modifier = Modifier.weight(1f)
-                            )
+                            item {
+                                FilterChip(
+                                    selected = state.userSettings.themeMode == ThemeMode.SYSTEM,
+                                    onClick = { viewModel.onAction(SettingsUiAction.SetThemeMode(ThemeMode.SYSTEM)) },
+                                    label = { Text("Sistem") },
+                                    colors = themeModeChipColors,
+                                )
+                            }
+                            item {
+                                FilterChip(
+                                    selected = state.userSettings.themeMode == ThemeMode.LIGHT,
+                                    onClick = { viewModel.onAction(SettingsUiAction.SetThemeMode(ThemeMode.LIGHT)) },
+                                    label = { Text("Terang") },
+                                    colors = themeModeChipColors,
+                                )
+                            }
+                            item {
+                                FilterChip(
+                                    selected = state.userSettings.themeMode == ThemeMode.DARK,
+                                    onClick = { viewModel.onAction(SettingsUiAction.SetThemeMode(ThemeMode.DARK)) },
+                                    label = { Text("Gelap") },
+                                    colors = themeModeChipColors,
+                                )
+                            }
                         }
                     }
                 }

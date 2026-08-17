@@ -4,6 +4,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.snap
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,7 +52,13 @@ fun AdaptiveScaffold(
         label = "navBarContainerColor"
     )
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                if (isAstronomyRoute) AstronomyBackgroundDeep else MaterialTheme.colorScheme.background
+            )
+    ) {
         val widthClass = when {
             maxWidth < 600.dp -> WindowWidthSizeClass.COMPACT
             maxWidth < 840.dp -> WindowWidthSizeClass.MEDIUM

@@ -8,10 +8,14 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.SideEffect
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -32,6 +36,7 @@ import com.adzannotif.presentation.astronomy.sun.SunDetailScreen
 import com.adzannotif.presentation.astronomy.moon.MoonDetailScreen
 import com.adzannotif.presentation.astronomy.starmap.StarMapScreen
 import com.adzannotif.presentation.astronomy.calendar.HijriCalendarScreen
+import com.adzannotif.presentation.theme.AstronomyBackgroundDeep
 import com.adzannotif.platform.alarm.AlarmScheduler
 import com.adzannotif.presentation.theme.AdzanNotifTheme
 import com.adzannotif.widget.PrayerTimesWidgetReceiver
@@ -58,7 +63,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         requestAppPermissions()
 
         setContent {
@@ -70,6 +74,33 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route ?: Screen.Home.route
+                val astronomyRoute = currentRoute == Screen.AstronomyDashboard.route ||
+                    currentRoute == Screen.MoonDetail.route ||
+                    currentRoute == Screen.SunDetail.route ||
+                    currentRoute == Screen.StarMap.route ||
+                    currentRoute == Screen.HijriCalendar.route
+                val darkTheme = when (userSettings.themeMode) {
+                    com.adzannotif.domain.model.ThemeMode.SYSTEM -> isSystemInDarkTheme()
+                    com.adzannotif.domain.model.ThemeMode.LIGHT -> false
+                    com.adzannotif.domain.model.ThemeMode.DARK -> true
+                }
+                val systemBarColor = if (astronomyRoute) {
+                    AstronomyBackgroundDeep
+                } else {
+                    MaterialTheme.colorScheme.background
+                }
+                val view = LocalView.current
+                if (!view.isInEditMode) {
+                    SideEffect {
+                        val window = this@MainActivity.window
+                        val useLightIcons = !astronomyRoute && !darkTheme
+                        window.statusBarColor = systemBarColor.toArgb()
+                        window.navigationBarColor = systemBarColor.toArgb()
+                        val controller = androidx.core.view.WindowCompat.getInsetsController(window, view)
+                        controller.isAppearanceLightStatusBars = useLightIcons
+                        controller.isAppearanceLightNavigationBars = useLightIcons
+                    }
+                }
 
                 AdaptiveScaffold(
                     currentRoute = currentRoute,

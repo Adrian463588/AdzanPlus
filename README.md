@@ -13,7 +13,11 @@
 
 > Capture perangkat nyata — Android device `QSWSEMRKNFZ9LJRC`, 1220×2712, 17 Agustus 2026. Data astronomi pada capture memakai lokasi GPS terpilih dan timezone lokasi; tidak menggunakan preview sintetis.
 
-![Live astronomy dashboard](docs/screenshots/live_astronomy_fixed.png)
+| Home — tema terang | Tampilan & Tema — tema terang | Astronomy — lokasi Terban |
+|:---:|:---:|:---:|
+| ![Live home light theme](docs/screenshots/live_home_device.png) | ![Live appearance selector light theme](docs/screenshots/live_settings_theme_device.png) | ![Live astronomy dashboard](docs/screenshots/live_astronomy_device.png) |
+
+Capture di atas diambil setelah build debug terbaru dipasang ke perangkat; kartu astronomi memakai lokasi Terban dan timezone `Asia/Jakarta` dari state aplikasi.
 
 ### Layanan Utama Sholat & Kiblat
 | Beranda (Home & Countdown) | Jadwal Bulanan (30-Day Schedule) | Kompas Arah Kiblat (Qibla) | Pengaturan & Hisab (Settings) |

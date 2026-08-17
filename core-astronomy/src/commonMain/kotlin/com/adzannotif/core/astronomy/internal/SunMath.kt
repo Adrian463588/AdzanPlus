@@ -102,23 +102,18 @@ public object SunMath {
         dateMillis: Long,
         timeZone: TimeZone = TimeZone.UTC,
     ): Long {
-        val localMidnight = startOfDay(dateMillis, timeZone)
         val localDate = Instant
-            .fromEpochMilliseconds(localMidnight)
+            .fromEpochMilliseconds(dateMillis)
             .toLocalDateTime(timeZone)
             .date
-        val utcFields = localDate.atTime(0, 0).toInstant(TimeZone.UTC)
-        val zoneOffsetMinutes = (
-            utcFields.epochSeconds - Instant.fromEpochMilliseconds(localMidnight).epochSeconds
-            ) / 60.0
-        // startOfDay is already the selected civil date's local midnight.
-        // Apply the difference between the timezone meridian and longitude;
-        // subtracting longitude alone shifts every non-UTC location by its
-        // full timezone offset.
-        var approx = localMidnight + 43200000L +
-            ((zoneOffsetMinutes - lon * 4.0) * 60000.0).toLong()
+        val localNoon = localDate.atTime(12, 0).toInstant(timeZone).toEpochMilliseconds()
+        // Start from the selected civil date's local noon. This remains valid
+        // when a DST transition changes the offset between midnight and noon.
+        var approx = localNoon +
+            ((zoneOffsetMinutesAt(localNoon, timeZone) - lon * 4.0) * 60000.0).toLong()
         // Simple convergence
         for (i in 0..2) {
+            val zoneOffsetMinutes = zoneOffsetMinutesAt(approx, timeZone)
             val jd = julianDay(approx)
             val t = julianCentury(jd)
             val l0 = (280.46646 + t * (36000.76983 + t * 0.0003032)).unwindAngle()
@@ -135,7 +130,7 @@ public object SunMath {
                          1.25 * e * e * sin(2.0 * m.toRadians())
                          
             val eqTimeMins = eqTime.toDegrees() * 4.0
-            approx = localMidnight + 43200000L +
+            approx = localNoon +
                 ((zoneOffsetMinutes - lon * 4.0) * 60000.0).toLong() -
                 (eqTimeMins * 60000L).toLong()
         }
@@ -189,8 +184,9 @@ public object SunMath {
         return if (isRising) noon - offset else noon + offset
     }
 
-    private fun startOfDay(millis: Long, timeZone: TimeZone): Long {
-        val localDate = Instant.fromEpochMilliseconds(millis).toLocalDateTime(timeZone).date
-        return localDate.atTime(0, 0).toInstant(timeZone).toEpochMilliseconds()
+    private fun zoneOffsetMinutesAt(epochMillis: Long, timeZone: TimeZone): Double {
+        val localDateTime = Instant.fromEpochMilliseconds(epochMillis).toLocalDateTime(timeZone)
+        val localAsUtc = localDateTime.toInstant(TimeZone.UTC)
+        return (localAsUtc.epochSeconds - epochMillis / 1000L) / 60.0
     }
 }

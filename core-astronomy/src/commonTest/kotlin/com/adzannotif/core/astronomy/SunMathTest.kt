@@ -5,6 +5,9 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 import kotlin.test.assertNotNull
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.atTime
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.Instant
 
@@ -63,5 +66,18 @@ class SunMathTest {
         assertTrue(sunriseHour in 5..7, "Sunrise must be morning in Asia/Jakarta")
         assertTrue(noonHour in 11..13, "Solar noon must be around midday in Asia/Jakarta")
         assertTrue(sunsetHour in 16..18, "Sunset must be afternoon in Asia/Jakarta")
+    }
+
+    @Test
+    fun testSolarNoonUsesOffsetAtNoonAcrossDstTransition() {
+        val timeZone = TimeZone.of("America/New_York")
+        val dateMillis = LocalDate(2026, 3, 8)
+            .atTime(12, 0)
+            .toInstant(timeZone)
+            .toEpochMilliseconds()
+        val noon = SunMath.computeSolarNoon(40.7128, -74.0060, dateMillis, timeZone)
+        val localHour = Instant.fromEpochMilliseconds(noon).toLocalDateTime(timeZone).time.hour
+
+        assertTrue(localHour in 11..13, "Solar noon must remain near local midday on DST transition")
     }
 }

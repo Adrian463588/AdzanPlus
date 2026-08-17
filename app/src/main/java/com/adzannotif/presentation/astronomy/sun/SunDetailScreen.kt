@@ -121,7 +121,11 @@ fun SunDetailScreen(
                 }
 
                 item {
-                    GoldenBlueHourDetailCards(sunInfo, location.timeZoneId)
+                    GoldenBlueHourDetailCards(
+                        sunInfo = sunInfo,
+                        timeZoneId = location.timeZoneId,
+                        widthSizeClass = widthSizeClass,
+                    )
                 }
 
                 item {
@@ -338,7 +342,11 @@ fun PhysicallyAccurateSunArc(
 }
 
 @Composable
-fun GoldenBlueHourDetailCards(sunInfo: SunInfo?, timeZoneId: String? = null) {
+fun GoldenBlueHourDetailCards(
+    sunInfo: SunInfo?,
+    timeZoneId: String? = null,
+    widthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.COMPACT,
+) {
     val fmt = SimpleDateFormat("HH:mm", Locale.ROOT).apply {
         timeZoneId?.let { timeZone = TimeZone.getTimeZone(it) }
     }
@@ -350,9 +358,10 @@ fun GoldenBlueHourDetailCards(sunInfo: SunInfo?, timeZoneId: String? = null) {
         }
     }
 
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    @Composable
+    fun GoldenHourCard(modifier: Modifier) {
         Card(
-            modifier = Modifier.weight(1f),
+            modifier = modifier,
             colors = CardDefaults.cardColors(containerColor = AstronomySurface),
             shape = RoundedCornerShape(16.dp),
             border = androidx.compose.foundation.BorderStroke(1.dp, AstronomyGoldenHour.copy(alpha = 0.4f))
@@ -369,9 +378,12 @@ fun GoldenBlueHourDetailCards(sunInfo: SunInfo?, timeZoneId: String? = null) {
                 Text("Sore: ${formatWindow(sunInfo?.eveningGoldenHourStartMillis, sunInfo?.eveningGoldenHourEndMillis)}", color = AstronomyStarWhite, style = MaterialTheme.typography.bodySmall)
             }
         }
+    }
 
+    @Composable
+    fun BlueHourCard(modifier: Modifier) {
         Card(
-            modifier = Modifier.weight(1f),
+            modifier = modifier,
             colors = CardDefaults.cardColors(containerColor = AstronomySurface),
             shape = RoundedCornerShape(16.dp),
             border = androidx.compose.foundation.BorderStroke(1.dp, AstronomyBlueHour.copy(alpha = 0.4f))
@@ -387,6 +399,24 @@ fun GoldenBlueHourDetailCards(sunInfo: SunInfo?, timeZoneId: String? = null) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text("Sore: ${formatWindow(sunInfo?.eveningBlueHourStartMillis, sunInfo?.eveningBlueHourEndMillis)}", color = AstronomyStarWhite, style = MaterialTheme.typography.bodySmall)
             }
+        }
+    }
+
+    if (widthSizeClass == WindowWidthSizeClass.COMPACT) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            GoldenHourCard(Modifier.fillMaxWidth())
+            BlueHourCard(Modifier.fillMaxWidth())
+        }
+    } else {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            GoldenHourCard(Modifier.weight(1f))
+            BlueHourCard(Modifier.weight(1f))
         }
     }
 }

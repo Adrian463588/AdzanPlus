@@ -41,6 +41,7 @@ class AstronomyRepositoryImpl @Inject constructor(
         val cache = day.cache
         emit(
             SunInfo(
+                calculationEpochMillis = epochMillis,
                 riseMillis = cache?.sunriseMillis ?: state.riseMillis,
                 setMillis = cache?.sunsetMillis ?: state.setMillis,
                 noonMillis = cache?.solarNoonMillis ?: state.noonMillis,

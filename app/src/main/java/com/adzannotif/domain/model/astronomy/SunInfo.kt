@@ -2,6 +2,8 @@ package com.adzannotif.domain.model.astronomy
 
 // Domain model wrapping core-astronomy SunState for app use
 data class SunInfo(
+    /** Epoch used to resolve the selected civil date in the location timezone. */
+    val calculationEpochMillis: Long = 0L,
     val riseMillis: Long?,
     val setMillis: Long?,
     val noonMillis: Long?,

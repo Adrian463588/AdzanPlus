@@ -31,8 +31,6 @@ import com.adzannotif.presentation.theme.AstronomyTwilightNautical
 import java.util.Calendar
 import java.util.TimeZone
 
-private const val DAY_MILLIS = 24 * 60 * 60 * 1000L
-
 /**
  * Renders the actual solar event windows for the selected local date.
  * Missing events leave the relevant segment unavailable instead of drawing a
@@ -64,12 +62,24 @@ fun SolarEventTimeline(
         )
         return
     }
+    val referenceMillis = sunInfo.calculationEpochMillis
+        .takeIf { it != 0L }
+        ?: sunInfo.noonMillis
+        ?: sunInfo.riseMillis
+        ?: sunInfo.setMillis
+        ?: return
     val localMidnight = Calendar.getInstance(timeZone).apply {
+        timeInMillis = referenceMillis
         set(Calendar.HOUR_OF_DAY, 0)
         set(Calendar.MINUTE, 0)
         set(Calendar.SECOND, 0)
         set(Calendar.MILLISECOND, 0)
     }.timeInMillis
+    val nextLocalMidnight = Calendar.getInstance(timeZone).apply {
+        timeInMillis = localMidnight
+        add(Calendar.DAY_OF_YEAR, 1)
+    }.timeInMillis
+    val localDayDuration = (nextLocalMidnight - localMidnight).coerceAtLeast(1L)
 
     androidx.compose.foundation.layout.Column(modifier = modifier.fillMaxWidth()) {
         Text(
@@ -97,7 +107,7 @@ fun SolarEventTimeline(
             )
 
             fun x(epochMillis: Long): Float =
-                ((epochMillis - localMidnight).toDouble() / DAY_MILLIS)
+                ((epochMillis - localMidnight).toDouble() / localDayDuration)
                     .toFloat()
                     .coerceIn(0f, 1f)
 
@@ -118,12 +128,14 @@ fun SolarEventTimeline(
             // layered on top using the values computed by :core-astronomy.
             drawSegment(sunInfo.riseMillis, sunInfo.setMillis, AstronomySunAmber)
             drawSegment(sunInfo.astronomicalDawnMillis, sunInfo.nauticalDawnMillis, AstronomyTwilightAstro)
-            drawSegment(sunInfo.nauticalDawnMillis, sunInfo.morningBlueHourStartMillis, AstronomyTwilightNautical)
+            drawSegment(sunInfo.nauticalDawnMillis, sunInfo.civilDawnMillis, AstronomyTwilightNautical)
+            drawSegment(sunInfo.civilDawnMillis, sunInfo.morningBlueHourStartMillis, AstronomyTwilightCivil)
             drawSegment(sunInfo.morningBlueHourStartMillis, sunInfo.morningBlueHourEndMillis, AstronomyBlueHour)
             drawSegment(sunInfo.morningGoldenHourStartMillis, sunInfo.morningGoldenHourEndMillis, AstronomyGoldenHour)
             drawSegment(sunInfo.eveningGoldenHourStartMillis, sunInfo.eveningGoldenHourEndMillis, AstronomyGoldenHour)
             drawSegment(sunInfo.eveningBlueHourStartMillis, sunInfo.eveningBlueHourEndMillis, AstronomyBlueHour)
-            drawSegment(sunInfo.eveningBlueHourEndMillis, sunInfo.nauticalDuskMillis, AstronomyTwilightNautical)
+            drawSegment(sunInfo.eveningBlueHourEndMillis, sunInfo.civilDuskMillis, AstronomyTwilightCivil)
+            drawSegment(sunInfo.civilDuskMillis, sunInfo.nauticalDuskMillis, AstronomyTwilightNautical)
             drawSegment(sunInfo.nauticalDuskMillis, sunInfo.astronomicalDuskMillis, AstronomyTwilightAstro)
 
             val nowX = x(System.currentTimeMillis()) * width
