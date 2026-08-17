@@ -11,17 +11,15 @@
 
 ## 📱 Live App Previews (Tampilan Aplikasi Nyata)
 
-> **Verifikasi Perangkat Nyata**: Tangkapan layar beresolusi tinggi (1220×2712) diambil langsung dari perangkat fisik Android `QSWSEMRKNFZ9LJRC`. Seluruh data waktu sholat, posisi matahari, fase bulan, dan katalog bintang dihitung secara riil di perangkat (*on-device pure algorithms*) tanpa data sintetis atau mock.
-
 ### 🕋 Layanan Utama Sholat & Arah Kiblat
 | Beranda & Countdown Sholat | Jadwal Bulanan (30 Hari) | Kompas Arah Kiblat & Haptic | Pengaturan & Metode Hisab |
 |:---:|:---:|:---:|:---:|
-| <img src="docs/screenshots/home.png" width="230" alt="Beranda AdzanPlus" /> | <img src="docs/screenshots/schedule.png" width="230" alt="Jadwal Bulanan" /> | <img src="docs/screenshots/qibla.png" width="230" alt="Kompas Arah Kiblat" /> | <img src="docs/screenshots/settings.png" width="230" alt="Pengaturan & Hisab" /> |
+| <img src="https://raw.githubusercontent.com/Adrian463588/AdzanPlus/main/docs/screenshots/home.png" width="220" alt="Beranda AdzanPlus" /> | <img src="https://raw.githubusercontent.com/Adrian463588/AdzanPlus/main/docs/screenshots/schedule.png" width="220" alt="Jadwal Bulanan" /> | <img src="https://raw.githubusercontent.com/Adrian463588/AdzanPlus/main/docs/screenshots/qibla.png" width="220" alt="Kompas Arah Kiblat" /> | <img src="https://raw.githubusercontent.com/Adrian463588/AdzanPlus/main/docs/screenshots/settings.png" width="220" alt="Pengaturan & Hisab" /> |
 
 ### 🌌 Suite Observasi Astronomi & Bintang (Sprint 2)
 | Dashboard Astronomi | Detail Bulan & Fase 30 Hari | Detail Matahari & Golden Hour | Peta Bintang (500 Bintang) | Kalender Hijriah & Masehi |
 |:---:|:---:|:---:|:---:|:---:|
-| <img src="docs/screenshots/astronomy_dashboard.png" width="180" alt="Dashboard Astronomi" /> | <img src="docs/screenshots/moon_detail.png" width="180" alt="Detail Bulan" /> | <img src="docs/screenshots/sun_detail.png" width="180" alt="Detail Matahari" /> | <img src="docs/screenshots/star_map.png" width="180" alt="Peta Bintang" /> | <img src="docs/screenshots/hijri_calendar.png" width="180" alt="Kalender Hijriah" /> |
+| <img src="https://raw.githubusercontent.com/Adrian463588/AdzanPlus/main/docs/screenshots/astronomy_dashboard.png" width="180" alt="Dashboard Astronomi" /> | <img src="https://raw.githubusercontent.com/Adrian463588/AdzanPlus/main/docs/screenshots/moon_detail.png" width="180" alt="Detail Bulan" /> | <img src="https://raw.githubusercontent.com/Adrian463588/AdzanPlus/main/docs/screenshots/sun_detail.png" width="180" alt="Detail Matahari" /> | <img src="https://raw.githubusercontent.com/Adrian463588/AdzanPlus/main/docs/screenshots/star_map.png" width="180" alt="Peta Bintang" /> | <img src="https://raw.githubusercontent.com/Adrian463588/AdzanPlus/main/docs/screenshots/hijri_calendar.png" width="180" alt="Kalender Hijriah" /> |
 
 ---
 

@@ -2,7 +2,6 @@ package com.adzannotif.platform.worker
 
 import android.content.Context
 import android.util.Log
-import androidx.glance.appwidget.updateAll
 import androidx.hilt.work.HiltWorker
 import androidx.work.BackoffPolicy
 import androidx.work.CoroutineWorker
@@ -15,8 +14,8 @@ import com.adzannotif.domain.repository.PrayerTimesRepository
 import com.adzannotif.domain.repository.SettingsRepository
 import com.adzannotif.platform.alarm.AlarmScheduler
 import com.adzannotif.platform.alarm.CelestialAlarmScheduler
-import com.adzannotif.widget.MoonWidget
-import com.adzannotif.widget.SunWidget
+import com.adzannotif.widget.AstronomyWidgetUpdater
+import com.adzannotif.widget.PrayerTimesWidgetReceiver
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.first
@@ -63,10 +62,10 @@ class PrayerSyncWorker @AssistedInject constructor(
                 Log.w(TAG, "Prayer alarms were not scheduled during sync", error)
             }
 
-            // Update Glance Widgets
+            // Update both widget families after the offline reconciliation.
             try {
-                MoonWidget().updateAll(applicationContext)
-                SunWidget().updateAll(applicationContext)
+                PrayerTimesWidgetReceiver.updateAll(applicationContext)
+                AstronomyWidgetUpdater.updateAll(applicationContext)
             } catch (e: Exception) {
                 Log.w(TAG, "Failed to update glance widgets", e)
             }

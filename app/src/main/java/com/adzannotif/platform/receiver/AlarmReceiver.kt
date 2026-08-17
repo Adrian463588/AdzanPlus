@@ -11,6 +11,8 @@ import com.adzannotif.domain.repository.SettingsRepository
 import com.adzannotif.platform.alarm.AlarmScheduler
 import com.adzannotif.platform.audio.AudioGateway
 import com.adzannotif.platform.notification.NotificationGateway
+import com.adzannotif.widget.AstronomyWidgetUpdater
+import com.adzannotif.widget.PrayerTimesWidgetReceiver
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -105,6 +107,12 @@ class AlarmReceiver : BroadcastReceiver() {
                         Log.e(TAG, "Failed to reconcile alarms after prayer alarm", error)
                     }
                 }
+
+                // The displayed next/current prayer and celestial countdowns are
+                // time-sensitive snapshots. Reconcile both widget families after
+                // every delivered alarm, including pre-reminders.
+                PrayerTimesWidgetReceiver.updateAll(context)
+                AstronomyWidgetUpdater.updateAll(context)
             } catch (e: Exception) {
                 Log.e(TAG, "Error handling alarm broadcast for prayer=$prayerName", e)
             } finally {

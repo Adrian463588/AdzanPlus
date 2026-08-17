@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -26,12 +27,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.adzannotif.R
 import com.adzannotif.core.prayer.Prayer
 import com.adzannotif.domain.model.LocationInfo
@@ -39,7 +38,6 @@ import com.adzannotif.presentation.common.localizedName
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import java.util.Locale
 
 @Composable
 fun NextPrayerHeroCard(
@@ -51,13 +49,8 @@ fun NextPrayerHeroCard(
     modifier: Modifier = Modifier,
 ) {
     val targetLocal = targetInstant.toLocalDateTime(TimeZone.of(location.timeZoneId))
-    val targetFormatted = String.format(Locale.US, "%02d:%02d", targetLocal.hour, targetLocal.minute)
-
-    val safeSeconds = maxOf(0L, countdownSecondsRemaining)
-    val hours = safeSeconds / 3600
-    val minutes = (safeSeconds % 3600) / 60
-    val seconds = safeSeconds % 60
-    val countdownFormatted = String.format(Locale.US, "-%02d:%02d:%02d", hours, minutes, seconds)
+    val targetFormatted = "%02d:%02d".format(targetLocal.hour, targetLocal.minute)
+    val countdownFormatted = formatCountdown(countdownSecondsRemaining)
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -92,10 +85,10 @@ fun NextPrayerHeroCard(
                 // Top row: Location chip + Hijri Date
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Surface(
+                        modifier = Modifier.weight(1f, fill = false),
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surface,
                         contentColor = MaterialTheme.colorScheme.onSurface,
@@ -106,20 +99,24 @@ fun NextPrayerHeroCard(
                         shadowElevation = 1.dp
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            modifier = Modifier
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                                .widthIn(max = 220.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.LocationOn,
-                                contentDescription = "Lokasi",
+                                contentDescription = stringResource(R.string.location_label),
                                 modifier = Modifier.size(16.dp),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                             Text(
                                 text = location.name,
                                 style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 2,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                             )
                         }
                     }
@@ -128,7 +125,13 @@ fun NextPrayerHeroCard(
                         text = hijriDateFormatted ?: stringResource(R.string.hijri_unavailable),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .weight(1f),
+                        maxLines = 2,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.End,
                     )
                 }
 
@@ -138,7 +141,6 @@ fun NextPrayerHeroCard(
                 Text(
                     text = stringResource(R.string.remaining_time).uppercase(),
                     style = MaterialTheme.typography.labelMedium,
-                    letterSpacing = 2.sp,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
@@ -193,18 +195,14 @@ fun NextPrayerHeroCard(
                 ) {
                     Text(
                         text = countdownFormatted,
-                        style = MaterialTheme.typography.displayLarge.copy(
-                            fontSize = 38.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = (-0.5).sp,
-                            fontFeatureSettings = "tnum"
-                        ),
+                        style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Black),
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
-                            .padding(horizontal = 24.dp, vertical = 8.dp)
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
                             .semantics {
+                                // Do not make a ticking value a live region: TalkBack would interrupt users every second.
                                 contentDescription = countdownDesc
-                                liveRegion = LiveRegionMode.Polite
+                                stateDescription = countdownFormatted
                             },
                     )
                 }

@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -40,7 +41,9 @@ import com.adzannotif.presentation.theme.AstronomyBackgroundDeep
 import com.adzannotif.platform.alarm.AlarmScheduler
 import com.adzannotif.presentation.theme.AdzanNotifTheme
 import com.adzannotif.widget.PrayerTimesWidgetReceiver
+import com.adzannotif.widget.AstronomyWidgetUpdater
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -56,7 +59,7 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.RequestMultiplePermissions()
     ) { _ ->
         alarmScheduler.rescheduleAllAlarms()
-        PrayerTimesWidgetReceiver.updateAll(this)
+        refreshWidgets()
     }
 
     private var exactAlarmPromptShown = false
@@ -134,7 +137,14 @@ class MainActivity : ComponentActivity() {
             }
         }
         alarmScheduler.rescheduleAllAlarms()
+        refreshWidgets()
+    }
+
+    private fun refreshWidgets() {
         PrayerTimesWidgetReceiver.updateAll(this)
+        lifecycleScope.launch {
+            AstronomyWidgetUpdater.updateAll(this@MainActivity)
+        }
     }
 
     private fun requestAppPermissions() {

@@ -31,6 +31,13 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import javax.inject.Inject
 
+enum class HomeDataState {
+    LOADING,
+    READY,
+    UNAVAILABLE,
+    ERROR,
+}
+
 data class HomeUiState(
     val location: LocationInfo? = null,
     val prayerTimes: PrayerTimeRecord? = null,
@@ -45,6 +52,7 @@ data class HomeUiState(
     val isRefreshingGps: Boolean = false,
     val locationError: String? = null,
     val isLoading: Boolean = false,
+    val dataState: HomeDataState = HomeDataState.LOADING,
 )
 
 sealed interface HomeUiAction {
@@ -118,12 +126,22 @@ class HomeViewModel @Inject constructor(
             isOnline = connectivity.isOnline,
             isRefreshingGps = connectivity.isRefreshing,
             locationError = connectivity.locationError,
-            isLoading = false
+            isLoading = false,
+            dataState = when {
+                connectivity.locationError != null &&
+                    (location == null || todayRecord == null || nextInfo?.nextPrayer == null || nextInfo.targetTime == null) -> {
+                    HomeDataState.ERROR
+                }
+                location == null || todayRecord == null || nextInfo?.nextPrayer == null || nextInfo.targetTime == null -> {
+                    HomeDataState.UNAVAILABLE
+                }
+                else -> HomeDataState.READY
+            },
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = HomeUiState(isLoading = true)
+        initialValue = HomeUiState(isLoading = true, dataState = HomeDataState.LOADING)
     )
 
     init {

@@ -11,6 +11,7 @@ import com.adzannotif.platform.alarm.CelestialAlarmScheduler
 import com.adzannotif.platform.audio.AudioGateway
 import com.adzannotif.platform.worker.PrayerSyncWorker
 import com.adzannotif.widget.AstronomyWidgetUpdater
+import com.adzannotif.widget.PrayerTimesWidgetReceiver
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -52,6 +53,7 @@ class BootReceiver : BroadcastReceiver() {
                     alarmScheduler.schedule().onFailure { error ->
                         Log.e("BootReceiver", "Prayer alarm reconciliation was not completed", error)
                     }
+                    PrayerTimesWidgetReceiver.updateAll(context)
                     AstronomyWidgetUpdater.updateAll(context)
                     celestialAlarmScheduler.rescheduleAllAlarms()
                 } catch (e: Exception) {
@@ -90,6 +92,7 @@ class TimeChangeReceiver : BroadcastReceiver() {
                     alarmScheduler.schedule().onFailure { error ->
                         Log.e("TimeChangeReceiver", "Prayer alarm reconciliation was not completed", error)
                     }
+                    PrayerTimesWidgetReceiver.updateAll(context)
                     AstronomyWidgetUpdater.updateAll(context)
                     celestialAlarmScheduler.rescheduleAllAlarms()
                 } catch (e: Exception) {
@@ -125,6 +128,8 @@ class ExactAlarmPermissionReceiver : BroadcastReceiver() {
                         alarmScheduler.schedule().onFailure { error ->
                             Log.e("ExactAlarmPermissionReceiver", "Prayer alarm reconciliation was not completed", error)
                         }
+                        PrayerTimesWidgetReceiver.updateAll(context)
+                        AstronomyWidgetUpdater.updateAll(context)
                         celestialAlarmScheduler.rescheduleAllAlarms()
                     } catch (e: Exception) {
                         Log.e("ExactAlarmPermissionReceiver", "Failed to reschedule alarms on permission change", e)

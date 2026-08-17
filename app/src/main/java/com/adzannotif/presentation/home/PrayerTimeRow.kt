@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.adzannotif.core.prayer.Prayer
 import com.adzannotif.domain.model.AlarmConfig
+import com.adzannotif.presentation.common.localizedName
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -114,7 +115,7 @@ fun PrayerTimeRow(
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     },
-                    modifier = Modifier.size(36.dp)
+                            modifier = Modifier.size(48.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
@@ -126,7 +127,7 @@ fun PrayerTimeRow(
                 }
 
                 Text(
-                    text = prayer.displayNameId,
+                    text = prayer.localizedName(),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = if (isActivePrayer) FontWeight.Bold else FontWeight.Medium
                 )
@@ -151,7 +152,6 @@ fun PrayerTimeRow(
                 if (prayer.isFardPrayer) {
                     IconButton(
                         onClick = onToggleAlarm,
-                        modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
                             imageVector = if (alarmConfig.isEnabled) {
@@ -159,7 +159,14 @@ fun PrayerTimeRow(
                             } else {
                                 Icons.Default.NotificationsOff
                             },
-                            contentDescription = "Toggle Alarm",
+                            contentDescription = androidx.compose.ui.res.stringResource(
+                                if (alarmConfig.isEnabled) {
+                                    com.adzannotif.R.string.disable_prayer_alarm
+                                } else {
+                                    com.adzannotif.R.string.enable_prayer_alarm
+                                },
+                                prayer.localizedName(),
+                            ),
                             tint = if (alarmConfig.isEnabled) {
                                 MaterialTheme.colorScheme.primary
                             } else {
