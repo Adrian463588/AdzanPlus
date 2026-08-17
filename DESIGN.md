@@ -10,17 +10,17 @@
 ## 2. Color Palette & Theming (Material 3 Tokens)
 
 ### 2.1. Light Theme
-- `md_theme_light_primary`: `#1A6B51` (Deep Emerald Green)
+- `md_theme_light_primary`: `#006C4C` (Deep Emerald Green)
 - `md_theme_light_onPrimary`: `#FFFFFF`
-- `md_theme_light_primaryContainer`: `#A4F2D2`
+- `md_theme_light_primaryContainer`: `#D6F5E8`
 - `md_theme_light_onPrimaryContainer`: `#002117`
 - `md_theme_light_secondary`: `#7A5900` (Warm Amber/Gold)
 - `md_theme_light_onSecondary`: `#FFFFFF`
 - `md_theme_light_secondaryContainer`: `#FFE089`
 - `md_theme_light_onSecondaryContainer`: `#261900`
-- `md_theme_light_background`: `#F8FAF8`
+- `md_theme_light_background`: `#F6F9F7`
 - `md_theme_light_onBackground`: `#191C1B`
-- `md_theme_light_surface`: `#F8FAF8`
+- `md_theme_light_surface`: `#FFFFFF`
 - `md_theme_light_onSurface`: `#191C1B`
 - `md_theme_light_surfaceVariant`: `#DBE5DF`
 - `md_theme_light_onSurfaceVariant`: `#3F4945`
@@ -37,9 +37,9 @@
 - `md_theme_dark_onSecondaryContainer`: `#FFE089`
 - `md_theme_dark_background`: `#0F1513`
 - `md_theme_dark_onBackground`: `#E1E3DF`
-- `md_theme_dark_surface`: `#0F1513`
+- `md_theme_dark_surface`: `#131B18`
 - `md_theme_dark_onSurface`: `#E1E3DF`
-- `md_theme_dark_surfaceVariant`: `#3F4945`
+- `md_theme_dark_surfaceVariant`: `#22302A`
 - `md_theme_dark_onSurfaceVariant`: `#BFC9C3`
 - `md_theme_dark_outline`: `#89938E`
 

@@ -5,7 +5,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.adzannotif.platform.worker.PrayerSyncWorker
 import com.adzannotif.platform.alarm.AlarmScheduler
-import com.adzannotif.widget.PrayerTimesWidgetReceiver
+import com.adzannotif.presentation.widget.PrayerTimesWidgetReceiver
 import com.adzannotif.widget.AstronomyWidgetUpdater
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

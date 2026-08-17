@@ -12,7 +12,7 @@ import com.adzannotif.platform.alarm.AlarmScheduler
 import com.adzannotif.platform.audio.AudioGateway
 import com.adzannotif.platform.notification.NotificationGateway
 import com.adzannotif.widget.AstronomyWidgetUpdater
-import com.adzannotif.widget.PrayerTimesWidgetReceiver
+import com.adzannotif.presentation.widget.PrayerTimesWidgetReceiver
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

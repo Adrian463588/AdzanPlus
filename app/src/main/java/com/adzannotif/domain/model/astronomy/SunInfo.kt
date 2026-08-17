@@ -25,5 +25,8 @@ data class SunInfo(
     val morningBlueHourStartMillis: Long?,
     val morningBlueHourEndMillis: Long?,
     val eveningBlueHourStartMillis: Long?,
-    val eveningBlueHourEndMillis: Long?
+    val eveningBlueHourEndMillis: Long?,
+    /** First supported solar event strictly after the calculation instant. */
+    val nextEventMillis: Long? = null,
+    val nextEventName: String? = null,
 )

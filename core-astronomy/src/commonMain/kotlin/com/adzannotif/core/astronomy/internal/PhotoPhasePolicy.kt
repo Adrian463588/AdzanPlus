@@ -22,7 +22,10 @@ public object PhotoPhasePolicy {
     fun classifySolarPhase(altitudeDeg: Double): SolarPhase {
         return when {
             altitudeDeg > GOLDEN_HOUR_HIGH_DEG -> SolarPhase.DAY
-            altitudeDeg >= GOLDEN_HOUR_LOW_DEG -> SolarPhase.GOLDEN_HOUR
+            // Civil twilight wins over the overlapping photography interval.
+            // Golden Hour is therefore the above-horizon part of [-4°, +6°].
+            altitudeDeg >= 0.0 -> SolarPhase.GOLDEN_HOUR
+            altitudeDeg >= GOLDEN_HOUR_LOW_DEG -> SolarPhase.CIVIL_TWILIGHT
             altitudeDeg >= BLUE_HOUR_LOW_DEG -> SolarPhase.BLUE_HOUR
             altitudeDeg > -12.0 -> SolarPhase.NAUTICAL_TWILIGHT
             altitudeDeg > -18.0 -> SolarPhase.ASTRONOMICAL_TWILIGHT

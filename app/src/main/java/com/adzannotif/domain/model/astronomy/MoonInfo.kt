@@ -13,5 +13,7 @@ data class MoonInfo(
     val ageInDays: Double,
     val distanceKm: Double,
     val isApogee: Boolean,
-    val isPerigee: Boolean
+    val isPerigee: Boolean,
+    /** The first moonrise strictly after the requested calculation instant. */
+    val nextRiseMillis: Long? = null,
 )

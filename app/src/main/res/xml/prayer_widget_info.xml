@@ -12,7 +12,5 @@
     android:maxResizeHeight="300dp"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="1800000"
-    android:initialLayout="@layout/widget_compact"
-    android:previewLayout="@layout/widget_compact"
     android:description="@string/widget_description"
     android:widgetCategory="home_screen" />

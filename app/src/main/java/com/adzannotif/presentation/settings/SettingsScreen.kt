@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -64,7 +66,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -72,6 +77,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.adzannotif.R
 import com.adzannotif.core.prayer.CalculationMethod
 import com.adzannotif.core.prayer.HighLatitudeRule
 import com.adzannotif.core.prayer.Madhab
@@ -122,7 +128,7 @@ fun SettingsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Pengaturan",
+                        text = stringResource(R.string.settings_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -135,17 +141,46 @@ fun SettingsScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = if (widthSizeClass == WindowWidthSizeClass.EXPANDED) 32.dp else 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
+        when {
+            state.isLoading || state.dataState == SettingsDataState.LOADING -> SettingsLoadingState(
+                modifier = Modifier.padding(innerPadding),
+            )
+            state.dataState == SettingsDataState.ERROR -> SettingsErrorState(
+                modifier = Modifier.padding(innerPadding),
+                message = state.errorMessage,
+            )
+            else -> Box(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .fillMaxWidth()
+                        .widthIn(max = 720.dp)
+                        .padding(innerPadding)
+                        .padding(horizontal = if (widthSizeClass == WindowWidthSizeClass.EXPANDED) 24.dp else 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+            if (state.errorMessage != null) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                        ),
+                    ) {
+                        Text(
+                            text = state.errorMessage.orEmpty(),
+                            modifier = Modifier.padding(16.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                    }
+                }
+            }
+
             // Location Section
             item {
                 Text(
-                    text = "LOKASI & METODE HISAB",
+                    text = stringResource(R.string.settings_location_method_section),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -174,12 +209,13 @@ fun SettingsScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "Lokasi Terpilih",
+                                    text = stringResource(R.string.settings_selected_location),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
-                                    text = state.userSettings.selectedLocation?.name ?: "Lokasi belum tersedia",
+                                    text = state.userSettings.selectedLocation?.name
+                                        ?: stringResource(R.string.settings_location_unavailable),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -187,7 +223,7 @@ fun SettingsScreen(
                                 Text(
                                     text = state.userSettings.selectedLocation?.let { location ->
                                         "${String.format(java.util.Locale.US, "%.4f", location.latitude)}°, ${String.format(java.util.Locale.US, "%.4f", location.longitude)}° • ${location.timeZoneId}"
-                                    } ?: "Pilih kota atau gunakan GPS untuk mengaktifkan perhitungan",
+                                    } ?: stringResource(R.string.settings_location_setup_hint),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -200,7 +236,7 @@ fun SettingsScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.EditLocationAlt,
-                                    contentDescription = "Ganti Lokasi",
+                                    contentDescription = stringResource(R.string.settings_change_location),
                                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
@@ -222,7 +258,7 @@ fun SettingsScreen(
                                     color = MaterialTheme.colorScheme.primary
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Mencari Sinyal GPS Presisi...")
+                                Text(stringResource(R.string.settings_gps_searching))
                             } else {
                                 Icon(
                                     imageVector = Icons.Default.MyLocation,
@@ -230,7 +266,7 @@ fun SettingsScreen(
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Gunakan Sinyal GPS Saat Ini")
+                                Text(stringResource(R.string.settings_use_current_gps))
                             }
                         }
                     }
@@ -254,7 +290,7 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Metode Perhitungan Hisab",
+                            text = stringResource(R.string.settings_calculation_method),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -262,27 +298,34 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         val methods = listOf(
-                            MethodItem(CalculationMethod.KEMENAG_RI, "Kemenag RI (Standar Indonesia)"),
-                            MethodItem(CalculationMethod.MUSLIM_WORLD_LEAGUE, "Muslim World League (MWL)"),
-                            MethodItem(CalculationMethod.EGYPTIAN, "Egyptian General Authority"),
-                            MethodItem(CalculationMethod.UMM_AL_QURA, "Umm Al-Qura (Makkah)"),
-                            MethodItem(CalculationMethod.KARACHI, "University of Islamic Sciences, Karachi"),
-                            MethodItem(CalculationMethod.NORTH_AMERICA, "ISNA (Amerika Utara)"),
-                            MethodItem(CalculationMethod.SINGAPORE_MUIS, "MUIS (Singapura)")
+                            MethodItem(CalculationMethod.KEMENAG_RI, stringResource(R.string.settings_method_kemenag)),
+                            MethodItem(CalculationMethod.MUSLIM_WORLD_LEAGUE, stringResource(R.string.settings_method_mwl)),
+                            MethodItem(CalculationMethod.EGYPTIAN, stringResource(R.string.settings_method_egyptian)),
+                            MethodItem(CalculationMethod.UMM_AL_QURA, stringResource(R.string.settings_method_umm_al_qura)),
+                            MethodItem(CalculationMethod.KARACHI, stringResource(R.string.settings_method_karachi)),
+                            MethodItem(CalculationMethod.NORTH_AMERICA, stringResource(R.string.settings_method_north_america)),
+                            MethodItem(CalculationMethod.SINGAPORE_MUIS, stringResource(R.string.settings_method_singapore))
                         )
 
                         methods.forEach { item ->
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { viewModel.onAction(SettingsUiAction.SetCalculationMethod(item.method)) }
                                     .padding(vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 FilterChip(
                                     selected = state.userSettings.calculationMethod == item.method,
                                     onClick = { viewModel.onAction(SettingsUiAction.SetCalculationMethod(item.method)) },
-                                    label = { Text(item.label, style = MaterialTheme.typography.bodyMedium) },
+                                    label = {
+                                        Text(
+                                            item.label,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            maxLines = 2,
+                                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                        )
+                                    },
+                                    modifier = Modifier.fillMaxWidth(),
                                     leadingIcon = if (state.userSettings.calculationMethod == item.method) {
                                         {
                                             Icon(
@@ -316,27 +359,24 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Madhab (Penentuan Waktu Ashar)",
+                            text = stringResource(R.string.settings_madhab),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             FilterChip(
                                 selected = state.userSettings.madhab == Madhab.SHAFI,
                                 onClick = { viewModel.onAction(SettingsUiAction.SetMadhab(Madhab.SHAFI)) },
-                                label = { Text("Syafi'i / Maliki / Hanbali") },
-                                modifier = Modifier.weight(1f)
+                                label = { Text(stringResource(R.string.madhab_shafii_label), maxLines = 2) },
+                                modifier = Modifier.fillMaxWidth(),
                             )
                             FilterChip(
                                 selected = state.userSettings.madhab == Madhab.HANAFI,
                                 onClick = { viewModel.onAction(SettingsUiAction.SetMadhab(Madhab.HANAFI)) },
-                                label = { Text("Hanafi") },
-                                modifier = Modifier.weight(1f)
+                                label = { Text(stringResource(R.string.madhab_hanafi_label)) },
+                                modifier = Modifier.fillMaxWidth(),
                             )
                         }
                     }
@@ -360,22 +400,22 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Aturan Lintang Tinggi (High Latitude)",
+                            text = stringResource(R.string.settings_high_latitude),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Digunakan saat berada di kutub atau belahan bumi utara/selatan ekstrem.",
+                            text = stringResource(R.string.settings_high_latitude_description),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
 
                         val rules = listOf(
-                            RuleItem(HighLatitudeRule.MIDDLE_OF_THE_NIGHT, "Middle of the Night (Tengah Malam)"),
-                            RuleItem(HighLatitudeRule.SEVENTH_OF_THE_NIGHT, "1/7th of Night (Sepertujuh Malam)"),
-                            RuleItem(HighLatitudeRule.TWILIGHT_ANGLE, "Angle Based (Berdasarkan Sudut)")
+                            RuleItem(HighLatitudeRule.MIDDLE_OF_THE_NIGHT, stringResource(R.string.settings_high_latitude_middle)),
+                            RuleItem(HighLatitudeRule.SEVENTH_OF_THE_NIGHT, stringResource(R.string.settings_high_latitude_seventh)),
+                            RuleItem(HighLatitudeRule.TWILIGHT_ANGLE, stringResource(R.string.settings_high_latitude_angle))
                         )
 
                         rules.forEach { item ->
@@ -399,7 +439,7 @@ fun SettingsScreen(
             // Prayer alarm controls
             item {
                 Text(
-                    text = "NOTIFIKASI & ALARM SHOLAT",
+                    text = stringResource(R.string.settings_prayer_notifications_section),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
@@ -422,7 +462,7 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Aktifkan pengingat dan pilih sumber audio yang tersedia.",
+                            text = stringResource(R.string.settings_prayer_notifications_description),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -448,6 +488,9 @@ fun SettingsScreen(
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.weight(1f).padding(end = 12.dp),
+                                    maxLines = 2,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                 )
                                 androidx.compose.material3.Switch(
                                     checked = alarm.config.isEnabled,
@@ -455,7 +498,7 @@ fun SettingsScreen(
                                         viewModel.onAction(SettingsUiAction.SetPrayerEnabled(alarm.prayer, enabled))
                                     },
                                     modifier = Modifier.semantics {
-                                        contentDescription = "Aktifkan pengingat ${alarm.label}"
+                                        contentDescription = alarm.label
                                     },
                                 )
                             }
@@ -478,7 +521,13 @@ fun SettingsScreen(
                                             viewModel.onAction(SettingsUiAction.SetPreReminder(alarm.prayer, minutes))
                                         },
                                         label = {
-                                            Text(if (minutes == 0) "Tanpa pengingat" else "-${minutes} m")
+                                            Text(
+                                                if (minutes == 0) {
+                                                    stringResource(R.string.settings_no_reminder)
+                                                } else {
+                                                    stringResource(R.string.settings_reminder_minutes, minutes)
+                                                },
+                                            )
                                         },
                                     )
                                 }
@@ -489,10 +538,17 @@ fun SettingsScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Text(
-                                    text = alarm.config.customSoundUri?.let { "Audio kustom tersimpan" }
-                                        ?: "Audio bawaan: ${alarm.config.adhanVoice.title}",
+                                    text = alarm.config.customSoundUri?.let {
+                                        stringResource(R.string.settings_custom_audio_saved)
+                                    } ?: stringResource(
+                                        R.string.settings_builtin_audio,
+                                        alarm.config.adhanVoice.title,
+                                    ),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.weight(1f).padding(end = 8.dp),
+                                    maxLines = 2,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                 )
                                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                     OutlinedButton(
@@ -502,7 +558,7 @@ fun SettingsScreen(
                                         },
                                         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp),
                                     ) {
-                                        Text("Pilih audio")
+                                        Text(stringResource(R.string.settings_choose_audio))
                                     }
                                     if (alarm.config.customSoundUri != null) {
                                         IconButton(
@@ -510,7 +566,10 @@ fun SettingsScreen(
                                                 viewModel.onAction(SettingsUiAction.SetCustomSound(alarm.prayer, null))
                                             },
                                         ) {
-                                            Icon(Icons.Default.Close, contentDescription = "Hapus audio kustom")
+                                            Icon(
+                                                Icons.Default.Close,
+                                                contentDescription = stringResource(R.string.settings_remove_custom_audio),
+                                            )
                                         }
                                     }
                                 }
@@ -529,7 +588,7 @@ fun SettingsScreen(
             // Per-Prayer Minute Adjustments
             item {
                 Text(
-                    text = "KOREKSI WAKTU SHOLAT (MENIT)",
+                    text = stringResource(R.string.settings_adjustments_section),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -552,24 +611,24 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Kalibrasi Menit Manual (Ihtiyath)",
+                            text = stringResource(R.string.settings_adjustments_title),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Sesuaikan menit jika jadwal di masjid setempat memiliki selisih waktu.",
+                            text = stringResource(R.string.settings_adjustments_description),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(12.dp))
 
                         val prayerAdjustments = listOf(
-                            PrayerAdjustmentItem(Prayer.FAJR, "Subuh", state.userSettings.fajrAdjustment),
-                            PrayerAdjustmentItem(Prayer.DHUHR, "Dzuhur", state.userSettings.dhuhrAdjustment),
-                            PrayerAdjustmentItem(Prayer.ASR, "Ashar", state.userSettings.asrAdjustment),
-                            PrayerAdjustmentItem(Prayer.MAGHRIB, "Maghrib", state.userSettings.maghribAdjustment),
-                            PrayerAdjustmentItem(Prayer.ISHA, "Isya", state.userSettings.ishaAdjustment),
+                            PrayerAdjustmentItem(Prayer.FAJR, Prayer.FAJR.displayNameId, state.userSettings.fajrAdjustment),
+                            PrayerAdjustmentItem(Prayer.DHUHR, Prayer.DHUHR.displayNameId, state.userSettings.dhuhrAdjustment),
+                            PrayerAdjustmentItem(Prayer.ASR, Prayer.ASR.displayNameId, state.userSettings.asrAdjustment),
+                            PrayerAdjustmentItem(Prayer.MAGHRIB, Prayer.MAGHRIB.displayNameId, state.userSettings.maghribAdjustment),
+                            PrayerAdjustmentItem(Prayer.ISHA, Prayer.ISHA.displayNameId, state.userSettings.ishaAdjustment),
                         )
 
                         prayerAdjustments.forEachIndexed { index, item ->
@@ -592,10 +651,18 @@ fun SettingsScreen(
                                         modifier = Modifier.size(48.dp),
                                         colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surface)
                                     ) {
-                                        Icon(Icons.Default.Remove, contentDescription = "Kurang", modifier = Modifier.size(16.dp))
+                                        Icon(
+                                            Icons.Default.Remove,
+                                            contentDescription = stringResource(R.string.settings_decrease_adjustment, item.name),
+                                            modifier = Modifier.size(16.dp),
+                                        )
                                     }
                                     Text(
-                                        text = if (item.minutes >= 0) "+${item.minutes} m" else "${item.minutes} m",
+                                        text = if (item.minutes >= 0) {
+                                            stringResource(R.string.settings_minutes_value_positive, item.minutes)
+                                        } else {
+                                            stringResource(R.string.settings_minutes_value_negative, item.minutes)
+                                        },
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Bold,
                                         modifier = Modifier.padding(horizontal = 12.dp),
@@ -606,7 +673,11 @@ fun SettingsScreen(
                                         modifier = Modifier.size(48.dp),
                                         colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surface)
                                     ) {
-                                        Icon(Icons.Default.Add, contentDescription = "Tambah", modifier = Modifier.size(16.dp))
+                                        Icon(
+                                            Icons.Default.Add,
+                                            contentDescription = stringResource(R.string.settings_increase_adjustment, item.name),
+                                            modifier = Modifier.size(16.dp),
+                                        )
                                     }
                                 }
                             }
@@ -621,7 +692,7 @@ fun SettingsScreen(
             // Audio & Voice Section
             item {
                 Text(
-                    text = "AUDIO & SUARA ADZAN",
+                    text = stringResource(R.string.settings_audio_section),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -644,7 +715,7 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Pilihan Muadzin & Pratinjau Suara",
+                            text = stringResource(R.string.settings_voice_preview_title),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -652,11 +723,11 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         val voices = listOf(
-                            VoiceItem(AdhanVoice.MAKKAH, "Adzan Makkah (Masjidil Haram)"),
-                            VoiceItem(AdhanVoice.MADINAH, "Adzan Madinah (Masjid Nabawi)"),
-                            VoiceItem(AdhanVoice.AL_AQSA, "Adzan Al-Aqsa (Al-Quds)"),
-                            VoiceItem(AdhanVoice.EGYPT, "Adzan Mesir (Mishary / Al-Azhar)"),
-                            VoiceItem(AdhanVoice.FAJR_SPECIAL, "Adzan Subuh Khusus (As-Salatu Khayrun Minan-Nawm)")
+                            VoiceItem(AdhanVoice.MAKKAH, stringResource(R.string.settings_voice_makkah)),
+                            VoiceItem(AdhanVoice.MADINAH, stringResource(R.string.settings_voice_madinah)),
+                            VoiceItem(AdhanVoice.AL_AQSA, stringResource(R.string.settings_voice_al_aqsa)),
+                            VoiceItem(AdhanVoice.EGYPT, stringResource(R.string.settings_voice_egypt)),
+                            VoiceItem(AdhanVoice.FAJR_SPECIAL, stringResource(R.string.settings_voice_fajr))
                         )
 
                         voices.forEach { item ->
@@ -683,7 +754,9 @@ fun SettingsScreen(
                                 ) {
                                     Icon(
                                         imageVector = if (isPlaying) Icons.Default.Stop else Icons.Default.PlayArrow,
-                                        contentDescription = if (isPlaying) "Hentikan" else "Dengarkan",
+                                        contentDescription = stringResource(
+                                            if (isPlaying) R.string.settings_stop_preview else R.string.settings_play_preview,
+                                        ),
                                         tint = if (isPlaying) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
@@ -696,7 +769,7 @@ fun SettingsScreen(
             // Celestial notification preferences
             item {
                 Text(
-                    text = "NOTIFIKASI ASTRONOMI",
+                    text = stringResource(R.string.settings_celestial_section),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -719,13 +792,13 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Pengingat event langit",
+                            text = stringResource(R.string.settings_celestial_title),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Hanya event yang dihitung engine nyata yang akan dijadwalkan.",
+                            text = stringResource(R.string.settings_celestial_description),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -734,32 +807,32 @@ fun SettingsScreen(
                         val celestialAlerts = listOf(
                             CelestialAlertItem(
                                 CelestialAlertType.GOLDEN_HOUR_START,
-                                "Mulai Golden Hour",
+                                stringResource(R.string.settings_celestial_golden_hour),
                                 state.alarmSettings.celestialAlerts.goldenHourStart,
                             ),
                             CelestialAlertItem(
                                 CelestialAlertType.BLUE_HOUR_START,
-                                "Mulai Blue Hour",
+                                stringResource(R.string.settings_celestial_blue_hour),
                                 state.alarmSettings.celestialAlerts.blueHourStart,
                             ),
                             CelestialAlertItem(
                                 CelestialAlertType.MOONRISE,
-                                "Bulan terbit",
+                                stringResource(R.string.settings_celestial_moonrise),
                                 state.alarmSettings.celestialAlerts.moonrise,
                             ),
                             CelestialAlertItem(
                                 CelestialAlertType.MOONSET,
-                                "Bulan terbenam",
+                                stringResource(R.string.settings_celestial_moonset),
                                 state.alarmSettings.celestialAlerts.moonset,
                             ),
                             CelestialAlertItem(
                                 CelestialAlertType.FULL_MOON,
-                                "Bulan purnama",
+                                stringResource(R.string.settings_celestial_full_moon),
                                 state.alarmSettings.celestialAlerts.fullMoon,
                             ),
                             CelestialAlertItem(
                                 CelestialAlertType.NEW_MOON,
-                                "Bulan baru",
+                                stringResource(R.string.settings_celestial_new_moon),
                                 state.alarmSettings.celestialAlerts.newMoon,
                             ),
                         )
@@ -780,7 +853,7 @@ fun SettingsScreen(
                                         viewModel.onAction(SettingsUiAction.SetCelestialAlert(alert.type, enabled))
                                     },
                                     modifier = Modifier.semantics {
-                                        contentDescription = "Aktifkan notifikasi ${alert.label}"
+                                        contentDescription = alert.label
                                     },
                                 )
                             }
@@ -788,7 +861,7 @@ fun SettingsScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Ingatkan sebelum event",
+                            text = stringResource(R.string.settings_celestial_offset_label),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -799,7 +872,15 @@ fun SettingsScreen(
                                     onClick = {
                                         viewModel.onAction(SettingsUiAction.SetCelestialAlertOffset(minutes))
                                     },
-                                    label = { Text(if (minutes == 0) "Tepat waktu" else "${minutes} m") },
+                                    label = {
+                                        Text(
+                                            if (minutes == 0) {
+                                                stringResource(R.string.settings_on_time)
+                                            } else {
+                                                stringResource(R.string.settings_reminder_minutes, minutes)
+                                            },
+                                        )
+                                    },
                                 )
                             }
                         }
@@ -810,7 +891,7 @@ fun SettingsScreen(
             // Theme Section
             item {
                 Text(
-                    text = "TAMPILAN & TEMA",
+                    text = stringResource(R.string.settings_theme_section),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -833,7 +914,7 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Pilih mode warna aplikasi",
+                            text = stringResource(R.string.settings_theme_description),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -850,7 +931,7 @@ fun SettingsScreen(
                                 FilterChip(
                                     selected = state.userSettings.themeMode == ThemeMode.SYSTEM,
                                     onClick = { viewModel.onAction(SettingsUiAction.SetThemeMode(ThemeMode.SYSTEM)) },
-                                    label = { Text("Sistem") },
+                                    label = { Text(stringResource(R.string.theme_system)) },
                                     colors = themeModeChipColors,
                                 )
                             }
@@ -858,7 +939,7 @@ fun SettingsScreen(
                                 FilterChip(
                                     selected = state.userSettings.themeMode == ThemeMode.LIGHT,
                                     onClick = { viewModel.onAction(SettingsUiAction.SetThemeMode(ThemeMode.LIGHT)) },
-                                    label = { Text("Terang") },
+                                    label = { Text(stringResource(R.string.theme_light)) },
                                     colors = themeModeChipColors,
                                 )
                             }
@@ -866,7 +947,7 @@ fun SettingsScreen(
                                 FilterChip(
                                     selected = state.userSettings.themeMode == ThemeMode.DARK,
                                     onClick = { viewModel.onAction(SettingsUiAction.SetThemeMode(ThemeMode.DARK)) },
-                                    label = { Text("Gelap") },
+                                    label = { Text(stringResource(R.string.theme_dark)) },
                                     colors = themeModeChipColors,
                                 )
                             }
@@ -878,7 +959,7 @@ fun SettingsScreen(
             // Widget Section
             item {
                 Text(
-                    text = "WIDGET LAYAR UTAMA (HOME SCREEN)",
+                    text = stringResource(R.string.settings_widget_section),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -921,13 +1002,13 @@ fun SettingsScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
-                                    text = "Pemasangan Widget Cepat (1-Klik)",
+                                    text = stringResource(R.string.settings_widget_title),
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "Pasang widget favorit langsung ke Layar Utama perangkat",
+                                    text = stringResource(R.string.settings_widget_description),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -940,20 +1021,27 @@ fun SettingsScreen(
                         Button(
                             onClick = {
                                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O && appWidgetManager != null && isPinSupported) {
-                                    val myProvider = android.content.ComponentName(context, com.adzannotif.widget.PrayerTimesWidgetReceiver::class.java)
+                                    val myProvider = android.content.ComponentName(
+                                        context,
+                                        com.adzannotif.presentation.widget.PrayerTimesWidgetReceiver::class.java,
+                                    )
                                     appWidgetManager.requestPinAppWidget(myProvider, null, null)
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
+                            enabled = isPinSupported,
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Text("🕌 Pasang Widget Jadwal Sholat (Live)")
+                            Text(stringResource(R.string.settings_install_prayer_widget))
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
 
                         // 2. Astronomy Moon & Sun Widgets
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
                             OutlinedButton(
                                 onClick = {
                                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O && appWidgetManager != null && isPinSupported) {
@@ -961,10 +1049,11 @@ fun SettingsScreen(
                                         appWidgetManager.requestPinAppWidget(provider, null, null)
                                     }
                                 },
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = isPinSupported,
                                 shape = RoundedCornerShape(12.dp)
                             ) {
-                                Text("🌙 Widget Bulan", style = MaterialTheme.typography.labelSmall)
+                                Text(stringResource(R.string.settings_install_moon_widget), style = MaterialTheme.typography.labelSmall)
                             }
 
                             OutlinedButton(
@@ -974,16 +1063,21 @@ fun SettingsScreen(
                                         appWidgetManager.requestPinAppWidget(provider, null, null)
                                     }
                                 },
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = isPinSupported,
                                 shape = RoundedCornerShape(12.dp)
                             ) {
-                                Text("☀️ Widget Surya", style = MaterialTheme.typography.labelSmall)
+                                Text(stringResource(R.string.settings_install_sun_widget), style = MaterialTheme.typography.labelSmall)
                             }
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "💡 Anda juga dapat menekan lama pada layar utama (Home screen) > pilih Widget > AdzanPlus.",
+                            text = if (isPinSupported) {
+                                stringResource(R.string.settings_widget_hint)
+                            } else {
+                                stringResource(R.string.widget_pin_unavailable)
+                            },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -993,6 +1087,8 @@ fun SettingsScreen(
 
             item {
                 Spacer(modifier = Modifier.height(24.dp))
+            }
+                }
             }
         }
     }
@@ -1019,6 +1115,53 @@ fun SettingsScreen(
 }
 
 @Composable
+private fun SettingsLoadingState(modifier: Modifier = Modifier) {
+    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+        CircularProgressIndicator(
+            modifier = Modifier.semantics {
+                liveRegion = LiveRegionMode.Polite
+            },
+            )
+            Text(
+                text = stringResource(R.string.settings_loading),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingsErrorState(modifier: Modifier = Modifier, message: String?) {
+    Box(modifier = modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+        Card(
+            modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_error_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                )
+                Text(
+                    text = message ?: stringResource(R.string.settings_error_detail),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun LocationPickerContent(
     state: SettingsUiState,
     onSearch: (String) -> Unit,
@@ -1036,13 +1179,13 @@ private fun LocationPickerContent(
             .padding(bottom = 32.dp)
     ) {
         Text(
-            text = "Pilih Lokasi Perhitungan",
+            text = stringResource(R.string.settings_location_picker_title),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
         Text(
-            text = "Pilih dari direktori kota, gunakan GPS real-time, atau masukkan koordinat manual.",
+            text = stringResource(R.string.settings_location_picker_description),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -1056,17 +1199,17 @@ private fun LocationPickerContent(
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    text = { Text("Cari Kota", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold) }
+                    text = { Text(stringResource(R.string.settings_tab_city), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold) }
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text("GPS Sinyal", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold) }
+                    text = { Text(stringResource(R.string.settings_tab_gps), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold) }
                 )
                 Tab(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
-                    text = { Text("Koordinat", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold) }
+                    text = { Text(stringResource(R.string.settings_tab_coordinates), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold) }
                 )
             }
         )
@@ -1076,7 +1219,7 @@ private fun LocationPickerContent(
         // Saved Favorites Row
         if (state.favoriteLocations.isNotEmpty()) {
             Text(
-                text = "Lokasi Tersimpan / Riwayat:",
+                text = stringResource(R.string.settings_saved_locations),
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1087,19 +1230,26 @@ private fun LocationPickerContent(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 items(state.favoriteLocations) { loc ->
-                    InputChip(
-                        selected = state.userSettings.selectedLocation?.id == loc.id,
-                        onClick = { onSelectLocation(loc) },
-                        label = { Text(loc.name) },
-                        trailingIcon = {
-                            IconButton(onClick = { onDeleteSaved(loc.id) }) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Hapus lokasi ${loc.name}",
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        InputChip(
+                            modifier = Modifier.weight(1f, fill = false),
+                            selected = state.userSettings.selectedLocation?.id == loc.id,
+                            onClick = { onSelectLocation(loc) },
+                            label = {
+                                Text(
+                                    text = loc.name,
+                                    maxLines = 1,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                 )
-                            }
+                            },
+                        )
+                        IconButton(onClick = { onDeleteSaved(loc.id) }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = stringResource(R.string.delete_saved_location, loc.name),
+                            )
                         }
-                    )
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(12.dp))
@@ -1112,7 +1262,7 @@ private fun LocationPickerContent(
                     value = state.searchQuery,
                     onValueChange = onSearch,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Cari kota offline...") },
+                    label = { Text(stringResource(R.string.settings_city_search_label)) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     trailingIcon = {
                         if (state.isSearching) {
@@ -1131,10 +1281,21 @@ private fun LocationPickerContent(
                         .height(300.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
+                    if (state.searchResults.isEmpty()) {
+                        item {
+                            Text(
+                                text = stringResource(R.string.settings_locations_unavailable),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(vertical = 16.dp),
+                            )
+                        }
+                    }
                     items(state.searchResults) { city ->
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .heightIn(min = 48.dp)
                                 .clickable { onSelectLocation(city) },
                             shape = RoundedCornerShape(8.dp),
                             color = if (state.userSettings.selectedLocation?.id == city.id) {
@@ -1148,23 +1309,27 @@ private fun LocationPickerContent(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column {
+                                Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = city.name,
                                         style = MaterialTheme.typography.bodyLarge,
                                         fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurface
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        maxLines = 2,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                     )
                                     Text(
                                         text = "${city.country} • ${String.format(java.util.Locale.US, "%.2f", city.latitude)}°, ${String.format(java.util.Locale.US, "%.2f", city.longitude)}° • ${city.timeZoneId}",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 2,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                     )
                                 }
                                 if (state.userSettings.selectedLocation?.id == city.id) {
                                     Icon(
                                         imageVector = Icons.Default.Check,
-                                        contentDescription = "Terpilih",
+                                        contentDescription = stringResource(R.string.settings_selected),
                                         tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
@@ -1201,14 +1366,14 @@ private fun LocationPickerContent(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                        text = "Deteksi lokasi perangkat",
+                        text = stringResource(R.string.settings_device_location_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Menggunakan sinyal Fused Location Provider untuk mendapatkan koordinat dan ketinggian presisi saat ini.",
+                            text = stringResource(R.string.settings_device_location_description),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -1223,11 +1388,11 @@ private fun LocationPickerContent(
                             if (state.isRefreshingGps) {
                                 CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Mencari Koordinat...")
+                                Text(stringResource(R.string.settings_searching_coordinates))
                             } else {
                                 Icon(Icons.Default.MyLocation, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Perbarui & Gunakan GPS Sekarang")
+                                Text(stringResource(R.string.settings_refresh_use_gps))
                             }
                         }
                     }
@@ -1249,20 +1414,17 @@ private fun LocationPickerContent(
                     OutlinedTextField(
                         value = customName,
                         onValueChange = { customName = it },
-                        label = { Text("Nama Lokasi (misal: Rumah, Kantor)") },
+                        label = { Text(stringResource(R.string.settings_custom_name)) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true
                     )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         OutlinedTextField(
                             value = customLat,
                             onValueChange = { customLat = it },
-                            label = { Text("Latitude (-90 s/d 90)") },
-                            modifier = Modifier.weight(1f),
+                            label = { Text(stringResource(R.string.settings_latitude)) },
+                            modifier = Modifier.fillMaxWidth(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             shape = RoundedCornerShape(12.dp),
                             singleLine = true
@@ -1270,22 +1432,19 @@ private fun LocationPickerContent(
                         OutlinedTextField(
                             value = customLng,
                             onValueChange = { customLng = it },
-                            label = { Text("Longitude (-180 s/d 180)") },
-                            modifier = Modifier.weight(1f),
+                            label = { Text(stringResource(R.string.settings_longitude)) },
+                            modifier = Modifier.fillMaxWidth(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             shape = RoundedCornerShape(12.dp),
                             singleLine = true
                         )
                     }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         OutlinedTextField(
                             value = customElev,
                             onValueChange = { customElev = it },
-                            label = { Text("Elevasi (meter)") },
-                            modifier = Modifier.weight(1f),
+                            label = { Text(stringResource(R.string.settings_elevation)) },
+                            modifier = Modifier.fillMaxWidth(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             shape = RoundedCornerShape(12.dp),
                             singleLine = true
@@ -1293,8 +1452,8 @@ private fun LocationPickerContent(
                         OutlinedTextField(
                             value = selectedTz,
                             onValueChange = { selectedTz = it },
-                            label = { Text("Timezone ID") },
-                            modifier = Modifier.weight(1f),
+                            label = { Text(stringResource(R.string.settings_timezone_id)) },
+                            modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
                             singleLine = true
                         )
@@ -1318,7 +1477,7 @@ private fun LocationPickerContent(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Simpan & Terapkan Koordinat")
+                        Text(stringResource(R.string.settings_save_coordinates))
                     }
                 }
             }

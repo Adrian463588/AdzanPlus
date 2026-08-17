@@ -120,7 +120,7 @@ fun PrayerTimeRow(
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = icon,
-                            contentDescription = prayer.displayNameId,
+                            contentDescription = prayer.localizedName(),
                             modifier = Modifier.size(20.dp)
                         )
                     }

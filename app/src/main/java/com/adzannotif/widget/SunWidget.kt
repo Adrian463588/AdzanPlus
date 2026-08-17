@@ -2,197 +2,189 @@ package com.adzannotif.widget
 
 import android.content.Context
 import android.os.SystemClock
-import android.util.Log
 import android.widget.RemoteViews
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.LocalContext
+import androidx.glance.LocalSize
+import androidx.glance.appwidget.action.actionStartActivity
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.AndroidRemoteViews
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
+import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.width
+import androidx.glance.semantics.contentDescription
+import androidx.glance.semantics.semantics
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
 import com.adzannotif.R
 import com.adzannotif.domain.model.astronomy.SunInfo
+import com.adzannotif.domain.repository.AstronomyRepository
+import com.adzannotif.domain.repository.LocationRepository
+import com.adzannotif.presentation.common.Screen
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.first
-import java.text.SimpleDateFormat
-import java.util.Date
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import java.util.Locale
-import java.util.TimeZone
 
 @Composable
 fun SunWidgetContent(sunInfo: SunInfo?, locationName: String, timeZoneId: String?) {
     val context = LocalContext.current
+    val wide = LocalSize.current.width >= 220.dp
+    val routeAction = actionStartActivity(
+        CelestialWidgetRoute.intent(context, Screen.SunDetail.route),
+    )
+    val widgetDescription = if (sunInfo != null && timeZoneId != null) {
+        context.getString(
+            R.string.sun_widget_content_description,
+            sunInfo.currentPhase,
+            sunInfo.nextEventName ?: context.getString(R.string.sun_event_unavailable),
+            locationName,
+        )
+    } else {
+        context.getString(R.string.sun_widget_data_unavailable)
+    }
+    val modifier = GlanceModifier
+        .fillMaxSize()
+        .background(AstronomyWidgetPalette.sunBackground)
+        .padding(if (wide) 12.dp else 10.dp)
+        .semantics { contentDescription = widgetDescription }
+        .clickable(routeAction)
 
-    fun formatWindow(start: Long?, end: Long?): String {
-        if (start == null || end == null || timeZoneId == null) return "Data tidak tersedia"
-        val fmt = SimpleDateFormat("HH:mm", Locale.ROOT).apply {
-            timeZone = TimeZone.getTimeZone(timeZoneId)
+    if (sunInfo == null || timeZoneId == null) {
+        Column(modifier = modifier, verticalAlignment = Alignment.Vertical.CenterVertically) {
+            Text(
+                text = context.getString(R.string.sun_widget_data_unavailable),
+                style = TextStyle(AstronomyWidgetPalette.primaryText, fontSize = 13.sp, fontWeight = FontWeight.Bold),
+                maxLines = 1,
+            )
+            Spacer(GlanceModifier.height(4.dp))
+            Text(
+                text = context.getString(R.string.sun_widget_location_hint),
+                style = TextStyle(AstronomyWidgetPalette.secondaryText, fontSize = 10.sp),
+                maxLines = 2,
+            )
         }
-        return "${fmt.format(Date(start))} - ${fmt.format(Date(end))}"
+        return
     }
 
-    Column(
-        modifier = GlanceModifier
-            .fillMaxSize()
-            .background(Color(0xFF0B1525))
-            .padding(14.dp),
-        horizontalAlignment = Alignment.Horizontal.Start
-    ) {
-        if (sunInfo != null && timeZoneId != null) {
+    Column(modifier = modifier, verticalAlignment = Alignment.Vertical.CenterVertically) {
+        Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.Vertical.CenterVertically) {
             Text(
-                text = "☀️ ${sunInfo.currentPhase}",
+                text = context.getString(R.string.sun_widget_icon),
+                style = TextStyle(fontSize = if (wide) 21.sp else 18.sp),
+            )
+            Spacer(GlanceModifier.width(if (wide) 8.dp else 5.dp))
+            Text(
+                text = sunInfo.currentPhase,
                 style = TextStyle(
-                    color = ColorProvider(Color.White),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            )
-            Spacer(modifier = GlanceModifier.height(2.dp))
-            Text(
-                text = "📍 $locationName",
-                style = TextStyle(
-                    color = ColorProvider(Color(0xFFFF9A3C)),
-                    fontSize = 11.sp
-                )
-            )
-            Spacer(modifier = GlanceModifier.height(4.dp))
-
-            // Golden Hour Window
-            val goldenMorning = formatWindow(sunInfo.morningGoldenHourStartMillis, sunInfo.morningGoldenHourEndMillis)
-            val goldenEvening = formatWindow(sunInfo.eveningGoldenHourStartMillis, sunInfo.eveningGoldenHourEndMillis)
-            Text(
-                text = "Golden: $goldenMorning | $goldenEvening",
-                style = TextStyle(
-                    color = ColorProvider(Color(0xFFFFB347)),
-                    fontSize = 11.sp
-                )
-            )
-
-            // Blue Hour Window
-            val blueMorning = formatWindow(sunInfo.morningBlueHourStartMillis, sunInfo.morningBlueHourEndMillis)
-            val blueEvening = formatWindow(sunInfo.eveningBlueHourStartMillis, sunInfo.eveningBlueHourEndMillis)
-            Text(
-                text = "Blue: $blueMorning | $blueEvening",
-                style = TextStyle(
-                    color = ColorProvider(Color(0xFF5B8FD4)),
-                    fontSize = 11.sp
-                )
-            )
-
-            Spacer(modifier = GlanceModifier.height(6.dp))
-
-            val now = System.currentTimeMillis()
-            val nextEventMillis = listOfNotNull(
-                sunInfo.morningBlueHourStartMillis,
-                sunInfo.morningGoldenHourStartMillis,
-                sunInfo.riseMillis,
-                sunInfo.eveningGoldenHourStartMillis,
-                sunInfo.eveningBlueHourStartMillis,
-                sunInfo.setMillis
-            ).filter { it > now }.minOrNull()
-
-            val eventName = when (nextEventMillis) {
-                sunInfo.morningBlueHourStartMillis -> "Blue Hour Pagi"
-                sunInfo.morningGoldenHourStartMillis -> "Golden Hour Pagi"
-                sunInfo.riseMillis -> "Matahari Terbit"
-                sunInfo.eveningGoldenHourStartMillis -> "Golden Hour Sore"
-                sunInfo.eveningBlueHourStartMillis -> "Blue Hour Sore"
-                sunInfo.setMillis -> "Matahari Terbenam"
-                else -> "Acara surya tidak tersedia"
-            }
-
-            if (nextEventMillis != null) {
-                Text(
-                    text = "$eventName:",
-                    style = TextStyle(color = ColorProvider(Color(0xFFE1E3DF)), fontSize = 12.sp)
-                )
-                val baseChronometerMillis = SystemClock.elapsedRealtime() + (nextEventMillis - System.currentTimeMillis())
-                AndroidRemoteViews(
-                    remoteViews = RemoteViews(context.packageName, R.layout.widget_chronometer).apply {
-                        setChronometer(
-                            R.id.chronometer,
-                            baseChronometerMillis,
-                            "%s",
-                            true
-                        )
-                    }
-                )
-            } else {
-                Text(
-                    text = "Acara surya berikutnya tidak tersedia",
-                    style = TextStyle(color = ColorProvider(Color(0xFFAAAAAA)), fontSize = 12.sp)
-                )
-            }
-        } else {
-            Text(
-                text = "☀️ Data surya tidak tersedia",
-                style = TextStyle(color = ColorProvider(Color.White), fontSize = 15.sp, fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = GlanceModifier.height(2.dp))
-            Text(
-                text = "📍 $locationName",
-                style = TextStyle(color = ColorProvider(Color(0xFFFF9A3C)), fontSize = 11.sp)
-            )
-            Spacer(modifier = GlanceModifier.height(4.dp))
-            Text(
-                text = "Golden Hour: Data tidak tersedia",
-                style = TextStyle(color = ColorProvider(Color(0xFFFFB347)), fontSize = 11.sp)
+                    AstronomyWidgetPalette.primaryText,
+                    fontSize = if (wide) 14.sp else 12.sp,
+                    fontWeight = FontWeight.Bold,
+                ),
+                maxLines = 1,
             )
         }
+        if (wide) {
+            Spacer(GlanceModifier.height(3.dp))
+            Text(
+                text = context.getString(
+                    R.string.sun_widget_location_altitude,
+                    locationName,
+                    formatAltitude(context, sunInfo.altitude),
+                ),
+                style = TextStyle(AstronomyWidgetPalette.secondaryText, fontSize = 10.sp),
+                maxLines = 1,
+            )
+        }
+        Spacer(GlanceModifier.height(if (wide) 5.dp else 4.dp))
+        val nextMillis = sunInfo.nextEventMillis?.takeIf { it > System.currentTimeMillis() }
+        Text(
+            text = if (nextMillis != null) {
+                context.getString(
+                    R.string.sun_event_time,
+                    sunInfo.nextEventName ?: context.getString(R.string.sun_event_default),
+                    formatTime(nextMillis, timeZoneId),
+                )
+            } else {
+                context.getString(R.string.sun_event_unavailable)
+            },
+            style = TextStyle(AstronomyWidgetPalette.sunAccent, fontSize = if (wide) 11.sp else 10.sp),
+            maxLines = 1,
+        )
+        if (nextMillis != null) Countdown(context, nextMillis)
     }
 }
 
+private fun formatAltitude(context: Context, value: Double): String =
+    context.getString(R.string.sun_widget_altitude, value)
+
+private fun formatTime(epochMillis: Long, timeZoneId: String): String {
+    val local = Instant.fromEpochMilliseconds(epochMillis)
+        .toLocalDateTime(TimeZone.of(timeZoneId))
+    return String.format(Locale.ROOT, "%02d:%02d", local.hour, local.minute)
+}
+
+@Composable
+private fun Countdown(context: Context, targetMillis: Long) {
+    val remaining = targetMillis - System.currentTimeMillis()
+    if (remaining <= 0L) return
+    val views = RemoteViews(context.packageName, R.layout.widget_chronometer).apply {
+        setChronometer(R.id.chronometer, SystemClock.elapsedRealtime() + remaining, "%s", true)
+        setContentDescription(R.id.chronometer, context.getString(R.string.sun_event_countdown_description))
+    }
+    AndroidRemoteViews(remoteViews = views)
+}
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface SunWidgetEntryPoint {
+    fun astronomyRepository(): AstronomyRepository
+    fun locationRepository(): LocationRepository
+}
+
 class SunWidget : GlanceAppWidget() {
+    override val sizeMode: SizeMode = SizeMode.Responsive(
+        setOf(DpSize(110.dp, 110.dp), DpSize(250.dp, 110.dp)),
+    )
+
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val entryPoint = EntryPointAccessors.fromApplication(
             context.applicationContext,
-            WidgetEntryPoint::class.java
+            SunWidgetEntryPoint::class.java,
         )
-        val locationRepository = entryPoint.locationRepository()
-        val astronomyRepository = entryPoint.astronomyRepository()
-
-        val location = locationRepository.currentOrSelectedLocation.first()
-        if (location == null) {
-            provideContent {
-                SunWidgetContent(
-                    sunInfo = null,
-                    locationName = "Lokasi belum tersedia",
-                    timeZoneId = null,
-                )
-            }
-            return
+        val location = entryPoint.locationRepository().currentOrSelectedLocation.first()
+        val sunInfo = location?.let {
+            runCatching {
+                entryPoint.astronomyRepository().getSunInfo(it, System.currentTimeMillis()).first()
+            }.getOrNull()
         }
-        val epochMillis = System.currentTimeMillis()
-        val sunInfo = runCatching {
-            astronomyRepository.getSunInfo(
-                location,
-                epochMillis,
-            ).first()
-        }.onFailure { error ->
-            Log.w("SunWidget", "Sun data is unavailable for widget update", error)
-        }.getOrNull()
-
         provideContent {
-        SunWidgetContent(
-            sunInfo = sunInfo,
-            locationName = location.name,
-            timeZoneId = location.timeZoneId,
-        )
+            SunWidgetContent(
+                sunInfo = sunInfo,
+                locationName = location?.name ?: context.getString(R.string.location_unavailable),
+                timeZoneId = location?.timeZoneId,
+            )
         }
     }
 }

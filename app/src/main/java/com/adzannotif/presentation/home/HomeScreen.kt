@@ -8,11 +8,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -54,7 +54,6 @@ import com.adzannotif.domain.model.LocationInfo
 import com.adzannotif.domain.model.PrayerTimeRecord
 import com.adzannotif.presentation.common.WindowWidthSizeClass
 import com.adzannotif.presentation.common.rememberMotionAnimationsEnabled
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,7 +74,7 @@ fun HomeScreen(
         } else {
             location.name
         }
-    } ?: stringResource(R.string.location_unavailable)
+    }
 
     Scaffold(
         topBar = {
@@ -86,48 +85,54 @@ fun HomeScreen(
                             text = stringResource(R.string.app_name),
                             style = MaterialTheme.typography.titleLarge,
                         )
-                        Text(
-                            text = locationLabel,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        locationLabel?.let { label ->
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 2,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                            )
+                        }
                     }
                 },
                 actions = {
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = if (state.isOnline) {
-                            MaterialTheme.colorScheme.primaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.surfaceVariant
-                        },
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    if (!state.isLoading) {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (state.isOnline) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            },
                         ) {
-                            Icon(
-                                imageVector = if (state.isOnline) Icons.Default.CloudDone else Icons.Default.CloudOff,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = if (state.isOnline) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                },
-                            )
-                            Text(
-                                text = stringResource(
-                                    if (state.isOnline) R.string.status_online else R.string.status_offline,
-                                ),
-                                style = MaterialTheme.typography.labelSmall,
-                            )
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Icon(
+                                    imageVector = if (state.isOnline) Icons.Default.CloudDone else Icons.Default.CloudOff,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = if (state.isOnline) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    },
+                                )
+                                Text(
+                                    text = stringResource(
+                                        if (state.isOnline) R.string.status_online else R.string.status_offline,
+                                    ),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            }
                         }
                     }
                     IconButton(
                         onClick = { viewModel.onAction(HomeUiAction.RefreshLocation) },
-                        enabled = !state.isRefreshingGps,
+                        enabled = !state.isRefreshingGps && !state.isLoading,
                     ) {
                         Icon(
                             imageVector = if (state.isRefreshingGps) {
@@ -154,22 +159,33 @@ fun HomeScreen(
         val nextPrayer = state.nextPrayer
         val nextPrayerTarget = state.nextPrayerTarget
 
-        when {
-            state.isLoading -> LoadingState(modifier = Modifier.padding(innerPadding))
-            location == null || prayerTimes == null || nextPrayer == null || nextPrayerTarget == null -> {
+        when (state.dataState) {
+            HomeDataState.LOADING -> LoadingState(modifier = Modifier.padding(innerPadding))
+            HomeDataState.ERROR -> {
+                ErrorState(
+                    modifier = Modifier.padding(innerPadding),
+                    message = state.locationError,
+                    onRetry = { viewModel.onAction(HomeUiAction.RefreshLocation) },
+                )
+            }
+            HomeDataState.UNAVAILABLE -> {
                 UnavailableState(
                     modifier = Modifier.padding(innerPadding),
                     onRetry = { viewModel.onAction(HomeUiAction.RefreshLocation) },
                 )
             }
-            else -> {
+            HomeDataState.READY -> {
+                val readyLocation = requireNotNull(location)
+                val readyPrayerTimes = requireNotNull(prayerTimes)
+                val readyNextPrayer = requireNotNull(nextPrayer)
+                val readyNextPrayerTarget = requireNotNull(nextPrayerTarget)
                 HomeContent(
                     widthSizeClass = widthSizeClass,
                     innerPadding = innerPadding,
-                    location = location,
-                    prayerTimes = prayerTimes,
-                    nextPrayer = nextPrayer,
-                    nextPrayerTarget = nextPrayerTarget,
+                    location = readyLocation,
+                    prayerTimes = readyPrayerTimes,
+                    nextPrayer = readyNextPrayer,
+                    nextPrayerTarget = readyNextPrayerTarget,
                     countdownSeconds = state.countdownSeconds,
                     hijriDateFormatted = state.hijriDateFormatted,
                     currentPrayer = state.currentPrayer,
@@ -209,12 +225,13 @@ private fun HomeContent(
         Prayer.ISHA to prayerTimes.isha,
     )
 
-    if (widthSizeClass == WindowWidthSizeClass.COMPACT) {
+    if (widthSizeClass != WindowWidthSizeClass.EXPANDED) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp),
+                .widthIn(max = 720.dp)
+                .padding(horizontal = if (widthSizeClass == WindowWidthSizeClass.MEDIUM) 24.dp else 16.dp),
             contentPadding = PaddingValues(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -250,53 +267,49 @@ private fun HomeContent(
             }
         }
     } else {
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(horizontal = if (widthSizeClass == WindowWidthSizeClass.EXPANDED) 24.dp else 16.dp),
+            contentPadding = PaddingValues(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            locationError?.let { message ->
-                LocationErrorCard(message = message)
+            item {
+                locationError?.let { message ->
+                    LocationErrorCard(message = message)
+                }
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
-                verticalAlignment = Alignment.Top,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .weight(if (widthSizeClass == WindowWidthSizeClass.EXPANDED) 0.9f else 1f)
-                        .fillMaxHeight(),
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    verticalAlignment = Alignment.Top,
                 ) {
                     NextPrayerHeroCard(
+                        modifier = Modifier.weight(1f),
                         nextPrayer = nextPrayer,
                         targetInstant = nextPrayerTarget,
                         countdownSecondsRemaining = countdownSeconds,
                         location = location,
                         hijriDateFormatted = hijriDateFormatted,
                     )
+                    PrayerScheduleColumn(
+                        modifier = Modifier.weight(1f),
+                        displayPrayers = displayPrayers,
+                        timeZoneId = location.timeZoneId,
+                        currentPrayer = currentPrayer,
+                        alarmSettings = alarmSettings,
+                        onToggleAlarm = onToggleAlarm,
+                    )
                 }
-                PrayerScheduleList(
-                    modifier = Modifier
-                        .weight(if (widthSizeClass == WindowWidthSizeClass.EXPANDED) 1.2f else 1f)
-                        .fillMaxHeight(),
-                    displayPrayers = displayPrayers,
-                    timeZoneId = location.timeZoneId,
-                    currentPrayer = currentPrayer,
-                    alarmSettings = alarmSettings,
-                    onToggleAlarm = onToggleAlarm,
-                )
             }
         }
     }
 }
 
 @Composable
-private fun PrayerScheduleList(
+private fun PrayerScheduleColumn(
     modifier: Modifier,
     displayPrayers: List<Pair<Prayer, kotlinx.datetime.Instant>>,
     timeZoneId: String,
@@ -304,19 +317,13 @@ private fun PrayerScheduleList(
     alarmSettings: AllAlarmSettings,
     onToggleAlarm: (Prayer) -> Unit,
 ) {
-    LazyColumn(
-        modifier = modifier,
-        contentPadding = PaddingValues(bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        item {
-            Text(
-                text = stringResource(R.string.prayer_schedule_today),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
-        }
-        items(displayPrayers, key = { it.first.name }) { (prayer, instant) ->
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            text = stringResource(R.string.prayer_schedule_today),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+        displayPrayers.forEach { (prayer, instant) ->
             PrayerTimeRow(
                 prayer = prayer,
                 timeInstant = instant,
@@ -378,6 +385,51 @@ private fun UnavailableState(
                     text = stringResource(R.string.prayer_data_unavailable_detail),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Button(onClick = onRetry) {
+                    Text(text = stringResource(R.string.retry))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ErrorState(
+    modifier: Modifier = Modifier,
+    message: String?,
+    onRetry: () -> Unit,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Card(
+            modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.size(32.dp),
+                )
+                Text(
+                    text = stringResource(R.string.prayer_data_error),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                )
+                Text(
+                    text = message ?: stringResource(R.string.prayer_data_error_detail),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
                 )
                 Button(onClick = onRetry) {
                     Text(text = stringResource(R.string.retry))

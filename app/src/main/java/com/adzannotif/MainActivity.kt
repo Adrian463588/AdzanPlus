@@ -11,6 +11,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -40,12 +41,14 @@ import com.adzannotif.presentation.astronomy.calendar.HijriCalendarScreen
 import com.adzannotif.presentation.theme.AstronomyBackgroundDeep
 import com.adzannotif.platform.alarm.AlarmScheduler
 import com.adzannotif.presentation.theme.AdzanNotifTheme
-import com.adzannotif.widget.PrayerTimesWidgetReceiver
+import com.adzannotif.presentation.widget.PrayerTimesWidgetReceiver
 import com.adzannotif.widget.AstronomyWidgetUpdater
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
+@Suppress("DEPRECATION")
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -63,9 +66,11 @@ class MainActivity : ComponentActivity() {
     }
 
     private var exactAlarmPromptShown = false
+    private val widgetRoute = MutableStateFlow<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        widgetRoute.value = routeFromIntent(intent)
         requestAppPermissions()
 
         setContent {
@@ -75,8 +80,20 @@ class MainActivity : ComponentActivity() {
 
             AdzanNotifTheme(themeMode = userSettings.themeMode) {
                 val navController = rememberNavController()
+                val requestedRoute by widgetRoute.collectAsStateWithLifecycle()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route ?: Screen.Home.route
+                LaunchedEffect(requestedRoute) {
+                    requestedRoute?.let { route ->
+                        if (currentRoute != route) {
+                            navController.navigate(route) {
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                        widgetRoute.value = null
+                    }
+                }
                 val astronomyRoute = currentRoute == Screen.AstronomyDashboard.route ||
                     currentRoute == Screen.MoonDetail.route ||
                     currentRoute == Screen.SunDetail.route ||
@@ -140,6 +157,24 @@ class MainActivity : ComponentActivity() {
         refreshWidgets()
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        routeFromIntent(intent)?.let {
+            widgetRoute.value = it
+        }
+    }
+
+    private fun routeFromIntent(intent: Intent?): String? {
+        if (intent == null) return null
+        val extraRoute = intent.getStringExtra("com.adzannotif.extra.ASTRONOMY_ROUTE")
+        if (extraRoute != null && extraRoute in VALID_ROUTES) return extraRoute
+        val data = intent.data ?: return null
+        if (data.scheme != WIDGET_ROUTE_SCHEME) return null
+        val route = data.host?.takeIf { it.isNotBlank() } ?: data.path?.trim('/')
+        return route?.takeIf { it in VALID_ROUTES }
+    }
+
     private fun refreshWidgets() {
         PrayerTimesWidgetReceiver.updateAll(this)
         lifecycleScope.launch {
@@ -156,6 +191,21 @@ class MainActivity : ComponentActivity() {
             permissions.add(Manifest.permission.POST_NOTIFICATIONS)
         }
         permissionLauncher.launch(permissions.toTypedArray())
+    }
+
+    private companion object {
+        const val WIDGET_ROUTE_SCHEME = "adzannotif"
+        val VALID_ROUTES = setOf(
+            Screen.Home.route,
+            Screen.Schedule.route,
+            Screen.Qibla.route,
+            Screen.Settings.route,
+            Screen.AstronomyDashboard.route,
+            Screen.MoonDetail.route,
+            Screen.SunDetail.route,
+            Screen.StarMap.route,
+            Screen.HijriCalendar.route,
+        )
     }
 }
 

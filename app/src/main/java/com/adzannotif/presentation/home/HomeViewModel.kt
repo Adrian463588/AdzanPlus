@@ -15,7 +15,7 @@ import com.adzannotif.domain.usecase.GetTodayPrayerTimesUseCase
 import com.adzannotif.domain.usecase.SchedulePrayerAlarmsUseCase
 import com.adzannotif.platform.network.NetworkMonitor
 import android.content.Context
-import com.adzannotif.widget.PrayerTimesWidgetReceiver
+import com.adzannotif.presentation.widget.PrayerTimesWidgetReceiver
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -108,10 +108,11 @@ class HomeViewModel @Inject constructor(
 
     val uiState: StateFlow<HomeUiState> = combine(
         prayerInfoFlow,
-        settingsStateFlow,
-        connectivityFlow
+    settingsStateFlow,
+    connectivityFlow
     ) { (location, todayRecord, nextInfo), settings, connectivity ->
         val current = nextInfo?.currentPrayer ?: todayRecord?.findCurrentPrayer(Clock.System.now())
+        val hasPrayerData = location != null && todayRecord != null && nextInfo != null
 
         HomeUiState(
             location = location,
@@ -128,11 +129,10 @@ class HomeViewModel @Inject constructor(
             locationError = connectivity.locationError,
             isLoading = false,
             dataState = when {
-                connectivity.locationError != null &&
-                    (location == null || todayRecord == null || nextInfo?.nextPrayer == null || nextInfo.targetTime == null) -> {
+                connectivity.locationError != null && !hasPrayerData -> {
                     HomeDataState.ERROR
                 }
-                location == null || todayRecord == null || nextInfo?.nextPrayer == null || nextInfo.targetTime == null -> {
+                !hasPrayerData -> {
                     HomeDataState.UNAVAILABLE
                 }
                 else -> HomeDataState.READY

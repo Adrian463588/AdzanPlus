@@ -15,7 +15,7 @@ import com.adzannotif.domain.repository.SettingsRepository
 import com.adzannotif.platform.alarm.AlarmScheduler
 import com.adzannotif.platform.alarm.CelestialAlarmScheduler
 import com.adzannotif.widget.AstronomyWidgetUpdater
-import com.adzannotif.widget.PrayerTimesWidgetReceiver
+import com.adzannotif.presentation.widget.PrayerTimesWidgetReceiver
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.first

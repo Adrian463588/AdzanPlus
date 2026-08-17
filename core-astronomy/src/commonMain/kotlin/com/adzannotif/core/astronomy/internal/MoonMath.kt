@@ -8,6 +8,7 @@ import com.adzannotif.core.astronomy.internal.MathUtils.unwindAngle
 import kotlin.math.acos
 import kotlin.math.asin
 import kotlin.math.atan2
+import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlinx.datetime.Instant
@@ -169,7 +170,45 @@ public object MoonMath {
         dateMillis: Long,
         timeZone: TimeZone = TimeZone.UTC,
     ): Long? {
-        return findMoonEvent(lat, lon, dateMillis, isRising = true, timeZone = timeZone)
+        val startOfDay = startOfDay(dateMillis, timeZone)
+        val endOfDay = nextLocalDay(startOfDay, timeZone)
+        return findMoonEvent(
+            lat = lat,
+            lon = lon,
+            startMillis = startOfDay,
+            endMillis = endOfDay,
+            isRising = true,
+        )
+    }
+
+    /**
+     * Returns the first rise strictly after [fromMillis], searching the
+     * selected local day and the following local day. This is the contract
+     * used by live widgets, where today's rise may already be in the past.
+     */
+    fun computeNextMoonRise(
+        lat: Double,
+        lon: Double,
+        fromMillis: Long,
+        timeZone: TimeZone = TimeZone.UTC,
+    ): Long? {
+        val localDate = Instant.fromEpochMilliseconds(fromMillis)
+            .toLocalDateTime(timeZone)
+            .date
+        val startOfDay = localDate.atTime(0, 0).toInstant(timeZone).toEpochMilliseconds()
+        val endOfFollowingDay = localDate
+            .plus(DatePeriod(days = 2))
+            .atTime(0, 0)
+            .toInstant(timeZone)
+            .toEpochMilliseconds()
+        val searchStart = if (fromMillis == Long.MAX_VALUE) return null else fromMillis + 1L
+        return findMoonEvent(
+            lat = lat,
+            lon = lon,
+            startMillis = maxOf(startOfDay, searchStart),
+            endMillis = endOfFollowingDay,
+            isRising = true,
+        )?.takeIf { it > fromMillis }
     }
 
     fun computeMoonSet(
@@ -178,7 +217,14 @@ public object MoonMath {
         dateMillis: Long,
         timeZone: TimeZone = TimeZone.UTC,
     ): Long? {
-        return findMoonEvent(lat, lon, dateMillis, isRising = false, timeZone = timeZone)
+        val startOfDay = startOfDay(dateMillis, timeZone)
+        return findMoonEvent(
+            lat = lat,
+            lon = lon,
+            startMillis = startOfDay,
+            endMillis = nextLocalDay(startOfDay, timeZone),
+            isRising = false,
+        )
     }
 
     fun computeMoonTransit(
@@ -187,12 +233,15 @@ public object MoonMath {
         dateMillis: Long,
         timeZone: TimeZone = TimeZone.UTC,
     ): Long? {
-        // Approximate transit time by finding max altitude in 24h
+        // Approximate transit time within the selected civil day. A fixed
+        // 24-hour interval leaks into the next local date on DST changes.
         val startOfDay = startOfDay(dateMillis, timeZone)
+        val endOfDay = nextLocalDay(startOfDay, timeZone)
+        val sampleCount = ceil((endOfDay - startOfDay) / 3600000.0).toInt()
         var maxAlt = -90.0
         var transitTime = startOfDay
-        for (i in 0..24) {
-            val ms = startOfDay + i * 3600000L
+        for (i in 0..sampleCount) {
+            val ms = (startOfDay + i * 3600000L).coerceAtMost(endOfDay)
             val pos = computeMoonPosition(lat, lon, 0.0, ms)
             if (pos.altitude > maxAlt) {
                 maxAlt = pos.altitude
@@ -205,22 +254,40 @@ public object MoonMath {
     private fun findMoonEvent(
         lat: Double,
         lon: Double,
-        dateMillis: Long,
+        startMillis: Long,
+        endMillis: Long,
         isRising: Boolean,
-        timeZone: TimeZone,
     ): Long? {
-        val startOfDay = startOfDay(dateMillis, timeZone)
-        var prevAlt = computeMoonPosition(lat, lon, 0.0, startOfDay).altitude
-        for (i in 1..144) { // 10-minute intervals
-            val ms = startOfDay + i * 600000L
-            val currAlt = computeMoonPosition(lat, lon, 0.0, ms).altitude
-            
-            if (isRising && prevAlt <= 0.0 && currAlt > 0.0) {
-                return ms
-            } else if (!isRising && prevAlt >= 0.0 && currAlt < 0.0) {
-                return ms
+        if (endMillis <= startMillis) return null
+        val targetAltitude = 0.0
+        var previousMillis = startMillis
+        var previousAltitude = computeMoonPosition(lat, lon, 0.0, previousMillis).altitude
+        while (previousMillis < endMillis) {
+            val currentMillis = (previousMillis + SEARCH_STEP_MILLIS).coerceAtMost(endMillis)
+            val currentAltitude = computeMoonPosition(lat, lon, 0.0, currentMillis).altitude
+            val crossed = if (isRising) {
+                previousAltitude < targetAltitude && currentAltitude >= targetAltitude
+            } else {
+                previousAltitude > targetAltitude && currentAltitude <= targetAltitude
             }
-            prevAlt = currAlt
+            if (crossed) {
+                var low = previousMillis
+                var high = currentMillis
+                repeat(24) {
+                    val middle = (low + high) / 2
+                    val altitude = computeMoonPosition(lat, lon, 0.0, middle).altitude
+                    if ((isRising && altitude < targetAltitude) ||
+                        (!isRising && altitude > targetAltitude)
+                    ) {
+                        low = middle
+                    } else {
+                        high = middle
+                    }
+                }
+                return (low + high) / 2
+            }
+            previousMillis = currentMillis
+            previousAltitude = currentAltitude
         }
         return null
     }
@@ -228,6 +295,16 @@ public object MoonMath {
     private fun startOfDay(millis: Long, timeZone: TimeZone): Long {
         val localDate = Instant.fromEpochMilliseconds(millis).toLocalDateTime(timeZone).date
         return localDate.atTime(0, 0).toInstant(timeZone).toEpochMilliseconds()
+    }
+
+    private fun nextLocalDay(startOfDayMillis: Long, timeZone: TimeZone): Long {
+        val localDate = Instant.fromEpochMilliseconds(startOfDayMillis)
+            .toLocalDateTime(timeZone)
+            .date
+        return localDate.plus(DatePeriod(days = 1))
+            .atTime(0, 0)
+            .toInstant(timeZone)
+            .toEpochMilliseconds()
     }
 
     private fun computeMeanElongation(epochMillis: Long): Double {
@@ -238,4 +315,6 @@ public object MoonMath {
 
     private fun forwardAngle(from: Double, to: Double): Double =
         ((to - from) % 360.0 + 360.0) % 360.0
+
+    private const val SEARCH_STEP_MILLIS = 10 * 60 * 1000L
 }

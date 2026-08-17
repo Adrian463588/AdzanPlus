@@ -3,6 +3,7 @@ package com.adzannotif.presentation.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,6 +32,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.adzannotif.R
 import com.adzannotif.core.prayer.Prayer
 import com.adzannotif.domain.model.LocationInfo
@@ -83,12 +85,12 @@ fun NextPrayerHeroCard(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Top row: Location chip + Hijri Date
-                Row(
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Surface(
-                        modifier = Modifier.weight(1f, fill = false),
+                        modifier = Modifier.align(Alignment.Start),
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surface,
                         contentColor = MaterialTheme.colorScheme.onSurface,
@@ -127,8 +129,7 @@ fun NextPrayerHeroCard(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
                         modifier = Modifier
-                            .padding(start = 8.dp)
-                            .weight(1f),
+                            .align(Alignment.End),
                         maxLines = 2,
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                         textAlign = androidx.compose.ui.text.style.TextAlign.End,
@@ -185,6 +186,7 @@ fun NextPrayerHeroCard(
 
                 // Large Countdown Display Pill
                 Surface(
+                    modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
                     color = MaterialTheme.colorScheme.surface,
                     border = androidx.compose.foundation.BorderStroke(
@@ -193,18 +195,31 @@ fun NextPrayerHeroCard(
                     ),
                     shadowElevation = 2.dp
                 ) {
-                    Text(
-                        text = countdownFormatted,
-                        style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Black),
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .semantics {
-                                // Do not make a ticking value a live region: TalkBack would interrupt users every second.
-                                contentDescription = countdownDesc
-                                stateDescription = countdownFormatted
-                            },
-                    )
+                    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                        val density = androidx.compose.ui.platform.LocalDensity.current
+                        val fontSize = (maxWidth.value / (8.5f * density.fontScale))
+                            .coerceIn(16f, 38f)
+                            .sp
+                        Text(
+                            text = countdownFormatted,
+                            style = MaterialTheme.typography.displayLarge.copy(
+                                fontSize = fontSize,
+                                fontWeight = FontWeight.Black,
+                            ),
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1,
+                            softWrap = false,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .semantics {
+                                    // Do not make a ticking value a live region: TalkBack would interrupt users every second.
+                                    contentDescription = countdownDesc
+                                    stateDescription = countdownFormatted
+                                },
+                        )
+                    }
                 }
             }
         }

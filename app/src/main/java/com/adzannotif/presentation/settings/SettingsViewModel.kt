@@ -2,6 +2,7 @@ package com.adzannotif.presentation.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.adzannotif.R
 import com.adzannotif.core.prayer.CalculationMethod
 import com.adzannotif.core.prayer.HighLatitudeRule
 import com.adzannotif.core.prayer.Madhab
@@ -19,16 +20,25 @@ import com.adzannotif.platform.alarm.CelestialAlarmScheduler
 import com.adzannotif.platform.audio.AudioGateway
 import com.adzannotif.platform.network.NetworkMonitor
 import android.content.Context
-import com.adzannotif.widget.PrayerTimesWidgetReceiver
+import com.adzannotif.widget.AstronomyWidgetUpdater
+import com.adzannotif.presentation.widget.PrayerTimesWidgetReceiver
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+enum class SettingsDataState {
+    LOADING,
+    READY,
+    UNAVAILABLE,
+    ERROR,
+}
 
 data class SettingsUiState(
     val userSettings: UserSettings = UserSettings(),
@@ -43,6 +53,8 @@ data class SettingsUiState(
     val isOnline: Boolean = false,
     val currentlyPlayingVoice: AdhanVoice? = null,
     val isLoading: Boolean = false,
+    val dataState: SettingsDataState = SettingsDataState.LOADING,
+    val errorMessage: String? = null,
 )
 
 sealed interface SettingsUiAction {
@@ -91,6 +103,7 @@ class SettingsViewModel @Inject constructor(
     private val _isSearching = MutableStateFlow(false)
     private val _isRefreshingGps = MutableStateFlow(false)
     private val _currentlyPlayingVoice = MutableStateFlow<AdhanVoice?>(null)
+    private val _errorMessage = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<SettingsUiState> = combine(
         combine(settingsRepository.userSettings, settingsRepository.alarmSettings, ::Pair),
@@ -103,9 +116,12 @@ class SettingsViewModel @Inject constructor(
         ) { cities, favorites, query, results, isPickerOpen ->
             LocationStateTuple(cities, favorites, query, results, isPickerOpen)
         },
-        combine(_isSearching, _isRefreshingGps, networkMonitor.isOnline, _currentlyPlayingVoice) { isSearching, isRefreshing, isOnline, voice ->
-            ExtraStateTuple(isSearching, isRefreshing, isOnline, voice)
-        }
+        combine(
+            combine(_isSearching, _isRefreshingGps, networkMonitor.isOnline, _currentlyPlayingVoice) { isSearching, isRefreshing, isOnline, voice ->
+                ExtraStateTuple(isSearching, isRefreshing, isOnline, voice)
+            },
+            _errorMessage,
+        ) { extra, errorMessage -> extra.copy(errorMessage = errorMessage) }
     ) { (userSettings, alarmSettings), locTuple, extraTuple ->
         SettingsUiState(
             userSettings = userSettings,
@@ -119,12 +135,22 @@ class SettingsViewModel @Inject constructor(
             isRefreshingGps = extraTuple.isRefreshing,
             isOnline = extraTuple.isOnline,
             currentlyPlayingVoice = extraTuple.voice,
-            isLoading = false
+            isLoading = false,
+            dataState = SettingsDataState.READY,
+            errorMessage = extraTuple.errorMessage,
+        )
+    }.catch { error ->
+        emit(
+            SettingsUiState(
+                isLoading = false,
+                dataState = SettingsDataState.ERROR,
+                errorMessage = error.message,
+            ),
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = SettingsUiState(isLoading = true)
+        initialValue = SettingsUiState(isLoading = true, dataState = SettingsDataState.LOADING)
     )
 
     init {
@@ -133,42 +159,50 @@ class SettingsViewModel @Inject constructor(
 
     private fun loadOfflineCities() {
         viewModelScope.launch {
-            val list = locationRepository.getAllOfflineCities()
-            _allOfflineCities.value = list
-            _searchResults.value = list
+            runCatching { locationRepository.getAllOfflineCities() }
+                .onSuccess { list ->
+                    _allOfflineCities.value = list
+                    _searchResults.value = list
+                }
+                .onFailure { error -> _errorMessage.value = error.message }
         }
     }
 
     fun onAction(action: SettingsUiAction) {
         when (action) {
             is SettingsUiAction.SetCalculationMethod -> {
-                viewModelScope.launch {
+                launchSettingsAction {
                     settingsRepository.updateUserSettings { it.copy(calculationMethod = action.method) }
                     refreshAlarms()
                     PrayerTimesWidgetReceiver.updateAll(context)
+                    AstronomyWidgetUpdater.updateAll(context)
                 }
             }
             is SettingsUiAction.SetMadhab -> {
-                viewModelScope.launch {
+                launchSettingsAction {
                     settingsRepository.updateUserSettings { it.copy(madhab = action.madhab) }
                     refreshAlarms()
                     PrayerTimesWidgetReceiver.updateAll(context)
+                    AstronomyWidgetUpdater.updateAll(context)
                 }
             }
             is SettingsUiAction.SetHighLatitudeRule -> {
-                viewModelScope.launch {
+                launchSettingsAction {
                     settingsRepository.updateUserSettings { it.copy(highLatitudeRule = action.rule) }
                     refreshAlarms()
                     PrayerTimesWidgetReceiver.updateAll(context)
+                    AstronomyWidgetUpdater.updateAll(context)
                 }
             }
             is SettingsUiAction.SetThemeMode -> {
-                viewModelScope.launch {
+                launchSettingsAction {
                     settingsRepository.updateUserSettings { it.copy(themeMode = action.themeMode) }
+                    PrayerTimesWidgetReceiver.updateAll(context)
+                    AstronomyWidgetUpdater.updateAll(context)
                 }
             }
             is SettingsUiAction.SetPrayerAdjustment -> {
-                viewModelScope.launch {
+                launchSettingsAction {
                     settingsRepository.updateUserSettings { current ->
                         when (action.prayer) {
                             Prayer.FAJR -> current.copy(fajrAdjustment = action.minutes)
@@ -181,10 +215,11 @@ class SettingsViewModel @Inject constructor(
                     }
                     refreshAlarms()
                     PrayerTimesWidgetReceiver.updateAll(context)
+                    AstronomyWidgetUpdater.updateAll(context)
                 }
             }
             is SettingsUiAction.SetPrayerEnabled -> {
-                viewModelScope.launch {
+                launchSettingsAction {
                     val currentConfig = uiState.value.alarmSettings.getConfigForPrayer(action.prayer)
                     settingsRepository.updateAlarmSettings {
                         it.updateConfig(currentConfig.copy(isEnabled = action.enabled))
@@ -194,14 +229,14 @@ class SettingsViewModel @Inject constructor(
                 }
             }
             is SettingsUiAction.SetAdhanVoice -> {
-                viewModelScope.launch {
+                launchSettingsAction {
                     val currentConfig = uiState.value.alarmSettings.getConfigForPrayer(action.prayer)
                     val updated = currentConfig.copy(adhanVoice = action.voice)
                     settingsRepository.updateAlarmSettings { it.updateConfig(updated) }
                 }
             }
             is SettingsUiAction.SetCustomSound -> {
-                viewModelScope.launch {
+                launchSettingsAction {
                     val currentConfig = uiState.value.alarmSettings.getConfigForPrayer(action.prayer)
                     settingsRepository.updateAlarmSettings {
                         it.updateConfig(currentConfig.copy(customSoundUri = action.uriString))
@@ -224,7 +259,7 @@ class SettingsViewModel @Inject constructor(
                 }
             }
             is SettingsUiAction.SetPreReminder -> {
-                viewModelScope.launch {
+                launchSettingsAction {
                     val currentConfig = uiState.value.alarmSettings.getConfigForPrayer(action.prayer)
                     val updated = currentConfig.copy(preReminderMinutes = action.minutesBefore)
                     settingsRepository.updateAlarmSettings { it.updateConfig(updated) }
@@ -233,20 +268,21 @@ class SettingsViewModel @Inject constructor(
                 }
             }
             is SettingsUiAction.SetDndSilenceMinutes -> {
-                viewModelScope.launch {
+                launchSettingsAction {
                     settingsRepository.updateAlarmSettings { it.copy(dndAutoSilenceMinutes = action.minutes) }
                 }
             }
             is SettingsUiAction.SetCelestialAlert -> {
-                viewModelScope.launch {
+                launchSettingsAction {
                     settingsRepository.updateAlarmSettings {
                         it.copy(celestialAlerts = it.celestialAlerts.withEnabled(action.type, action.enabled))
                     }
                     celestialAlarmScheduler.rescheduleAllAlarms()
+                    AstronomyWidgetUpdater.updateAll(context)
                 }
             }
             is SettingsUiAction.SetCelestialAlertOffset -> {
-                viewModelScope.launch {
+                launchSettingsAction {
                     settingsRepository.updateAlarmSettings {
                         it.copy(
                             celestialAlerts = it.celestialAlerts.copy(
@@ -255,6 +291,7 @@ class SettingsViewModel @Inject constructor(
                         )
                     }
                     celestialAlarmScheduler.rescheduleAllAlarms()
+                    AstronomyWidgetUpdater.updateAll(context)
                 }
             }
             is SettingsUiAction.SearchLocation -> {
@@ -270,7 +307,7 @@ class SettingsViewModel @Inject constructor(
                 }
             }
             is SettingsUiAction.SelectLocation -> {
-                viewModelScope.launch {
+                launchSettingsAction {
                     locationRepository.saveLocation(action.location)
                     settingsRepository.updateUserSettings {
                         it.copy(selectedLocation = action.location, useAutoLocation = action.location.isAutoDetected)
@@ -278,19 +315,23 @@ class SettingsViewModel @Inject constructor(
                     _isLocationPickerVisible.value = false
                     refreshAlarms()
                     PrayerTimesWidgetReceiver.updateAll(context)
+                    AstronomyWidgetUpdater.updateAll(context)
                 }
             }
             is SettingsUiAction.DeleteSavedLocation -> {
-                viewModelScope.launch {
+                launchSettingsAction {
                     locationRepository.deleteLocation(action.locationId)
                 }
             }
             is SettingsUiAction.SaveCustomCoordinates -> {
-                viewModelScope.launch {
+                launchSettingsAction {
+                    require(action.name.isNotBlank()) {
+                        context.getString(R.string.settings_location_name_required)
+                    }
                     val customLoc = LocationInfo(
                         id = "custom_${action.latitude.hashCode()}_${action.longitude.hashCode()}",
-                        name = action.name.ifBlank { "Koordinat Kustom" },
-                        country = "Kustom",
+                        name = action.name.trim(),
+                        country = context.getString(R.string.settings_custom_country),
                         latitude = action.latitude,
                         longitude = action.longitude,
                         elevation = action.elevation,
@@ -304,10 +345,11 @@ class SettingsViewModel @Inject constructor(
                     _isLocationPickerVisible.value = false
                     refreshAlarms()
                     PrayerTimesWidgetReceiver.updateAll(context)
+                    AstronomyWidgetUpdater.updateAll(context)
                 }
             }
             is SettingsUiAction.RefreshGpsLocation -> {
-                viewModelScope.launch {
+                launchSettingsAction {
                     _isRefreshingGps.value = true
                     try {
                         locationRepository.getDeviceLocation().onSuccess { loc ->
@@ -318,6 +360,9 @@ class SettingsViewModel @Inject constructor(
                             _isLocationPickerVisible.value = false
                             refreshAlarms()
                             PrayerTimesWidgetReceiver.updateAll(context)
+                            AstronomyWidgetUpdater.updateAll(context)
+                        }.onFailure { error ->
+                            _errorMessage.value = error.message
                         }
                     } finally {
                         _isRefreshingGps.value = false
@@ -344,6 +389,12 @@ class SettingsViewModel @Inject constructor(
         celestialAlarmScheduler.rescheduleAllAlarms()
     }
 
+    private fun launchSettingsAction(block: suspend () -> Unit) = viewModelScope.launch {
+        _errorMessage.value = null
+        runCatching { block() }
+            .onFailure { error -> _errorMessage.value = error.message }
+    }
+
     private data class LocationStateTuple(
         val cities: List<LocationInfo>,
         val favorites: List<LocationInfo>,
@@ -357,5 +408,6 @@ class SettingsViewModel @Inject constructor(
         val isRefreshing: Boolean,
         val isOnline: Boolean,
         val voice: AdhanVoice?,
+        val errorMessage: String? = null,
     )
 }

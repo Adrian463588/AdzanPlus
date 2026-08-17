@@ -14,12 +14,12 @@
 ### 🕋 Layanan Utama Sholat & Arah Kiblat
 | Beranda & Countdown Sholat | Jadwal Bulanan (30 Hari) | Kompas Arah Kiblat & Haptic | Pengaturan & Metode Hisab |
 |:---:|:---:|:---:|:---:|
-| <img src="https://raw.githubusercontent.com/Adrian463588/AdzanPlus/main/docs/screenshots/home.png" width="220" alt="Beranda AdzanPlus" /> | <img src="https://raw.githubusercontent.com/Adrian463588/AdzanPlus/main/docs/screenshots/schedule.png" width="220" alt="Jadwal Bulanan" /> | <img src="https://raw.githubusercontent.com/Adrian463588/AdzanPlus/main/docs/screenshots/qibla.png" width="220" alt="Kompas Arah Kiblat" /> | <img src="https://raw.githubusercontent.com/Adrian463588/AdzanPlus/main/docs/screenshots/settings.png" width="220" alt="Pengaturan & Hisab" /> |
+| <img src="./docs/screenshots/home.png" width="220" alt="Beranda AdzanPlus" /> | <img src="./docs/screenshots/schedule.png" width="220" alt="Jadwal Bulanan" /> | <img src="./docs/screenshots/qibla.png" width="220" alt="Kompas Arah Kiblat" /> | <img src="./docs/screenshots/settings.png" width="220" alt="Pengaturan & Hisab" /> |
 
 ### 🌌 Suite Observasi Astronomi & Bintang (Sprint 2)
 | Dashboard Astronomi | Detail Bulan & Fase 30 Hari | Detail Matahari & Golden Hour | Peta Bintang (500 Bintang) | Kalender Hijriah & Masehi |
 |:---:|:---:|:---:|:---:|:---:|
-| <img src="https://raw.githubusercontent.com/Adrian463588/AdzanPlus/main/docs/screenshots/astronomy_dashboard.png" width="180" alt="Dashboard Astronomi" /> | <img src="https://raw.githubusercontent.com/Adrian463588/AdzanPlus/main/docs/screenshots/moon_detail.png" width="180" alt="Detail Bulan" /> | <img src="https://raw.githubusercontent.com/Adrian463588/AdzanPlus/main/docs/screenshots/sun_detail.png" width="180" alt="Detail Matahari" /> | <img src="https://raw.githubusercontent.com/Adrian463588/AdzanPlus/main/docs/screenshots/star_map.png" width="180" alt="Peta Bintang" /> | <img src="https://raw.githubusercontent.com/Adrian463588/AdzanPlus/main/docs/screenshots/hijri_calendar.png" width="180" alt="Kalender Hijriah" /> |
+| <img src="./docs/screenshots/astronomy_dashboard.png" width="180" alt="Dashboard Astronomi" /> | <img src="./docs/screenshots/moon_detail.png" width="180" alt="Detail Bulan" /> | <img src="./docs/screenshots/sun_detail.png" width="180" alt="Detail Matahari" /> | <img src="./docs/screenshots/star_map.png" width="180" alt="Peta Bintang" /> | <img src="./docs/screenshots/hijri_calendar.png" width="180" alt="Kalender Hijriah" /> |
 
 ---
 
@@ -209,7 +209,7 @@ AdzanPlus/
 ## 🔒 DevSecOps & Security Best Practices
 
 Proyek ini menerapkan standar keamanan **DevSecOps** dan **Anti-Credential Leakage**:
-1. **Zero Secret Policy**: Seluruh file konfigurasi lokal (`local.properties`, `key.properties`, `secrets.properties`) dikecualikan dari version control melalui [`.gitignore`](.gitignore).
+1. **Zero Secret & Anti-Leakage Policy**: Seluruh file konfigurasi lokal (`local.properties`, `key.properties`, `secrets.properties`), arsip keystore, modul referensi eksternal (`ReferenceProjects/`), dan dokumen catatan teknis di `docs/*.md` dikecualikan dari version control publik melalui [`.gitignore`](.gitignore).
 2. **Keystore Protection**: Kunci tanda tangan aplikasi (`*.jks`, `*.keystore`, `*.p12`) tidak pernah disimpan di dalam repositori publik.
 3. **Pure Domain Isolation**: Modul perhitungan waktu sholat (`:core-prayer`) dan astronomi (`:core-astronomy`) diisolasi penuh dari dependensi platform untuk menjamin keaslian dan portabilitas hisab.
 4. **Privacy-First**: Aplikasi tidak memerlukan izin akses internet wajib untuk menghitung waktu sholat dan benda langit.

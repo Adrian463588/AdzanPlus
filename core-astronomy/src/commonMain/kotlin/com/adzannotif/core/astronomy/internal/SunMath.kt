@@ -5,14 +5,16 @@ import com.adzannotif.core.astronomy.TwilightTimes
 import com.adzannotif.core.astronomy.internal.MathUtils.toDegrees
 import com.adzannotif.core.astronomy.internal.MathUtils.toRadians
 import com.adzannotif.core.astronomy.internal.MathUtils.unwindAngle
-import kotlin.math.acos
 import kotlin.math.asin
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.tan
+import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atTime
+import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 
@@ -31,8 +33,6 @@ public object SunMath {
 
         val l0 = (280.46646 + t * (36000.76983 + t * 0.0003032)).unwindAngle()
         val m = (357.52911 + t * (35999.05029 - 0.0001537 * t)).unwindAngle()
-
-        val e = 0.016708634 - t * (0.000042037 + 0.0000001267 * t)
 
         val mRad = m.toRadians()
         val c = (1.914602 - t * (0.004817 + 0.000014 * t)) * sin(mRad) +
@@ -111,25 +111,9 @@ public object SunMath {
         // when a DST transition changes the offset between midnight and noon.
         var approx = localNoon +
             ((zoneOffsetMinutesAt(localNoon, timeZone) - lon * 4.0) * 60000.0).toLong()
-        // Simple convergence
         for (i in 0..2) {
             val zoneOffsetMinutes = zoneOffsetMinutesAt(approx, timeZone)
-            val jd = julianDay(approx)
-            val t = julianCentury(jd)
-            val l0 = (280.46646 + t * (36000.76983 + t * 0.0003032)).unwindAngle()
-            val m = (357.52911 + t * (35999.05029 - 0.0001537 * t)).unwindAngle()
-            val c = (1.914602 - t * (0.004817 + 0.000014 * t)) * sin(m.toRadians()) +
-                    (0.019993 - 0.000101 * t) * sin(2.0 * m.toRadians()) +
-                    0.000289 * sin(3.0 * m.toRadians())
-            val e = 0.016708634 - t * (0.000042037 + 0.0000001267 * t)
-            val y = kotlin.math.tan((23.439291/2.0).toRadians()) * kotlin.math.tan((23.439291/2.0).toRadians())
-            
-            val eqTime = y * sin(2.0 * l0.toRadians()) - 2.0 * e * sin(m.toRadians()) +
-                         4.0 * e * y * sin(m.toRadians()) * cos(2.0 * l0.toRadians()) -
-                         0.5 * y * y * sin(4.0 * l0.toRadians()) -
-                         1.25 * e * e * sin(2.0 * m.toRadians())
-                         
-            val eqTimeMins = eqTime.toDegrees() * 4.0
+            val eqTimeMins = equationOfTimeMinutes(approx)
             approx = localNoon +
                 ((zoneOffsetMinutes - lon * 4.0) * 60000.0).toLong() -
                 (eqTimeMins * 60000L).toLong()
@@ -160,29 +144,85 @@ public object SunMath {
         isRising: Boolean,
         timeZone: TimeZone,
     ): Long? {
-        val noon = computeSolarNoon(lat, lon, dateMillis, timeZone)
-        
-        val jdNoon = julianDay(noon)
-        val t = julianCentury(jdNoon)
-        val meanObliq = 23.439291 - t * (0.0130042 + t * (0.00000016 - t * 0.000000504))
+        val localDate = Instant.fromEpochMilliseconds(dateMillis)
+            .toLocalDateTime(timeZone)
+            .date
+        val dayStart = localDate.atTime(0, 0).toInstant(timeZone).toEpochMilliseconds()
+        val nextDayStart = localDate.plus(DatePeriod(days = 1))
+            .atTime(0, 0)
+            .toInstant(timeZone)
+            .toEpochMilliseconds()
+        return findAltitudeCrossing(
+            lat = lat,
+            lon = lon,
+            startMillis = dayStart,
+            endMillis = nextDayStart,
+            targetAltitudeDeg = targetAlt,
+            isRising = isRising,
+        )
+    }
+
+    private fun equationOfTimeMinutes(epochMillis: Long): Double {
+        val jd = julianDay(epochMillis)
+        val t = julianCentury(jd)
         val l0 = (280.46646 + t * (36000.76983 + t * 0.0003032)).unwindAngle()
         val m = (357.52911 + t * (35999.05029 - 0.0001537 * t)).unwindAngle()
-        val c = (1.914602 - t * (0.004817 + 0.000014 * t)) * sin(m.toRadians()) +
-                (0.019993 - 0.000101 * t) * sin(2.0 * m.toRadians()) +
-                0.000289 * sin(3.0 * m.toRadians())
-        val lambda = (l0 + c).unwindAngle()
-        val decRad = asin(sin(meanObliq.toRadians()) * sin(lambda.toRadians()))
-        
-        val latRad = lat.toRadians()
-        val altRad = targetAlt.toRadians()
-        
-        val cosHa = (sin(altRad) - sin(latRad) * sin(decRad)) / (cos(latRad) * cos(decRad))
-        if (cosHa < -1.0 || cosHa > 1.0) return null // Polar day/night
-        
-        val ha = acos(cosHa).toDegrees()
-        val offset = (ha * 240000L).toLong()
-        return if (isRising) noon - offset else noon + offset
+        val eccentricity = 0.016708634 - t * (0.000042037 + 0.0000001267 * t)
+        val obliquity = 23.439291 - t * (0.0130042 + t * (0.00000016 - t * 0.000000504))
+        val y = tan((obliquity / 2.0).toRadians()).let { it * it }
+        val l0Rad = l0.toRadians()
+        val mRad = m.toRadians()
+        val equation = y * sin(2.0 * l0Rad) -
+            2.0 * eccentricity * sin(mRad) +
+            4.0 * eccentricity * y * sin(mRad) * cos(2.0 * l0Rad) -
+            0.5 * y * y * sin(4.0 * l0Rad) -
+            1.25 * eccentricity * eccentricity * sin(2.0 * mRad)
+        return equation.toDegrees() * 4.0
     }
+
+    private fun findAltitudeCrossing(
+        lat: Double,
+        lon: Double,
+        startMillis: Long,
+        endMillis: Long,
+        targetAltitudeDeg: Double,
+        isRising: Boolean,
+    ): Long? {
+        if (endMillis <= startMillis) return null
+
+        var beforeMillis = startMillis
+        var beforeAltitude = computeSunPosition(lat, lon, 0.0, beforeMillis).altitude
+        while (beforeMillis < endMillis) {
+            val afterMillis = (beforeMillis + SEARCH_STEP_MILLIS).coerceAtMost(endMillis)
+            val afterAltitude = computeSunPosition(lat, lon, 0.0, afterMillis).altitude
+            val crossed = if (isRising) {
+                beforeAltitude < targetAltitudeDeg && afterAltitude >= targetAltitudeDeg
+            } else {
+                beforeAltitude > targetAltitudeDeg && afterAltitude <= targetAltitudeDeg
+            }
+            if (crossed) {
+                var low = beforeMillis
+                var high = afterMillis
+                repeat(24) {
+                    val middle = (low + high) / 2
+                    val altitude = computeSunPosition(lat, lon, 0.0, middle).altitude
+                    if ((isRising && altitude < targetAltitudeDeg) ||
+                        (!isRising && altitude > targetAltitudeDeg)
+                    ) {
+                        low = middle
+                    } else {
+                        high = middle
+                    }
+                }
+                return (low + high) / 2
+            }
+            beforeMillis = afterMillis
+            beforeAltitude = afterAltitude
+        }
+        return null
+    }
+
+    private const val SEARCH_STEP_MILLIS = 10 * 60 * 1000L
 
     private fun zoneOffsetMinutesAt(epochMillis: Long, timeZone: TimeZone): Double {
         val localDateTime = Instant.fromEpochMilliseconds(epochMillis).toLocalDateTime(timeZone)

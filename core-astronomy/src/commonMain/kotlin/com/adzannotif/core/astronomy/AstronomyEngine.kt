@@ -103,7 +103,7 @@ class AstronomyEngine(
         val lon = location.longitude
         val el = location.elevationMeters
         val timeZone = TimeZone.of(location.timeZoneId)
-        val riseMillis = MoonMath.computeMoonRise(lat, lon, epochMillis, timeZone)
+        val riseMillis = MoonMath.computeNextMoonRise(lat, lon, epochMillis, timeZone)
         val dist = MoonMath.computeMoonDistanceKm(epochMillis)
         return MoonState(
             position = MoonMath.computeMoonPosition(lat, lon, el, epochMillis),
@@ -149,6 +149,14 @@ class AstronomyEngine(
         val timeZone = TimeZone.of(location.timeZoneId)
         val sun = getSunState(location, dateEpochMillis)
         val moon = getMoonState(location, dateEpochMillis)
+        // The MoonState rise is intentionally a live next-rise value. Day
+        // event queries must not leak tomorrow's rise into today's list.
+        val moonriseForDay = MoonMath.computeMoonRise(
+            location.latitude,
+            location.longitude,
+            dateEpochMillis,
+            timeZone,
+        )
 
         sun.riseMillis?.let { riseMillis ->
             sun.azimuthAtRise?.let { azimuth ->
@@ -161,8 +169,13 @@ class AstronomyEngine(
             }
         }
 
-        moon.riseMillis?.let { riseMillis ->
-            moon.azimuthAtRise?.let { azimuth ->
+        moonriseForDay?.let { riseMillis ->
+            MoonMath.computeMoonPosition(
+                location.latitude,
+                location.longitude,
+                location.elevationMeters,
+                riseMillis,
+            ).azimuth.let { azimuth ->
                 events.add(AstronomyEvent.Moonrise(riseMillis, azimuth))
             }
         }

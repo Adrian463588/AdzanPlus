@@ -1,6 +1,7 @@
 package com.adzannotif.core.astronomy
 
 import com.adzannotif.core.astronomy.internal.PhotoPhasePolicy
+import com.adzannotif.core.astronomy.internal.SunMath
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -8,7 +9,10 @@ import kotlin.test.assertTrue
 import kotlin.math.abs
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atTime
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 
 class PhotoPhasePolicyTest {
@@ -25,9 +29,38 @@ class PhotoPhasePolicyTest {
     @Test
     fun testPhotographyPhaseBoundariesAreConsistentWithWindows() {
         assertEquals(SolarPhase.BLUE_HOUR, PhotoPhasePolicy.classifySolarPhase(-6.0))
-        assertEquals(SolarPhase.GOLDEN_HOUR, PhotoPhasePolicy.classifySolarPhase(-4.0))
+        assertEquals(SolarPhase.CIVIL_TWILIGHT, PhotoPhasePolicy.classifySolarPhase(-4.0))
+        assertEquals(SolarPhase.CIVIL_TWILIGHT, PhotoPhasePolicy.classifySolarPhase(-2.0))
+        assertEquals(SolarPhase.GOLDEN_HOUR, PhotoPhasePolicy.classifySolarPhase(0.0))
         assertEquals(SolarPhase.GOLDEN_HOUR, PhotoPhasePolicy.classifySolarPhase(6.0))
         assertEquals(SolarPhase.DAY, PhotoPhasePolicy.classifySolarPhase(6.01))
+    }
+
+    @Test
+    fun polarSummerReturnsUnavailableRiseSetAndPhotographyWindows() {
+        val timeZone = TimeZone.of("Europe/Oslo")
+        val dateMillis = LocalDateTime(2026, 6, 21, 12, 0)
+            .toInstant(timeZone)
+            .toEpochMilliseconds()
+
+        assertEquals(
+            null,
+            SunMath.computeSunRise(69.6492, 18.9553, dateMillis, timeZone),
+        )
+        assertEquals(
+            null,
+            SunMath.computeSunSet(69.6492, 18.9553, dateMillis, timeZone),
+        )
+        val windows = PhotoPhasePolicy.computeGoldenBlueHour(
+            69.6492,
+            18.9553,
+            dateMillis,
+            timeZone,
+        )
+        assertEquals(null, windows.morningBlueHour)
+        assertEquals(null, windows.morningGoldenHour)
+        assertEquals(null, windows.eveningGoldenHour)
+        assertEquals(null, windows.eveningBlueHour)
     }
 
     @Test

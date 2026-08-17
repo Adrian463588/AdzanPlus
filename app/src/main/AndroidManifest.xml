@@ -114,7 +114,7 @@
 
         <!-- App Widget Receiver -->
         <receiver
-            android:name=".widget.PrayerTimesWidgetReceiver"
+            android:name=".presentation.widget.PrayerTimesWidgetReceiver"
             android:exported="true"
             android:label="@string/widget_name">
             <intent-filter>

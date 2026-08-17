@@ -8,6 +8,7 @@ import android.os.VibratorManager
 import android.view.HapticFeedbackConstants
 import android.view.View
 
+@Suppress("DEPRECATION")
 class QiblaHapticHelper(private val context: Context) {
 
     private val vibrator: Vibrator? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
