@@ -472,7 +472,7 @@ fun SunCard(
 
             Spacer(modifier = Modifier.height(12.dp))
             HorizontalDivider(color = AstronomyConstellationLine.copy(alpha = 0.2f), thickness = 0.5.dp)
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             val goldenMorning = formatWindow(
                 sunInfo?.morningGoldenHourStartMillis,
@@ -491,40 +491,68 @@ fun SunCard(
                 sunInfo?.eveningBlueHourEndMillis,
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            // Golden Hour Section
+            Column(modifier = Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.size(8.dp).background(AstronomyGoldenHour, CircleShape))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(stringResource(R.string.golden_hour_title), style = MaterialTheme.typography.labelSmall, color = AstronomyGoldenHour)
+                    Text(
+                        stringResource(R.string.golden_hour_title),
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = AstronomyGoldenHour
+                    )
                 }
-                Text(
-                    stringResource(R.string.sun_card_morning, goldenMorning, goldenEvening),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = AstronomyStarWhite
-                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        stringResource(R.string.sun_card_morning_label, goldenMorning),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = AstronomyStarWhite
+                    )
+                    Text(
+                        stringResource(R.string.sun_card_evening_label, goldenEvening),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = AstronomyStarWhite
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            // Blue Hour Section
+            Column(modifier = Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.size(8.dp).background(AstronomyBlueHour, CircleShape))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(stringResource(R.string.blue_hour_title), style = MaterialTheme.typography.labelSmall, color = AstronomyBlueHour)
+                    Text(
+                        stringResource(R.string.blue_hour_title),
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = AstronomyBlueHour
+                    )
                 }
-                Text(
-                    stringResource(R.string.sun_card_morning, blueMorning, blueEvening),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = AstronomyStarWhite
-                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        stringResource(R.string.sun_card_morning_label, blueMorning),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = AstronomyStarWhite
+                    )
+                    Text(
+                        stringResource(R.string.sun_card_evening_label, blueEvening),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = AstronomyStarWhite
+                    )
+                }
             }
         }
     }

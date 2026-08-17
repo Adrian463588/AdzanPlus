@@ -36,6 +36,7 @@ import com.adzannotif.domain.model.astronomy.CalendarDay
 import com.adzannotif.domain.model.astronomy.MoonInfo
 import com.adzannotif.presentation.theme.*
 import com.adzannotif.presentation.common.WindowWidthSizeClass
+import com.adzannotif.presentation.common.Screen
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -71,7 +72,13 @@ fun MoonDetailScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = {
+                        navController.navigate(Screen.AstronomyDashboard.route) {
+                            popUpTo(Screen.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.action_back),
@@ -105,7 +112,7 @@ fun MoonDetailScreen(
             } else if (uiState.moonInfo == null) {
                 item {
                     Text(
-                        text = "Data bulan belum tersedia untuk lokasi dan tanggal ini.",
+                        text = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.moon_data_unavailable_detail),
                         color = AstronomyTwilightCivil,
                     )
                 }
@@ -153,10 +160,14 @@ fun MoonDetailScreen(
 
 @Composable
 fun MoonPhaseHeroIllustration(phaseOrdinal: Int, phaseName: String, modifier: Modifier) {
+    val illustrationDesc = androidx.compose.ui.res.stringResource(
+        com.adzannotif.R.string.moon_illustration_description,
+        phaseName,
+    )
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Canvas(
             modifier.semantics {
-                contentDescription = "Ilustrasi fase bulan: $phaseName"
+                contentDescription = illustrationDesc
             }
         ) {
             val radius = size.minDimension / 2.2f
@@ -318,28 +329,28 @@ fun PhaseInfoRow(moonInfo: MoonInfo?) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-                Text("Fase", color = AstronomyTwilightCivil, style = MaterialTheme.typography.labelSmall)
+                Text(androidx.compose.ui.res.stringResource(com.adzannotif.R.string.moon_metric_phase), color = AstronomyTwilightCivil, style = MaterialTheme.typography.labelSmall)
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    moonInfo?.phaseName ?: "Data tidak tersedia",
+                    moonInfo?.phaseName ?: androidx.compose.ui.res.stringResource(com.adzannotif.R.string.value_unavailable),
                     color = AstronomyMoonGold,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
             }
             Column {
-                Text("Iluminasi", color = AstronomyTwilightCivil, style = MaterialTheme.typography.labelSmall)
+                Text(androidx.compose.ui.res.stringResource(com.adzannotif.R.string.moon_metric_illumination), color = AstronomyTwilightCivil, style = MaterialTheme.typography.labelSmall)
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    moonInfo?.let { String.format(Locale.ROOT, "%.1f%%", it.illuminationPercent) } ?: "Data tidak tersedia",
+                    moonInfo?.let { String.format(Locale.ROOT, "%.1f%%", it.illuminationPercent) } ?: androidx.compose.ui.res.stringResource(com.adzannotif.R.string.value_unavailable),
                     color = AstronomyStarWhite,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
             }
             Column {
-                Text("Umur Bulan", color = AstronomyTwilightCivil, style = MaterialTheme.typography.labelSmall)
+                Text(androidx.compose.ui.res.stringResource(com.adzannotif.R.string.moon_metric_age), color = AstronomyTwilightCivil, style = MaterialTheme.typography.labelSmall)
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    moonInfo?.let { String.format(Locale.ROOT, "%.1f hari", it.ageInDays) } ?: "Data tidak tersedia",
+                    moonInfo?.let { String.format(Locale.ROOT, "%.1f hari", it.ageInDays) } ?: androidx.compose.ui.res.stringResource(com.adzannotif.R.string.value_unavailable),
                     color = AstronomyStarWhite,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
@@ -359,21 +370,49 @@ fun RiseSetTransitCard(moonInfo: MoonInfo?, timeZoneId: String? = null) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Jadwal Bulan Hari Ini", color = AstronomyStarWhite, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+            Text(
+                androidx.compose.ui.res.stringResource(com.adzannotif.R.string.moon_schedule_title),
+                color = AstronomyStarWhite,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+            )
             Spacer(modifier = Modifier.height(12.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Bulan Terbit (Moonrise)", color = AstronomyStarWhite, style = MaterialTheme.typography.bodyMedium)
-                Text(moonInfo?.riseMillis?.let { fmt.format(Date(it)) } ?: "—", color = AstronomyMoonGold, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
+                Text(
+                    androidx.compose.ui.res.stringResource(com.adzannotif.R.string.moon_rise_label),
+                    color = AstronomyStarWhite,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    moonInfo?.riseMillis?.let { fmt.format(Date(it)) } ?: androidx.compose.ui.res.stringResource(com.adzannotif.R.string.value_unavailable),
+                    color = AstronomyMoonGold,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                )
             }
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Transit (Titik Tertinggi)", color = AstronomyStarWhite, style = MaterialTheme.typography.bodyMedium)
-                Text(moonInfo?.transitMillis?.let { fmt.format(Date(it)) } ?: "—", color = AstronomyStarWhite, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
+                Text(
+                    androidx.compose.ui.res.stringResource(com.adzannotif.R.string.moon_transit_label),
+                    color = AstronomyStarWhite,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    moonInfo?.transitMillis?.let { fmt.format(Date(it)) } ?: androidx.compose.ui.res.stringResource(com.adzannotif.R.string.value_unavailable),
+                    color = AstronomyStarWhite,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                )
             }
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Bulan Terbenam (Moonset)", color = AstronomyStarWhite, style = MaterialTheme.typography.bodyMedium)
-                Text(moonInfo?.setMillis?.let { fmt.format(Date(it)) } ?: "—", color = AstronomyStarWhite, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
+                Text(
+                    androidx.compose.ui.res.stringResource(com.adzannotif.R.string.moon_set_label),
+                    color = AstronomyStarWhite,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    moonInfo?.setMillis?.let { fmt.format(Date(it)) } ?: androidx.compose.ui.res.stringResource(com.adzannotif.R.string.value_unavailable),
+                    color = AstronomyStarWhite,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                )
             }
         }
     }
@@ -384,11 +423,11 @@ fun DistanceCard(moonInfo: MoonInfo?) {
     val distText = moonInfo?.distanceKm
         ?.takeIf { it > 0.0 }
         ?.let { String.format(Locale.ROOT, "%,.0f km", it) }
-        ?: "Data tidak tersedia"
+        ?: androidx.compose.ui.res.stringResource(com.adzannotif.R.string.astro_data_unavailable)
     val status = when {
-        moonInfo?.isPerigee == true -> "Perigee (Terdekat ke Bumi)"
-        moonInfo?.isApogee == true -> "Apogee (Terjauh dari Bumi)"
-        else -> "Orbit Rata-Rata"
+        moonInfo?.isPerigee == true -> androidx.compose.ui.res.stringResource(com.adzannotif.R.string.moon_perigee_status)
+        moonInfo?.isApogee == true -> androidx.compose.ui.res.stringResource(com.adzannotif.R.string.moon_apogee_status)
+        else -> androidx.compose.ui.res.stringResource(com.adzannotif.R.string.moon_average_orbit_status)
     }
 
     Card(
@@ -397,7 +436,11 @@ fun DistanceCard(moonInfo: MoonInfo?) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Jarak & Posisi Orbit", color = AstronomyStarWhite, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+            Text(
+                androidx.compose.ui.res.stringResource(com.adzannotif.R.string.moon_distance_orbit_title),
+                color = AstronomyStarWhite,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -429,13 +472,21 @@ fun InteractiveMiniPhaseCalendar(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Siklus Fase 30 Hari", color = AstronomyStarWhite, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
-            Text("Ketuk tanggal untuk melihat rincian fase", color = AstronomyTwilightCivil, style = MaterialTheme.typography.bodySmall)
+            Text(
+                androidx.compose.ui.res.stringResource(com.adzannotif.R.string.moon_cycle_title),
+                color = AstronomyStarWhite,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            )
+            Text(
+                androidx.compose.ui.res.stringResource(com.adzannotif.R.string.moon_cycle_subtitle),
+                color = AstronomyTwilightCivil,
+                style = MaterialTheme.typography.bodySmall,
+            )
             Spacer(modifier = Modifier.height(12.dp))
 
             if (calendarDays.isEmpty()) {
                 Text(
-                    text = "Kalender fase belum tersedia untuk lokasi dan tanggal ini.",
+                    text = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.moon_cycle_unavailable),
                     color = AstronomyTwilightCivil,
                     style = MaterialTheme.typography.bodySmall,
                 )

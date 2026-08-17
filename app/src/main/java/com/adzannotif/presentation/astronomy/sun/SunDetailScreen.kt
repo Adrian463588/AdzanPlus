@@ -32,6 +32,7 @@ import com.adzannotif.domain.model.astronomy.SunInfo
 import com.adzannotif.presentation.astronomy.SolarEventTimeline
 import com.adzannotif.presentation.theme.*
 import com.adzannotif.presentation.common.WindowWidthSizeClass
+import com.adzannotif.presentation.common.Screen
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -66,7 +67,13 @@ fun SunDetailScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = {
+                        navController.navigate(Screen.AstronomyDashboard.route) {
+                            popUpTo(Screen.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.action_back),
@@ -100,14 +107,14 @@ fun SunDetailScreen(
             } else if (uiState.location == null) {
                 item {
                     Text(
-                        text = "Lokasi belum tersedia. Pilih kota offline atau izinkan lokasi perangkat.",
+                        text = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_location_unavailable_detail),
                         color = AstronomyTwilightCivil,
                     )
                 }
             } else if (uiState.sunInfo == null) {
                 item {
                     Text(
-                        text = "Data matahari belum tersedia untuk lokasi dan tanggal ini.",
+                        text = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_data_unavailable_detail),
                         color = AstronomyTwilightCivil,
                     )
                 }
@@ -165,7 +172,10 @@ fun PhysicallyAccurateSunArc(
 
     val noonMillis = sunInfo.noonMillis
     if (noonMillis == null) {
-        Text("Waktu tengah hari belum tersedia.", color = AstronomyTwilightCivil)
+        Text(
+            androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_noon_unavailable),
+            color = AstronomyTwilightCivil,
+        )
         return
     }
     val dayStart = noonMillis - 43200000L // 12 hours before noon
@@ -225,12 +235,14 @@ fun PhysicallyAccurateSunArc(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            val sunArcDescription = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_arc_description)
+
             Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
                     .semantics {
-                        contentDescription = "Busur elevasi matahari dan garis waktu senja untuk lokasi terpilih."
+                        contentDescription = sunArcDescription
                     }
             ) {
                 val w = size.width
@@ -310,10 +322,21 @@ fun PhysicallyAccurateSunArc(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Simulasi Waktu: ${fmt.format(Date(activeTime))}", color = AstronomyStarWhite, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold))
+                Text(
+                    androidx.compose.ui.res.stringResource(
+                        com.adzannotif.R.string.sun_simulation_time,
+                        fmt.format(Date(activeTime)),
+                    ),
+                    color = AstronomyStarWhite,
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                )
                 if (scrubbedTime != null) {
                     TextButton(onClick = { onScrubTime(null) }, contentPadding = PaddingValues(0.dp)) {
-                        Text("Reset Sekarang", color = AstronomySunAmber, style = MaterialTheme.typography.labelSmall)
+                        Text(
+                            androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_reset_now),
+                            color = AstronomySunAmber,
+                            style = MaterialTheme.typography.labelSmall,
+                        )
                     }
                 }
             }
@@ -337,9 +360,9 @@ fun PhysicallyAccurateSunArc(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("00:00 (Malam)", style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
-                Text("12:00 (Siang)", style = MaterialTheme.typography.labelSmall, color = AstronomySunAmber)
-                Text("24:00 (Malam)", style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
+                Text(androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_midnight_label), style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
+                Text(androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_noon_label), style = MaterialTheme.typography.labelSmall, color = AstronomySunAmber)
+                Text(androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_end_label), style = MaterialTheme.typography.labelSmall, color = AstronomyTwilightCivil)
             }
         }
     }
@@ -374,12 +397,30 @@ fun GoldenBlueHourDetailCards(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.size(10.dp).background(AstronomyGoldenHour, CircleShape))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Golden Hour", color = AstronomyGoldenHour, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+                    Text(
+                        androidx.compose.ui.res.stringResource(com.adzannotif.R.string.golden_hour_title),
+                        color = AstronomyGoldenHour,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Pagi: ${formatWindow(sunInfo?.morningGoldenHourStartMillis, sunInfo?.morningGoldenHourEndMillis)}", color = AstronomyStarWhite, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    androidx.compose.ui.res.stringResource(
+                        com.adzannotif.R.string.sun_card_morning_label,
+                        formatWindow(sunInfo?.morningGoldenHourStartMillis, sunInfo?.morningGoldenHourEndMillis)
+                    ),
+                    color = AstronomyStarWhite,
+                    style = MaterialTheme.typography.bodySmall
+                )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("Sore: ${formatWindow(sunInfo?.eveningGoldenHourStartMillis, sunInfo?.eveningGoldenHourEndMillis)}", color = AstronomyStarWhite, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    androidx.compose.ui.res.stringResource(
+                        com.adzannotif.R.string.sun_card_evening_label,
+                        formatWindow(sunInfo?.eveningGoldenHourStartMillis, sunInfo?.eveningGoldenHourEndMillis)
+                    ),
+                    color = AstronomyStarWhite,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }
@@ -396,12 +437,30 @@ fun GoldenBlueHourDetailCards(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.size(10.dp).background(AstronomyBlueHour, CircleShape))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Blue Hour", color = AstronomyBlueHour, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+                    Text(
+                        androidx.compose.ui.res.stringResource(com.adzannotif.R.string.blue_hour_title),
+                        color = AstronomyBlueHour,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Pagi: ${formatWindow(sunInfo?.morningBlueHourStartMillis, sunInfo?.morningBlueHourEndMillis)}", color = AstronomyStarWhite, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    androidx.compose.ui.res.stringResource(
+                        com.adzannotif.R.string.sun_card_morning_label,
+                        formatWindow(sunInfo?.morningBlueHourStartMillis, sunInfo?.morningBlueHourEndMillis)
+                    ),
+                    color = AstronomyStarWhite,
+                    style = MaterialTheme.typography.bodySmall
+                )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("Sore: ${formatWindow(sunInfo?.eveningBlueHourStartMillis, sunInfo?.eveningBlueHourEndMillis)}", color = AstronomyStarWhite, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    androidx.compose.ui.res.stringResource(
+                        com.adzannotif.R.string.sun_card_evening_label,
+                        formatWindow(sunInfo?.eveningBlueHourStartMillis, sunInfo?.eveningBlueHourEndMillis)
+                    ),
+                    color = AstronomyStarWhite,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }
@@ -445,13 +504,13 @@ fun PhotographyTipsCard() {
             Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text(
-                    "Panduan Fotografi & Pencahayaan",
+                    androidx.compose.ui.res.stringResource(com.adzannotif.R.string.photography_guide_title),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = AstronomyStarWhite
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    "Golden Hour (-4° s/d +6°) menghasilkan bayangan lembut dan warna emas hangat. Blue Hour (-6° s/d -4°) memberikan kontras biru pekat dan gradasi langit senja/fajar yang kaya.",
+                    "${androidx.compose.ui.res.stringResource(com.adzannotif.R.string.golden_hour_title)} (-4° s/d +6°): ${androidx.compose.ui.res.stringResource(com.adzannotif.R.string.photography_guide_golden_body)}\n\n${androidx.compose.ui.res.stringResource(com.adzannotif.R.string.blue_hour_title)} (-6° s/d -4°): ${androidx.compose.ui.res.stringResource(com.adzannotif.R.string.photography_guide_blue_body)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = AstronomyTwilightCivil
                 )
@@ -473,7 +532,11 @@ fun KeyTimesList(sunInfo: SunInfo?, timeZoneId: String? = null) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Jadwal Waktu Matahari & Senja", color = AstronomyStarWhite, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+            Text(
+                androidx.compose.ui.res.stringResource(com.adzannotif.R.string.sun_schedule_title),
+                color = AstronomyStarWhite,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            )
             Spacer(modifier = Modifier.height(12.dp))
             val times = listOf(
                 "Fajar Astronomis (-18°)" to formatTime(sunInfo?.astronomicalDawnMillis),

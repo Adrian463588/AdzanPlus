@@ -15,6 +15,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,6 +30,7 @@ import androidx.navigation.NavController
 import com.adzannotif.domain.model.astronomy.CalendarDay
 import com.adzannotif.presentation.theme.*
 import com.adzannotif.presentation.common.WindowWidthSizeClass
+import com.adzannotif.presentation.common.Screen
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -43,10 +45,26 @@ fun HijriCalendarScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val monthNamesIndo = listOf(
-        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-    )
+    fun getMonthName(monthZeroBased: Int): String {
+        return if (monthZeroBased in 0..11) {
+            java.text.DateFormatSymbols.getInstance(Locale.getDefault()).months[monthZeroBased]
+        } else ""
+    }
+
+    val monthName = getMonthName(uiState.month)
+
+    val weekdays = remember {
+        val symbols = java.text.DateFormatSymbols.getInstance(Locale.getDefault())
+        listOf(
+            symbols.shortWeekdays[1],
+            symbols.shortWeekdays[2],
+            symbols.shortWeekdays[3],
+            symbols.shortWeekdays[4],
+            symbols.shortWeekdays[5],
+            symbols.shortWeekdays[6],
+            symbols.shortWeekdays[7]
+        )
+    }
 
     Scaffold(
         containerColor = AstronomyBackgroundDeep,
@@ -68,7 +86,13 @@ fun HijriCalendarScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = {
+                        navController.navigate(Screen.AstronomyDashboard.route) {
+                            popUpTo(Screen.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.action_back),
@@ -102,26 +126,32 @@ fun HijriCalendarScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = { viewModel.previousMonth() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, tint = AstronomyStarWhite, contentDescription = "Bulan Sebelumnya")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            tint = AstronomyStarWhite,
+                            contentDescription = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.action_prev_month)
+                        )
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        val mName = if (uiState.month in 0..11) monthNamesIndo[uiState.month] else ""
                         Text(
-                            "$mName ${uiState.year}",
+                            "$monthName ${uiState.year}",
                             color = AstronomyStarWhite,
                             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                         )
-                        val hijriSummary = uiState.days.firstOrNull()?.let { "${it.hijriMonthName} ${it.hijriYear} H" } ?: "Kalender Hijriah"
+                        val hijriSummary = uiState.days.firstOrNull()?.let { "${it.hijriMonthName} ${it.hijriYear} H" } ?: androidx.compose.ui.res.stringResource(com.adzannotif.R.string.astro_hijri_cal_title)
                         Text(hijriSummary, color = AstronomyGoldenHour, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
                     }
                     IconButton(onClick = { viewModel.nextMonth() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, tint = AstronomyStarWhite, contentDescription = "Bulan Berikutnya")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowForward,
+                            tint = AstronomyStarWhite,
+                            contentDescription = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.action_next_month)
+                        )
                     }
                 }
             }
 
             // Weekday labels header
-            val weekdays = listOf("Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab")
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -139,6 +169,8 @@ fun HijriCalendarScreen(
             }
             Spacer(modifier = Modifier.height(8.dp))
 
+            val calendarUnavailableText = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.calendar_unavailable)
+
             if (uiState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = AstronomyMoonGold)
@@ -150,11 +182,13 @@ fun HijriCalendarScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Text(
-                        text = uiState.error ?: "Kalender belum tersedia.",
+                        text = uiState.error ?: calendarUnavailableText,
                         color = AstronomyTwilightCivil,
                         textAlign = TextAlign.Center,
                     )
-                    Button(onClick = viewModel::retry) { Text("Coba lagi") }
+                    Button(onClick = viewModel::retry) {
+                        Text(androidx.compose.ui.res.stringResource(com.adzannotif.R.string.btn_retry))
+                    }
                 }
             } else if (uiState.days.isEmpty()) {
                 Column(
@@ -163,11 +197,13 @@ fun HijriCalendarScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Text(
-                        text = "Kalender belum tersedia untuk lokasi ini.",
+                        text = calendarUnavailableText,
                         color = AstronomyTwilightCivil,
                         textAlign = TextAlign.Center,
                     )
-                    Button(onClick = viewModel::retry) { Text("Coba lagi") }
+                    Button(onClick = viewModel::retry) {
+                        Text(androidx.compose.ui.res.stringResource(com.adzannotif.R.string.btn_retry))
+                    }
                 }
             } else {
                 LazyVerticalGrid(
@@ -205,8 +241,11 @@ fun HijriCalendarScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
+                            val selectedMonthName = if (day.gregorianMonth in 1..12) {
+                                java.text.DateFormatSymbols.getInstance(Locale.getDefault()).months[day.gregorianMonth - 1]
+                            } else ""
                             Text(
-                                "${day.gregorianDay} ${if (day.gregorianMonth in 1..12) monthNamesIndo[day.gregorianMonth - 1] else ""} ${day.gregorianYear}",
+                                "${day.gregorianDay} $selectedMonthName ${day.gregorianYear}",
                                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                                 color = AstronomyStarWhite
                             )
@@ -242,21 +281,21 @@ fun HijriCalendarScreen(
 
                     if (day.sunriseMillis != null) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Matahari Terbit", color = AstronomyTwilightCivil)
+                Text(androidx.compose.ui.res.stringResource(com.adzannotif.R.string.calendar_sunrise_label), color = AstronomyTwilightCivil)
                             Text(fmt.format(Date(day.sunriseMillis)), color = AstronomyStarWhite, fontWeight = FontWeight.SemiBold)
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                     }
                     if (day.sunsetMillis != null) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Matahari Terbenam", color = AstronomyTwilightCivil)
+                Text(androidx.compose.ui.res.stringResource(com.adzannotif.R.string.calendar_sunset_label), color = AstronomyTwilightCivil)
                             Text(fmt.format(Date(day.sunsetMillis)), color = AstronomyStarWhite, fontWeight = FontWeight.SemiBold)
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                     }
                     if (day.goldenHourMorningStartMillis != null) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Golden Hour Pagi", color = AstronomyGoldenHour)
+                Text(androidx.compose.ui.res.stringResource(com.adzannotif.R.string.calendar_golden_morning_label), color = AstronomyGoldenHour)
                             Text(fmt.format(Date(day.goldenHourMorningStartMillis)), color = AstronomyGoldenHour, fontWeight = FontWeight.SemiBold)
                         }
                         Spacer(modifier = Modifier.height(4.dp))
@@ -286,7 +325,7 @@ fun HijriCalendarScreen(
                         }
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Iluminasi Bulan", color = AstronomyTwilightCivil)
+                Text(androidx.compose.ui.res.stringResource(com.adzannotif.R.string.calendar_moon_illumination), color = AstronomyTwilightCivil)
                 Text(String.format(Locale.ROOT, "%.1f%%", day.moonIlluminationPercent), color = AstronomyMoonGold, fontWeight = FontWeight.SemiBold)
                     }
 

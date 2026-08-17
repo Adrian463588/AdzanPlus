@@ -1,6 +1,8 @@
 package com.adzannotif.presentation.widget
 
 import com.adzannotif.core.astronomy.HijriDate
+import com.adzannotif.core.astronomy.AstronomyEngine
+import com.adzannotif.core.astronomy.ObserverLocation
 import com.adzannotif.core.astronomy.internal.HijriCalendar
 import com.adzannotif.core.prayer.Prayer
 import com.adzannotif.core.prayer.PrayerTimesUnavailableException
@@ -28,10 +30,23 @@ internal data class PrayerWidgetTime(
     val isCurrent: Boolean,
 )
 
+/** Prayer rows rendered by the detailed widget. Labels stay in resources. */
+internal enum class PrayerWidgetTimetableEntry(val prayer: Prayer?) {
+    IMSAK(Prayer.IMSAK),
+    FAJR(Prayer.FAJR),
+    SUNRISE(Prayer.SUNRISE),
+    DHUHA(null),
+    DHUHR(Prayer.DHUHR),
+    ASR(Prayer.ASR),
+    MAGHRIB(Prayer.MAGHRIB),
+    ISHA(Prayer.ISHA),
+}
+
 internal data class PrayerTimetableItem(
-    val name: String,
-    val timeEpochMillis: Long,
+    val entry: PrayerWidgetTimetableEntry,
+    val timeEpochMillis: Long?,
     val isPassed: Boolean,
+    val isCurrent: Boolean,
     val isNext: Boolean,
 )
 
@@ -58,6 +73,7 @@ internal object PrayerWidgetSnapshotLoader {
         locationRepository: LocationRepository,
         prayerTimesRepository: PrayerTimesRepository,
         settingsRepository: SettingsRepository,
+        astronomyEngine: AstronomyEngine,
         now: Instant = Clock.System.now(),
     ): PrayerWidgetSnapshot {
         return try {
@@ -82,12 +98,76 @@ internal object PrayerWidgetSnapshotLoader {
                 todayRecord = todayRecord,
                 tomorrowRecord = tomorrowRecord,
                 hijriDate = hijriDate,
+                dhuhaTimeEpochMillis = PrayerWidgetDhuhaCalculator.calculate(
+                    location = location,
+                    todayRecord = todayRecord,
+                    astronomyEngine = astronomyEngine,
+                ),
                 now = now,
             )
         } catch (_: PrayerTimesUnavailableException) {
             PrayerWidgetSnapshot.unavailable()
         } catch (_: Exception) {
             PrayerWidgetSnapshot.unavailable()
+        }
+    }
+}
+
+/**
+ * Dhuha starts when the Sun reaches +4.5° altitude. The crossing is solved from
+ * the existing astronomy engine for the selected location and civil date.
+ * If the crossing cannot be computed, the widget keeps the value unavailable.
+ */
+internal object PrayerWidgetDhuhaCalculator {
+    private const val DHUHA_SOLAR_ALTITUDE_DEGREES = 4.5
+    private const val SEARCH_ITERATIONS = 32
+
+    fun calculate(
+        location: LocationInfo,
+        todayRecord: PrayerTimeRecord,
+        astronomyEngine: AstronomyEngine,
+    ): Long? {
+        return try {
+            val sunriseMillis = todayRecord.sunrise.toEpochMilliseconds()
+            val noonMillis = todayRecord.dhuhr.toEpochMilliseconds()
+            if (sunriseMillis >= noonMillis) return null
+
+            val observer = ObserverLocation(
+                latitude = location.latitude,
+                longitude = location.longitude,
+                elevationMeters = location.elevation,
+                timeZoneId = location.timeZoneId,
+            )
+            val sunriseAltitude = astronomyEngine
+                .getSunState(observer, sunriseMillis)
+                .position
+                .altitude
+            val noonAltitude = astronomyEngine
+                .getSunState(observer, noonMillis)
+                .position
+                .altitude
+            if (!sunriseAltitude.isFinite() || !noonAltitude.isFinite()) return null
+            if (sunriseAltitude >= DHUHA_SOLAR_ALTITUDE_DEGREES) return sunriseMillis
+            if (noonAltitude < DHUHA_SOLAR_ALTITUDE_DEGREES) return null
+
+            var low = sunriseMillis
+            var high = noonMillis
+            repeat(SEARCH_ITERATIONS) {
+                val middle = low + (high - low) / 2L
+                val altitude = astronomyEngine
+                    .getSunState(observer, middle)
+                    .position
+                    .altitude
+                if (!altitude.isFinite()) return null
+                if (altitude >= DHUHA_SOLAR_ALTITUDE_DEGREES) {
+                    high = middle
+                } else {
+                    low = middle
+                }
+            }
+            high
+        } catch (_: Exception) {
+            null
         }
     }
 }
@@ -107,39 +187,39 @@ internal object PrayerWidgetSnapshotLogic {
         todayRecord: PrayerTimeRecord,
         tomorrowRecord: PrayerTimeRecord?,
         hijriDate: HijriDate?,
+        dhuhaTimeEpochMillis: Long? = null,
         now: Instant,
     ): PrayerWidgetSnapshot {
         val currentPrayer = todayRecord.findCurrentPrayer(now)
         val nextPair = todayRecord.findNextPrayer(now)
-            ?: tomorrowRecord?.let { Prayer.FAJR to it.fajr }
+            ?: tomorrowRecord?.findNextPrayer(now)
         val nextPrayer = nextPair?.first
-
-        // Dhuha calculated as Sunrise + 25 minutes
-        val dhuhaMillis = todayRecord.sunrise.toEpochMilliseconds() + 25 * 60 * 1000L
         val nowMillis = now.toEpochMilliseconds()
 
         val fullSchedule = listOf(
-            "Imsak" to todayRecord.imsak.toEpochMilliseconds(),
-            "Shubuh" to todayRecord.fajr.toEpochMilliseconds(),
-            "Terbit" to todayRecord.sunrise.toEpochMilliseconds(),
-            "Dhuha" to dhuhaMillis,
-            "Dzuhur" to todayRecord.dhuhr.toEpochMilliseconds(),
-            "Ashar" to todayRecord.asr.toEpochMilliseconds(),
-            "Maghrib" to todayRecord.maghrib.toEpochMilliseconds(),
-            "Isya" to todayRecord.isha.toEpochMilliseconds(),
+            PrayerWidgetTimetableEntry.IMSAK to todayRecord.imsak.toEpochMilliseconds(),
+            PrayerWidgetTimetableEntry.FAJR to todayRecord.fajr.toEpochMilliseconds(),
+            PrayerWidgetTimetableEntry.SUNRISE to todayRecord.sunrise.toEpochMilliseconds(),
+            PrayerWidgetTimetableEntry.DHUHA to dhuhaTimeEpochMillis,
+            PrayerWidgetTimetableEntry.DHUHR to todayRecord.dhuhr.toEpochMilliseconds(),
+            PrayerWidgetTimetableEntry.ASR to todayRecord.asr.toEpochMilliseconds(),
+            PrayerWidgetTimetableEntry.MAGHRIB to todayRecord.maghrib.toEpochMilliseconds(),
+            PrayerWidgetTimetableEntry.ISHA to todayRecord.isha.toEpochMilliseconds(),
         )
 
-        val timetable = fullSchedule.map { (name, timeMillis) ->
+        val nextTargetMillis = nextPair?.second?.toEpochMilliseconds()
+        val timetable = fullSchedule.map { (entry, timeMillis) ->
+            val isCurrent = entry.prayer != null && entry.prayer == currentPrayer
+            val isNext = entry.prayer != null &&
+                entry.prayer == nextPrayer &&
+                timeMillis != null &&
+                timeMillis == nextTargetMillis
             PrayerTimetableItem(
-                name = name,
+                entry = entry,
                 timeEpochMillis = timeMillis,
-                isPassed = timeMillis <= nowMillis,
-                isNext = (name.equals("Shubuh", ignoreCase = true) && nextPrayer == Prayer.FAJR) ||
-                        (name.equals("Terbit", ignoreCase = true) && nextPrayer == Prayer.SUNRISE) ||
-                        (name.equals("Dzuhur", ignoreCase = true) && nextPrayer == Prayer.DHUHR) ||
-                        (name.equals("Ashar", ignoreCase = true) && nextPrayer == Prayer.ASR) ||
-                        (name.equals("Maghrib", ignoreCase = true) && nextPrayer == Prayer.MAGHRIB) ||
-                        (name.equals("Isya", ignoreCase = true) && nextPrayer == Prayer.ISHA),
+                isPassed = timeMillis?.let { it <= nowMillis } == true,
+                isCurrent = isCurrent,
+                isNext = isNext,
             )
         }
 

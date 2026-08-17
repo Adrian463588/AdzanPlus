@@ -180,7 +180,7 @@ fun ScheduleScreen(
                         ),
                     ) {
                         Text(
-                            text = "Jadwal belum tersedia untuk bulan ini. Periksa lokasi dan data waktu matahari.",
+                    text = stringResource(R.string.schedule_data_unavailable),
                             modifier = Modifier.padding(20.dp),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

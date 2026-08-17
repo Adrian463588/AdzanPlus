@@ -80,9 +80,9 @@ class PrayerWidgetSnapshotLogicTest {
         assertEquals(Prayer.ASR, snapshot.nextPrayer)
         assertEquals(Prayer.DHUHR, snapshot.prayerTimes.single { it.isCurrent }.prayer)
         assertEquals(8, snapshot.timetableItems.size)
-        assertEquals("Imsak", snapshot.timetableItems[0].name)
-        assertEquals("Dhuha", snapshot.timetableItems[3].name)
-        assertEquals("Maghrib", snapshot.timetableItems[6].name)
+        assertEquals(PrayerWidgetTimetableEntry.IMSAK, snapshot.timetableItems[0].entry)
+        assertEquals(PrayerWidgetTimetableEntry.DHUHA, snapshot.timetableItems[3].entry)
+        assertEquals(PrayerWidgetTimetableEntry.MAGHRIB, snapshot.timetableItems[6].entry)
     }
 
     private fun record(

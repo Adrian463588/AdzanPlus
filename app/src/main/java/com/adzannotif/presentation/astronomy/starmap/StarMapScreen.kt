@@ -31,6 +31,7 @@ import com.adzannotif.domain.model.astronomy.StarMapData
 import com.adzannotif.domain.model.astronomy.VisibleStar
 import com.adzannotif.presentation.theme.*
 import com.adzannotif.presentation.common.WindowWidthSizeClass
+import com.adzannotif.presentation.common.Screen
 import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.sin
@@ -67,7 +68,13 @@ fun StarMapScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = {
+                        navController.navigate(Screen.AstronomyDashboard.route) {
+                            popUpTo(Screen.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.action_back),
@@ -168,7 +175,7 @@ fun StarMapScreen(
                             IconButton(onClick = { selectedStar = null }) {
                                 Icon(
                                     imageVector = Icons.Filled.Close,
-                                    contentDescription = "Tutup informasi bintang",
+                                    contentDescription = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.star_close_info),
                                     tint = AstronomyStarWhite,
                                 )
                             }
@@ -184,7 +191,7 @@ fun StarMapScreen(
                         modifier = Modifier.align(Alignment.BottomStart).padding(16.dp)
                     ) {
                         Text(
-                            "🔍 Cubit/Geser untuk Zoom • Ketuk Bintang untuk Info",
+                            androidx.compose.ui.res.stringResource(com.adzannotif.R.string.star_gesture_hint),
                             color = AstronomyTwilightCivil,
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                             style = MaterialTheme.typography.labelSmall
@@ -214,10 +221,11 @@ fun InteractiveSkyChart(
 
     // Screen projected star coordinates cache for hit detection
     val projectedStars = remember { mutableStateListOf<Pair<VisibleStar, Offset>>() }
+    val mapDescription = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.star_map_description)
 
     Box(
         modifier = modifier.semantics {
-            contentDescription = "Peta bintang interaktif. Cubit untuk memperbesar, geser untuk berpindah, dan ketuk bintang untuk informasi."
+            contentDescription = mapDescription
         }
     ) {
         Canvas(
@@ -334,8 +342,20 @@ fun TimeSlider(currentMillis: Long, onTimeChanged: (Long) -> Unit, modifier: Mod
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Simulasi Waktu Langit", color = AstronomyStarWhite, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
-            Text("Sekarang $sign${sliderValue.toInt()} Jam", color = AstronomyMoonGold, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                androidx.compose.ui.res.stringResource(com.adzannotif.R.string.star_simulation_title),
+                color = AstronomyStarWhite,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+            )
+            Text(
+                androidx.compose.ui.res.stringResource(
+                    com.adzannotif.R.string.star_simulation_offset,
+                    sign,
+                    sliderValue.toInt(),
+                ),
+                color = AstronomyMoonGold,
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
         Slider(
             value = sliderValue,

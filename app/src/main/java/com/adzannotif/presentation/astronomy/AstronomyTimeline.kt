@@ -44,7 +44,7 @@ fun SolarEventTimeline(
 ) {
     if (sunInfo == null) {
         Text(
-            text = "Pita waktu matahari belum tersedia.",
+            text = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.astro_timeline_unavailable),
             color = AstronomyTwilightCivil,
             style = MaterialTheme.typography.bodySmall,
             modifier = modifier,
@@ -55,7 +55,7 @@ fun SolarEventTimeline(
     val timeZone = timeZoneId?.let(TimeZone::getTimeZone)
     if (timeZone == null) {
         Text(
-            text = "Zona waktu lokasi belum tersedia.",
+            text = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.astro_timeline_timezone_unavailable),
             color = AstronomyTwilightCivil,
             style = MaterialTheme.typography.bodySmall,
             modifier = modifier,
@@ -88,13 +88,14 @@ fun SolarEventTimeline(
             style = MaterialTheme.typography.titleMedium,
         )
         Spacer(modifier = Modifier.height(8.dp))
+        val timelineDescription = androidx.compose.ui.res.stringResource(com.adzannotif.R.string.astro_timeline_description)
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(28.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .semantics {
-                    contentDescription = "Pita waktu matahari berdasarkan terbit, terbenam, blue hour, golden hour, dan senja lokasi."
+                    contentDescription = timelineDescription
                 },
         ) {
             val width = size.width

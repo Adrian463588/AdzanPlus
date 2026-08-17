@@ -125,35 +125,8 @@ class MainActivity : ComponentActivity() {
                 AdaptiveScaffold(
                     currentRoute = currentRoute,
                     onNavigate = { screen ->
-                        if (screen == Screen.Home) {
-                            if (currentRoute != Screen.Home.route) {
-                                navController.navigate(Screen.Home.route) {
-                                    popUpTo(Screen.Home.route) {
-                                        inclusive = true
-                                    }
-                                    launchSingleTop = true
-                                }
-                            }
-                        } else if (screen == Screen.AstronomyDashboard) {
-                            if (currentRoute != Screen.AstronomyDashboard.route) {
-                                navController.navigate(Screen.AstronomyDashboard.route) {
-                                    popUpTo(Screen.Home.route) {
-                                        saveState = false
-                                    }
-                                    launchSingleTop = true
-                                }
-                            }
-                        } else {
-                            if (currentRoute != screen.route) {
-                                navController.navigate(screen.route) {
-                                    popUpTo(Screen.Home.route) {
-                                        saveState = false
-                                    }
-                                    launchSingleTop = true
-                                }
-                            }
-                        }
-                    }
+                        navigateToTopLevel(navController, screen)
+                    },
                 ) { widthSizeClass ->
                     AppNavHost(
                         navController = navController,
@@ -225,6 +198,20 @@ class MainActivity : ComponentActivity() {
             Screen.StarMap.route,
             Screen.HijriCalendar.route,
         )
+    }
+}
+
+private fun navigateToTopLevel(
+    navController: NavHostController,
+    screen: Screen,
+) {
+    navController.navigate(screen.route) {
+        // Always return to a root dashboard when a top-level item is tapped.
+        popUpTo(Screen.Home.route) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
     }
 }
 

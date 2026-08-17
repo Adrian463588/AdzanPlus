@@ -2,6 +2,7 @@ package com.adzannotif.presentation.widget
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceId
@@ -10,6 +11,7 @@ import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.updateAll
+import com.adzannotif.core.astronomy.AstronomyEngine
 import com.adzannotif.domain.repository.LocationRepository
 import com.adzannotif.domain.repository.PrayerTimesRepository
 import com.adzannotif.domain.repository.SettingsRepository
@@ -57,12 +59,28 @@ class PrayerTimesWidgetReceiver : GlanceAppWidgetReceiver() {
     }
 }
 
+internal object PrayerWidgetRoute {
+    private const val ACTION_OPEN_ROUTE = "com.adzannotif.OPEN_ASTRONOMY_ROUTE"
+    private const val EXTRA_ROUTE = "com.adzannotif.extra.ASTRONOMY_ROUTE"
+
+    fun settingsIntent(context: Context): Intent = Intent(
+        context,
+        com.adzannotif.MainActivity::class.java,
+    ).apply {
+        action = ACTION_OPEN_ROUTE
+        data = Uri.parse("adzannotif://${com.adzannotif.presentation.common.Screen.Settings.route}")
+        putExtra(EXTRA_ROUTE, com.adzannotif.presentation.common.Screen.Settings.route)
+        flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+    }
+}
+
 @EntryPoint
 @InstallIn(SingletonComponent::class)
 internal interface PrayerWidgetEntryPoint {
     fun locationRepository(): LocationRepository
     fun prayerTimesRepository(): PrayerTimesRepository
     fun settingsRepository(): SettingsRepository
+    fun astronomyEngine(): AstronomyEngine
 }
 
 class PrayerTimesWidget : GlanceAppWidget() {
@@ -84,6 +102,7 @@ class PrayerTimesWidget : GlanceAppWidget() {
             locationRepository = entryPoint.locationRepository(),
             prayerTimesRepository = entryPoint.prayerTimesRepository(),
             settingsRepository = entryPoint.settingsRepository(),
+            astronomyEngine = entryPoint.astronomyEngine(),
         )
         provideContent {
             WidgetRenderer.Content(snapshot)

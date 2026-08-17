@@ -101,8 +101,6 @@ internal object WidgetRenderer {
     private fun Timetable3x4Content(snapshot: PrayerWidgetSnapshot) {
         val context = LocalContext.current
         val nextName = prayerLabel(context, snapshot.nextPrayer)
-        val remainingText = formatRelativeRemaining(snapshot.nextTargetEpochMillis)
-        val headerTitle = if (remainingText.isNotEmpty()) "$nextName $remainingText" else nextName
 
         Column(modifier = GlanceModifier.fillMaxSize()) {
             // 1. Navy Header Bar
@@ -113,6 +111,9 @@ internal object WidgetRenderer {
                     .padding(horizontal = 14.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.Vertical.CenterVertically,
             ) {
+                val remainingText = formatRelativeRemaining(snapshot.nextTargetEpochMillis)
+                val headerTitle = if (remainingText.isNotEmpty()) "$nextName $remainingText" else nextName
+
                 Text(
                     text = headerTitle,
                     modifier = GlanceModifier.defaultWeight(),
@@ -126,6 +127,9 @@ internal object WidgetRenderer {
                 )
                 Text(
                     text = "⚙",
+                    modifier = GlanceModifier
+                        .padding(4.dp)
+                        .clickable(actionStartActivity<MainActivity>()),
                     style = TextStyle(
                         color = ColorProvider(Color.White),
                         fontSize = 14.sp,
@@ -141,20 +145,7 @@ internal object WidgetRenderer {
                     .padding(horizontal = 14.dp, vertical = 2.dp),
                 verticalAlignment = Alignment.Vertical.CenterVertically,
             ) {
-                val items = if (snapshot.timetableItems.isNotEmpty()) {
-                    snapshot.timetableItems
-                } else {
-                    snapshot.prayerTimes.map { pt ->
-                        PrayerTimetableItem(
-                            name = prayerLabel(context, pt.prayer),
-                            timeEpochMillis = pt.timeEpochMillis,
-                            isPassed = pt.timeEpochMillis <= System.currentTimeMillis(),
-                            isNext = pt.isCurrent,
-                        )
-                    }
-                }
-
-                items.forEach { item ->
+                snapshot.timetableItems.forEach { item ->
                     TimetableRow(item, snapshot.timeZoneId)
                 }
             }
@@ -194,6 +185,7 @@ internal object WidgetRenderer {
 
     @Composable
     private fun TimetableRow(item: PrayerTimetableItem, timeZoneId: String?) {
+        val context = LocalContext.current
         val checkIcon = if (item.isPassed) "✓" else "○"
         val rowColor = if (item.isNext) highlightText else primaryText
         val fontWeight = if (item.isNext) FontWeight.Bold else FontWeight.Normal
@@ -215,7 +207,7 @@ internal object WidgetRenderer {
             )
             Spacer(modifier = GlanceModifier.width(10.dp))
             Text(
-                text = item.name,
+                text = timetableEntryLabel(context, item.entry),
                 modifier = GlanceModifier.defaultWeight(),
                 style = TextStyle(
                     color = rowColor,
@@ -233,6 +225,17 @@ internal object WidgetRenderer {
                 ),
             )
         }
+    }
+
+    private fun timetableEntryLabel(context: Context, entry: PrayerWidgetTimetableEntry): String = when (entry) {
+        PrayerWidgetTimetableEntry.IMSAK -> context.getString(R.string.prayer_imsak)
+        PrayerWidgetTimetableEntry.FAJR -> context.getString(R.string.prayer_fajr)
+        PrayerWidgetTimetableEntry.SUNRISE -> context.getString(R.string.prayer_sunrise)
+        PrayerWidgetTimetableEntry.DHUHA -> context.getString(R.string.prayer_dhuha)
+        PrayerWidgetTimetableEntry.DHUHR -> context.getString(R.string.prayer_dhuhr)
+        PrayerWidgetTimetableEntry.ASR -> context.getString(R.string.prayer_asr)
+        PrayerWidgetTimetableEntry.MAGHRIB -> context.getString(R.string.prayer_maghrib)
+        PrayerWidgetTimetableEntry.ISHA -> context.getString(R.string.prayer_isha)
     }
 
     @Composable
@@ -301,6 +304,7 @@ internal object WidgetRenderer {
                 true,
             )
             setTextColor(R.id.chronometer, countdownTextColor(context))
+            setContentDescription(R.id.chronometer, context.getString(R.string.remaining_time))
         }
         AndroidRemoteViews(remoteViews = remoteViews)
     }

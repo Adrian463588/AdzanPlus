@@ -126,15 +126,24 @@ fun SunWidgetContent(sunInfo: SunInfo?, locationName: String, timeZoneId: String
         val now = System.currentTimeMillis()
         val nextMillis = sunInfo.nextEventMillis?.takeIf { it > now }
         
-        val blueTimeStr = when {
-            sunInfo.eveningBlueHourStartMillis != null && sunInfo.eveningBlueHourStartMillis > now ->
-                "Blue Hour (sore) " + formatTime(sunInfo.eveningBlueHourStartMillis, timeZoneId)
-            sunInfo.morningBlueHourStartMillis != null && sunInfo.morningBlueHourStartMillis > now ->
-                "Blue Hour (pagi) " + formatTime(sunInfo.morningBlueHourStartMillis, timeZoneId)
-            sunInfo.eveningBlueHourStartMillis != null ->
-                "Blue Hour " + formatTime(sunInfo.eveningBlueHourStartMillis, timeZoneId)
-            else -> null
-        }
+        val goldenWindow = formatWindow(
+            sunInfo.morningGoldenHourStartMillis,
+            sunInfo.morningGoldenHourEndMillis,
+            timeZoneId,
+        ) ?: formatWindow(
+            sunInfo.eveningGoldenHourStartMillis,
+            sunInfo.eveningGoldenHourEndMillis,
+            timeZoneId,
+        )
+        val blueWindow = formatWindow(
+            sunInfo.morningBlueHourStartMillis,
+            sunInfo.morningBlueHourEndMillis,
+            timeZoneId,
+        ) ?: formatWindow(
+            sunInfo.eveningBlueHourStartMillis,
+            sunInfo.eveningBlueHourEndMillis,
+            timeZoneId,
+        )
 
         Text(
             text = if (nextMillis != null) {
@@ -150,11 +159,31 @@ fun SunWidgetContent(sunInfo: SunInfo?, locationName: String, timeZoneId: String
             maxLines = 1,
         )
 
-        if (blueTimeStr != null && (wide || nextMillis == null)) {
-            Spacer(GlanceModifier.height(2.dp))
+        if (wide) {
+            goldenWindow?.let { window ->
+                Text(
+                    text = context.getString(R.string.sun_widget_golden_hour, window),
+                    style = TextStyle(AstronomyWidgetPalette.secondaryText, fontSize = 9.sp),
+                    maxLines = 1,
+                )
+            }
+            blueWindow?.let { window ->
+                Text(
+                    text = context.getString(R.string.sun_widget_blue_hour, window),
+                    style = TextStyle(AstronomyWidgetPalette.secondaryText, fontSize = 9.sp),
+                    maxLines = 1,
+                )
+            }
+        } else {
+            val compactWindow = blueWindow ?: goldenWindow
             Text(
-                text = blueTimeStr,
-                style = TextStyle(AstronomyWidgetPalette.secondaryText, fontSize = if (wide) 10.sp else 9.sp),
+                text = compactWindow?.let { window ->
+                    context.getString(
+                        if (blueWindow != null) R.string.sun_widget_blue_hour else R.string.sun_widget_golden_hour,
+                        window,
+                    )
+                } ?: context.getString(R.string.sun_widget_light_unavailable),
+                style = TextStyle(AstronomyWidgetPalette.secondaryText, fontSize = 9.sp),
                 maxLines = 1,
             )
         }
@@ -170,6 +199,13 @@ private fun formatTime(epochMillis: Long, timeZoneId: String): String {
     val local = Instant.fromEpochMilliseconds(epochMillis)
         .toLocalDateTime(TimeZone.of(timeZoneId))
     return String.format(Locale.ROOT, "%02d:%02d", local.hour, local.minute)
+}
+
+private fun formatWindow(startMillis: Long?, endMillis: Long?, timeZoneId: String): String? {
+    if (startMillis == null || endMillis == null || endMillis <= startMillis) return null
+    return runCatching {
+        "${formatTime(startMillis, timeZoneId)}–${formatTime(endMillis, timeZoneId)}"
+    }.getOrNull()
 }
 
 @Composable
