@@ -1026,6 +1026,7 @@ fun SettingsScreen(
                                         com.adzannotif.presentation.widget.PrayerTimesWidgetReceiver::class.java,
                                     )
                                     appWidgetManager.requestPinAppWidget(myProvider, null, null)
+                                    android.widget.Toast.makeText(context, context.getString(R.string.widget_pin_requested), android.widget.Toast.LENGTH_SHORT).show()
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
@@ -1047,6 +1048,7 @@ fun SettingsScreen(
                                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O && appWidgetManager != null && isPinSupported) {
                                         val provider = android.content.ComponentName(context, com.adzannotif.widget.MoonWidgetReceiver::class.java)
                                         appWidgetManager.requestPinAppWidget(provider, null, null)
+                                        android.widget.Toast.makeText(context, context.getString(R.string.widget_pin_requested), android.widget.Toast.LENGTH_SHORT).show()
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth(),
@@ -1061,6 +1063,7 @@ fun SettingsScreen(
                                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O && appWidgetManager != null && isPinSupported) {
                                         val provider = android.content.ComponentName(context, com.adzannotif.widget.SunWidgetReceiver::class.java)
                                         appWidgetManager.requestPinAppWidget(provider, null, null)
+                                        android.widget.Toast.makeText(context, context.getString(R.string.widget_pin_requested), android.widget.Toast.LENGTH_SHORT).show()
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth(),

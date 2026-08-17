@@ -118,7 +118,19 @@ fun SunWidgetContent(sunInfo: SunInfo?, locationName: String, timeZoneId: String
             )
         }
         Spacer(GlanceModifier.height(if (wide) 5.dp else 4.dp))
-        val nextMillis = sunInfo.nextEventMillis?.takeIf { it > System.currentTimeMillis() }
+        val now = System.currentTimeMillis()
+        val nextMillis = sunInfo.nextEventMillis?.takeIf { it > now }
+        
+        val blueTimeStr = when {
+            sunInfo.eveningBlueHourStartMillis != null && sunInfo.eveningBlueHourStartMillis > now ->
+                "Blue Hour (sore) " + formatTime(sunInfo.eveningBlueHourStartMillis, timeZoneId)
+            sunInfo.morningBlueHourStartMillis != null && sunInfo.morningBlueHourStartMillis > now ->
+                "Blue Hour (pagi) " + formatTime(sunInfo.morningBlueHourStartMillis, timeZoneId)
+            sunInfo.eveningBlueHourStartMillis != null ->
+                "Blue Hour " + formatTime(sunInfo.eveningBlueHourStartMillis, timeZoneId)
+            else -> null
+        }
+
         Text(
             text = if (nextMillis != null) {
                 context.getString(
@@ -132,6 +144,16 @@ fun SunWidgetContent(sunInfo: SunInfo?, locationName: String, timeZoneId: String
             style = TextStyle(AstronomyWidgetPalette.sunAccent, fontSize = if (wide) 11.sp else 10.sp),
             maxLines = 1,
         )
+
+        if (blueTimeStr != null && (wide || nextMillis == null)) {
+            Spacer(GlanceModifier.height(2.dp))
+            Text(
+                text = blueTimeStr,
+                style = TextStyle(AstronomyWidgetPalette.secondaryText, fontSize = if (wide) 10.sp else 9.sp),
+                maxLines = 1,
+            )
+        }
+
         if (nextMillis != null) Countdown(context, nextMillis)
     }
 }

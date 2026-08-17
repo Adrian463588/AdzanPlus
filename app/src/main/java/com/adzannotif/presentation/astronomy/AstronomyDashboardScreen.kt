@@ -280,6 +280,7 @@ fun AstronomyWidgetPinningCard() {
                             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                                 val provider = android.content.ComponentName(context, com.adzannotif.widget.MoonWidgetReceiver::class.java)
                                 appWidgetManager.requestPinAppWidget(provider, null, null)
+                                android.widget.Toast.makeText(context, context.getString(com.adzannotif.R.string.widget_pin_requested), android.widget.Toast.LENGTH_SHORT).show()
                             }
                         },
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = AstronomyMoonGold),
@@ -294,6 +295,7 @@ fun AstronomyWidgetPinningCard() {
                             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                                 val provider = android.content.ComponentName(context, com.adzannotif.widget.SunWidgetReceiver::class.java)
                                 appWidgetManager.requestPinAppWidget(provider, null, null)
+                                android.widget.Toast.makeText(context, context.getString(com.adzannotif.R.string.widget_pin_requested), android.widget.Toast.LENGTH_SHORT).show()
                             }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = AstronomySunAmber),
@@ -478,6 +480,14 @@ fun SunCard(
                 sunInfo?.eveningGoldenHourStartMillis,
                 sunInfo?.eveningGoldenHourEndMillis,
             )
+            val blueMorning = formatWindow(
+                sunInfo?.morningBlueHourStartMillis,
+                sunInfo?.morningBlueHourEndMillis,
+            )
+            val blueEvening = formatWindow(
+                sunInfo?.eveningBlueHourStartMillis,
+                sunInfo?.eveningBlueHourEndMillis,
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -491,6 +501,25 @@ fun SunCard(
                 }
                 Text(
                     "Pagi: $goldenMorning • Sore: $goldenEvening",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = AstronomyStarWhite
+                )
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(modifier = Modifier.size(8.dp).background(AstronomyBlueHour, CircleShape))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Blue Hour", style = MaterialTheme.typography.labelSmall, color = AstronomyBlueHour)
+                }
+                Text(
+                    "Pagi: $blueMorning • Sore: $blueEvening",
                     style = MaterialTheme.typography.labelSmall,
                     color = AstronomyStarWhite
                 )

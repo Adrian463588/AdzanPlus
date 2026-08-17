@@ -27,10 +27,12 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.width
 import androidx.glance.semantics.contentDescription
 import androidx.glance.semantics.semantics
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
+import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.adzannotif.MainActivity
@@ -42,12 +44,13 @@ import kotlinx.datetime.toLocalDateTime
 import java.util.Locale
 
 internal object WidgetRenderer {
-    private val background = dayNightColor(Color(0xFFF6F9F7), Color(0xFF131B18))
-    private val surface = dayNightColor(Color(0xFFFFFFFF), Color(0xFF22302A))
-    private val activeSurface = dayNightColor(Color(0xFFD6F5E8), Color(0xFF00513C))
-    private val primaryText = dayNightColor(Color(0xFF191C1B), Color(0xFFE1E3DF))
-    private val secondaryText = dayNightColor(Color(0xFF3F4945), Color(0xFFBFC9C3))
-    private val accent = dayNightColor(Color(0xFF7A5900), Color(0xFFFAC248))
+    private val navyHeader = ColorProvider(Color(0xFF072146))
+    private val timetableBg = dayNightColor(Color(0xFFFFFFFF), Color(0xFF161E26))
+    private val timetableBorder = dayNightColor(Color(0xFFE2E8F0), Color(0xFF2D3748))
+    private val primaryText = dayNightColor(Color(0xFF1A202C), Color(0xFFF7FAFC))
+    private val secondaryText = dayNightColor(Color(0xFF4A5568), Color(0xFFA0AEC0))
+    private val highlightText = dayNightColor(Color(0xFF0E3A75), Color(0xFF63B3ED))
+    private val accent = dayNightColor(Color(0xFF0F3E7D), Color(0xFF4299E1))
 
     @Composable
     fun Content(snapshot: PrayerWidgetSnapshot) {
@@ -65,15 +68,18 @@ internal object WidgetRenderer {
         }
         val rootModifier = GlanceModifier
             .fillMaxSize()
-            .background(background)
+            .background(timetableBg)
             .cornerRadius(16.dp)
-            .padding(12.dp)
             .semantics { contentDescription = description }
             .clickable(actionStartActivity<MainActivity>())
 
         Box(modifier = rootModifier, contentAlignment = Alignment.Center) {
             if (snapshot.availability == PrayerWidgetAvailability.AVAILABLE) {
-                if (size.width < 220.dp) CompactContent(snapshot) else DetailedContent(snapshot)
+                if (size.height >= 170.dp || size.width >= 180.dp) {
+                    Timetable3x4Content(snapshot)
+                } else {
+                    CompactContent(snapshot)
+                }
             } else {
                 UnavailableContent()
             }
@@ -81,10 +87,139 @@ internal object WidgetRenderer {
     }
 
     @Composable
+    private fun Timetable3x4Content(snapshot: PrayerWidgetSnapshot) {
+        val context = LocalContext.current
+        val nextName = prayerLabel(context, snapshot.nextPrayer)
+        val remainingText = formatRelativeRemaining(snapshot.nextTargetEpochMillis)
+        val headerTitle = if (remainingText.isNotEmpty()) "$nextName $remainingText" else nextName
+
+        Column(modifier = GlanceModifier.fillMaxSize()) {
+            // 1. Navy Header Bar
+            Row(
+                modifier = GlanceModifier
+                    .fillMaxWidth()
+                    .background(navyHeader)
+                    .padding(horizontal = 12.dp, vertical = 7.dp),
+                verticalAlignment = Alignment.Vertical.CenterVertically,
+            ) {
+                Text(
+                    text = headerTitle,
+                    modifier = GlanceModifier.defaultWeight(),
+                    style = TextStyle(
+                        color = ColorProvider(Color.White),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                    ),
+                    maxLines = 1,
+                )
+                Text(
+                    text = "⚙",
+                    style = TextStyle(
+                        color = ColorProvider(Color.White),
+                        fontSize = 13.sp,
+                    ),
+                )
+            }
+
+            // 2. Timetable Prayer Rows
+            Column(
+                modifier = GlanceModifier
+                    .fillMaxWidth()
+                    .defaultWeight()
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.Vertical.CenterVertically,
+            ) {
+                val items = if (snapshot.timetableItems.isNotEmpty()) {
+                    snapshot.timetableItems
+                } else {
+                    snapshot.prayerTimes.map { pt ->
+                        PrayerTimetableItem(
+                            name = prayerLabel(context, pt.prayer),
+                            timeEpochMillis = pt.timeEpochMillis,
+                            isPassed = pt.timeEpochMillis <= System.currentTimeMillis(),
+                            isNext = pt.isCurrent,
+                        )
+                    }
+                }
+
+                items.forEach { item ->
+                    TimetableRow(item, snapshot.timeZoneId)
+                }
+            }
+
+            // 3. Hijri Date Footer
+            val hijriText = snapshot.hijriDate?.let { "${String.format(Locale.ROOT, "%02d", it.day)} ${it.monthName} ${it.year} H" }
+                ?: context.getString(R.string.hijri_unavailable)
+            
+            Box(
+                modifier = GlanceModifier
+                    .fillMaxWidth()
+                    .background(timetableBg)
+                    .padding(vertical = 4.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = hijriText,
+                    style = TextStyle(
+                        color = secondaryText,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                    ),
+                    maxLines = 1,
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun TimetableRow(item: PrayerTimetableItem, timeZoneId: String?) {
+        val checkIcon = if (item.isPassed) "☑" else "○"
+        val rowColor = if (item.isNext) highlightText else primaryText
+        val fontWeight = if (item.isNext) FontWeight.Bold else FontWeight.Normal
+
+        Row(
+            modifier = GlanceModifier
+                .fillMaxWidth()
+                .padding(vertical = 1.dp),
+            verticalAlignment = Alignment.Vertical.CenterVertically,
+        ) {
+            Text(
+                text = checkIcon,
+                style = TextStyle(
+                    color = if (item.isPassed || item.isNext) accent else secondaryText,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                ),
+            )
+            Spacer(modifier = GlanceModifier.width(8.dp))
+            Text(
+                text = item.name,
+                modifier = GlanceModifier.defaultWeight(),
+                style = TextStyle(
+                    color = rowColor,
+                    fontSize = 12.sp,
+                    fontWeight = fontWeight,
+                ),
+                maxLines = 1,
+            )
+            Text(
+                text = formatTarget(item.timeEpochMillis, timeZoneId),
+                style = TextStyle(
+                    color = rowColor,
+                    fontSize = 12.sp,
+                    fontWeight = fontWeight,
+                ),
+            )
+        }
+    }
+
+    @Composable
     private fun CompactContent(snapshot: PrayerWidgetSnapshot) {
         val context = LocalContext.current
         Column(
-            modifier = GlanceModifier.fillMaxSize(),
+            modifier = GlanceModifier.fillMaxSize().padding(8.dp),
             horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
             verticalAlignment = Alignment.Vertical.CenterVertically,
         ) {
@@ -95,7 +230,7 @@ internal object WidgetRenderer {
             )
             Text(
                 text = prayerLabel(context, snapshot.nextPrayer),
-                style = TextStyle(color = primaryText, fontSize = 18.sp, fontWeight = FontWeight.Bold),
+                style = TextStyle(color = highlightText, fontSize = 16.sp, fontWeight = FontWeight.Bold),
                 maxLines = 1,
             )
             Text(
@@ -107,108 +242,10 @@ internal object WidgetRenderer {
     }
 
     @Composable
-    private fun DetailedContent(snapshot: PrayerWidgetSnapshot) {
-        val context = LocalContext.current
-        Column(modifier = GlanceModifier.fillMaxSize()) {
-            Row(modifier = GlanceModifier.fillMaxWidth()) {
-                Text(
-                    text = snapshot.locationName.orEmpty(),
-                    modifier = GlanceModifier.defaultWeight(),
-                    style = TextStyle(color = secondaryText, fontSize = 11.sp, fontWeight = FontWeight.Bold),
-                    maxLines = 1,
-                )
-                Text(
-                    text = snapshot.timeZoneId.orEmpty(),
-                    style = TextStyle(color = secondaryText, fontSize = 9.sp),
-                    maxLines = 1,
-                )
-            }
-            Text(
-                text = snapshot.hijriDate?.let { "${it.day} ${it.monthName} ${it.year} H" }
-                    ?: context.getString(R.string.hijri_unavailable),
-                style = TextStyle(color = accent, fontSize = 10.sp, fontWeight = FontWeight.Bold),
-                maxLines = 1,
-            )
-            Spacer(modifier = GlanceModifier.height(4.dp))
-            Row(
-                modifier = GlanceModifier
-                    .fillMaxWidth()
-                    .background(surface)
-                    .cornerRadius(10.dp)
-                    .padding(horizontal = 8.dp, vertical = 5.dp),
-                verticalAlignment = Alignment.Vertical.CenterVertically,
-            ) {
-                Column(modifier = GlanceModifier.defaultWeight()) {
-                    Text(
-                        text = prayerLabel(context, snapshot.nextPrayer),
-                        style = TextStyle(color = primaryText, fontSize = 15.sp, fontWeight = FontWeight.Bold),
-                        maxLines = 1,
-                    )
-                    Text(
-                        text = formatTarget(snapshot.nextTargetEpochMillis, snapshot.timeZoneId),
-                        style = TextStyle(color = secondaryText, fontSize = 10.sp),
-                    )
-                }
-                Countdown(snapshot.nextTargetEpochMillis)
-            }
-            Spacer(modifier = GlanceModifier.height(4.dp))
-            Row(modifier = GlanceModifier.fillMaxWidth()) {
-                PrayerColumn(snapshot.prayerTimes.take(3), snapshot.timeZoneId)
-                PrayerColumn(snapshot.prayerTimes.drop(3), snapshot.timeZoneId)
-            }
-        }
-    }
-
-    @Composable
-    private fun RowScope.PrayerColumn(times: List<PrayerWidgetTime>, timeZoneId: String?) {
-        Column(modifier = GlanceModifier.defaultWeight()) {
-            times.forEach { prayerTime -> PrayerRow(prayerTime, timeZoneId) }
-        }
-    }
-
-    @Composable
-    private fun PrayerRow(prayerTime: PrayerWidgetTime, timeZoneId: String?) {
-        val context = LocalContext.current
-        val rowModifier = GlanceModifier
-            .fillMaxWidth()
-            .padding(vertical = 1.dp)
-            .then(
-                if (prayerTime.isCurrent) {
-                    GlanceModifier.background(activeSurface).cornerRadius(6.dp).padding(horizontal = 4.dp)
-                } else {
-                    GlanceModifier.padding(horizontal = 4.dp)
-                },
-            )
-            .semantics {
-                contentDescription = context.getString(
-                    R.string.widget_prayer_time_description,
-                    prayerLabel(context, prayerTime.prayer),
-                    formatTarget(prayerTime.timeEpochMillis, timeZoneId),
-                )
-            }
-        Row(modifier = rowModifier) {
-            Text(
-                text = prayerLabel(context, prayerTime.prayer),
-                modifier = GlanceModifier.defaultWeight(),
-                style = TextStyle(color = secondaryText, fontSize = 9.sp),
-                maxLines = 1,
-            )
-            Text(
-                text = formatTarget(prayerTime.timeEpochMillis, timeZoneId),
-                style = TextStyle(
-                    color = if (prayerTime.isCurrent) accent else primaryText,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                ),
-            )
-        }
-    }
-
-    @Composable
     private fun UnavailableContent() {
         val context = LocalContext.current
         Column(
-            modifier = GlanceModifier.fillMaxWidth(),
+            modifier = GlanceModifier.fillMaxWidth().padding(12.dp),
             horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
         ) {
             Text(
@@ -243,6 +280,7 @@ internal object WidgetRenderer {
     }
 
     private fun prayerLabel(context: Context, prayer: Prayer?): String = when (prayer) {
+        Prayer.IMSAK -> context.getString(R.string.prayer_imsak)
         Prayer.FAJR -> context.getString(R.string.prayer_fajr)
         Prayer.SUNRISE -> context.getString(R.string.prayer_sunrise)
         Prayer.DHUHR -> context.getString(R.string.prayer_dhuhr)
@@ -259,10 +297,23 @@ internal object WidgetRenderer {
         return String.format(Locale.ROOT, "%02d:%02d", local.hour, local.minute)
     }
 
+    private fun formatRelativeRemaining(targetEpochMillis: Long?): String {
+        if (targetEpochMillis == null) return ""
+        val diffMillis = targetEpochMillis - System.currentTimeMillis()
+        if (diffMillis <= 0) return ""
+        val totalMinutes = diffMillis / (1000 * 60)
+        val hours = totalMinutes / 60
+        val minutes = totalMinutes % 60
+        return when {
+            hours > 0 -> "±$hours jam lagi"
+            else -> "±$minutes mnt lagi"
+        }
+    }
+
     private fun countdownTextColor(context: Context): Int {
         val isNight = context.resources.configuration.uiMode and
             Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
-        return if (isNight) 0xFFFAC248.toInt() else 0xFF7A5900.toInt()
+        return if (isNight) 0xFF63B3ED.toInt() else 0xFF0E3A75.toInt()
     }
 
     private fun dayNightColor(day: Color, night: Color): ColorProvider = object : ColorProvider {

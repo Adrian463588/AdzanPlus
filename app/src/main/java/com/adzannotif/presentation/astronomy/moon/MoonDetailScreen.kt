@@ -164,20 +164,20 @@ fun MoonPhaseHeroIllustration(phaseOrdinal: Int, phaseName: String, modifier: Mo
                 radius = radius * 1.25f,
                 center = center
             )
-            // Dark base disk
+            // Dark base lunar disk
             drawCircle(AstronomySurface, radius, center)
             drawCircle(AstronomyConstellationLine.copy(alpha = 0.3f), radius, center, style = Stroke(1.5f))
 
-            // Phase illumination geometry
+            // Smooth geometric illumination
             when (phaseOrdinal) {
-                0 -> { /* New moon dark disk */ }
-                1 -> { drawCrescentPath(center, radius, isWaxing = true) }
+                0 -> { /* New Moon - dark disk */ }
+                1 -> { drawCrescent(center, radius, isWaxing = true) }
                 2 -> { drawHalfDisk(center, radius, isRight = true) }
-                3 -> { drawGibbousPath(center, radius, isWaxing = true) }
+                3 -> { drawGibbous(center, radius, isWaxing = true) }
                 4 -> { drawCircle(AstronomyMoonGold, radius, center) }
-                5 -> { drawGibbousPath(center, radius, isWaxing = false) }
+                5 -> { drawGibbous(center, radius, isWaxing = false) }
                 6 -> { drawHalfDisk(center, radius, isRight = false) }
-                7 -> { drawCrescentPath(center, radius, isWaxing = false) }
+                7 -> { drawCrescent(center, radius, isWaxing = false) }
                 else -> { drawCircle(AstronomyMoonGold, radius, center) }
             }
         }
@@ -191,29 +191,50 @@ fun MoonPhaseHeroIllustration(phaseOrdinal: Int, phaseName: String, modifier: Mo
     }
 }
 
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawCrescentPath(
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawCrescent(
     center: Offset,
     radius: Float,
     isWaxing: Boolean
 ) {
-    drawArc(
-        color = AstronomyMoonGold,
-        startAngle = if (isWaxing) -90f else 90f,
-        sweepAngle = 180f,
-        useCenter = true,
-        topLeft = Offset(center.x - radius, center.y - radius),
-        size = Size(radius * 2, radius * 2)
-    )
-    // Dark inner cutout
-    val innerWidth = radius * 1.2f
-    drawArc(
-        color = AstronomySurface,
-        startAngle = if (isWaxing) -90f else 90f,
-        sweepAngle = 180f,
-        useCenter = true,
-        topLeft = Offset(center.x - (if (isWaxing) radius * 0.4f else radius * 0.8f), center.y - radius),
-        size = Size(innerWidth, radius * 2)
-    )
+    val path = Path().apply {
+        // Top pole
+        moveTo(center.x, center.y - radius)
+        if (isWaxing) {
+            // Right outer circular limb from top to bottom
+            arcTo(
+                rect = Rect(center.x - radius, center.y - radius, center.x + radius, center.y + radius),
+                startAngleDegrees = -90f,
+                sweepAngleDegrees = 180f,
+                forceMoveTo = false
+            )
+            // Inner elliptical terminator curving back towards the right (sweep -180 deg)
+            val rx = radius * 0.55f
+            arcTo(
+                rect = Rect(center.x - rx, center.y - radius, center.x + rx, center.y + radius),
+                startAngleDegrees = 90f,
+                sweepAngleDegrees = -180f,
+                forceMoveTo = false
+            )
+        } else {
+            // Left outer circular limb from top to bottom
+            arcTo(
+                rect = Rect(center.x - radius, center.y - radius, center.x + radius, center.y + radius),
+                startAngleDegrees = -90f,
+                sweepAngleDegrees = -180f,
+                forceMoveTo = false
+            )
+            // Inner elliptical terminator curving back towards the left (sweep 180 deg)
+            val rx = radius * 0.55f
+            arcTo(
+                rect = Rect(center.x - rx, center.y - radius, center.x + rx, center.y + radius),
+                startAngleDegrees = 90f,
+                sweepAngleDegrees = 180f,
+                forceMoveTo = false
+            )
+        }
+        close()
+    }
+    drawPath(path, color = AstronomyMoonGold, style = Fill)
 }
 
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawHalfDisk(
@@ -221,31 +242,62 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawHalfDisk(
     radius: Float,
     isRight: Boolean
 ) {
-    drawArc(
-        color = AstronomyMoonGold,
-        startAngle = if (isRight) -90f else 90f,
-        sweepAngle = 180f,
-        useCenter = true,
-        topLeft = Offset(center.x - radius, center.y - radius),
-        size = Size(radius * 2, radius * 2)
-    )
+    val path = Path().apply {
+        moveTo(center.x, center.y - radius)
+        arcTo(
+            rect = Rect(center.x - radius, center.y - radius, center.x + radius, center.y + radius),
+            startAngleDegrees = -90f,
+            sweepAngleDegrees = if (isRight) 180f else -180f,
+            forceMoveTo = false
+        )
+        close()
+    }
+    drawPath(path, color = AstronomyMoonGold, style = Fill)
 }
 
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGibbousPath(
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGibbous(
     center: Offset,
     radius: Float,
     isWaxing: Boolean
 ) {
-    drawCircle(AstronomyMoonGold, radius, center)
-    val cutWidth = radius * 0.6f
-    drawArc(
-        color = AstronomySurface,
-        startAngle = if (isWaxing) 90f else -90f,
-        sweepAngle = 180f,
-        useCenter = true,
-        topLeft = Offset(center.x - radius, center.y - radius),
-        size = Size(cutWidth, radius * 2)
-    )
+    val path = Path().apply {
+        moveTo(center.x, center.y - radius)
+        if (isWaxing) {
+            // Right outer circular limb from top to bottom
+            arcTo(
+                rect = Rect(center.x - radius, center.y - radius, center.x + radius, center.y + radius),
+                startAngleDegrees = -90f,
+                sweepAngleDegrees = 180f,
+                forceMoveTo = false
+            )
+            // Inner elliptical terminator bulging towards the dark left side (sweep +180 deg)
+            val rx = radius * 0.55f
+            arcTo(
+                rect = Rect(center.x - rx, center.y - radius, center.x + rx, center.y + radius),
+                startAngleDegrees = 90f,
+                sweepAngleDegrees = 180f,
+                forceMoveTo = false
+            )
+        } else {
+            // Left outer circular limb from top to bottom
+            arcTo(
+                rect = Rect(center.x - radius, center.y - radius, center.x + radius, center.y + radius),
+                startAngleDegrees = -90f,
+                sweepAngleDegrees = -180f,
+                forceMoveTo = false
+            )
+            // Inner elliptical terminator bulging towards the right side (sweep -180 deg)
+            val rx = radius * 0.55f
+            arcTo(
+                rect = Rect(center.x - rx, center.y - radius, center.x + rx, center.y + radius),
+                startAngleDegrees = 90f,
+                sweepAngleDegrees = -180f,
+                forceMoveTo = false
+            )
+        }
+        close()
+    }
+    drawPath(path, color = AstronomyMoonGold, style = Fill)
 }
 
 @Composable

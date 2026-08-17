@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Info
@@ -59,6 +60,7 @@ import com.adzannotif.presentation.common.rememberMotionAnimationsEnabled
 @Composable
 fun HomeScreen(
     widthSizeClass: WindowWidthSizeClass,
+    onNavigateToAstronomy: (() -> Unit)? = null,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -97,6 +99,17 @@ fun HomeScreen(
                     }
                 },
                 actions = {
+                    if (onNavigateToAstronomy != null) {
+                        IconButton(
+                            onClick = onNavigateToAstronomy,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = stringResource(R.string.action_astronomy),
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
                     if (!state.isLoading) {
                         Surface(
                             shape = RoundedCornerShape(12.dp),

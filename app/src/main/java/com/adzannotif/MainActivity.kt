@@ -219,7 +219,10 @@ fun AppNavHost(
         startDestination = Screen.Home.route
     ) {
         composable(Screen.Home.route) {
-            HomeScreen(widthSizeClass = widthSizeClass)
+            HomeScreen(
+                widthSizeClass = widthSizeClass,
+                onNavigateToAstronomy = { navController.navigate(Screen.AstronomyDashboard.route) }
+            )
         }
         composable(Screen.Schedule.route) {
             ScheduleScreen(widthSizeClass = widthSizeClass)
