@@ -60,14 +60,17 @@ fun NextPrayerHeroCard(
     val countdownFormatted = String.format(Locale.US, "-%02d:%02d:%02d", hours, minutes, seconds)
 
     Card(
-        modifier = modifier
-            .fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.5.dp,
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(
             modifier = Modifier
@@ -94,8 +97,13 @@ fun NextPrayerHeroCard(
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.4f),
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        color = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        border = androidx.compose.foundation.BorderStroke(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        ),
+                        shadowElevation = 1.dp
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -119,7 +127,8 @@ fun NextPrayerHeroCard(
                     Text(
                         text = hijriDateFormatted ?: stringResource(R.string.hijri_unavailable),
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
                     )
                 }
 
@@ -159,10 +168,11 @@ fun NextPrayerHeroCard(
                 Text(
                     text = timeLabel,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
                 val prayerName = nextPrayer.localizedName()
                 val countdownDesc = stringResource(
@@ -171,22 +181,27 @@ fun NextPrayerHeroCard(
                     countdownFormatted
                 )
 
-                // Large Countdown Display
+                // Large Countdown Display Pill
                 Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    border = androidx.compose.foundation.BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f)
+                    ),
                     shadowElevation = 2.dp
                 ) {
                     Text(
                         text = countdownFormatted,
                         style = MaterialTheme.typography.displayLarge.copy(
-                            fontSize = 42.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = (-0.5).sp
+                            fontSize = 38.sp,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = (-0.5).sp,
+                            fontFeatureSettings = "tnum"
                         ),
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
-                            .padding(horizontal = 20.dp, vertical = 8.dp)
+                            .padding(horizontal = 24.dp, vertical = 8.dp)
                             .semantics {
                                 contentDescription = countdownDesc
                                 liveRegion = LiveRegionMode.Polite

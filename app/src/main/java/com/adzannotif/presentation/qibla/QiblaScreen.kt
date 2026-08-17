@@ -69,9 +69,12 @@ fun QiblaScreen(
     viewModel: QiblaViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val haptic = LocalHapticFeedback.current
     val motionEnabled = rememberMotionAnimationsEnabled()
     val locationName = state.location?.name ?: "Lokasi belum tersedia"
+
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val view = androidx.compose.ui.platform.LocalView.current
+    val hapticHelper = remember(context) { QiblaHapticHelper(context) }
 
     var continuousHeading by remember { mutableFloatStateOf(0f) }
     LaunchedEffect(state.deviceHeading) {
@@ -82,7 +85,13 @@ fun QiblaScreen(
 
     LaunchedEffect(state.isFacingQibla) {
         if (state.isFacingQibla) {
-            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+            hapticHelper.vibrateAligned(view)
+            while (state.isFacingQibla) {
+                kotlinx.coroutines.delay(1800)
+                if (state.isFacingQibla) {
+                    hapticHelper.vibrateAligned(view)
+                }
+            }
         }
     }
 
@@ -93,12 +102,10 @@ fun QiblaScreen(
     )
 
     val animatedStatusColor by animateColorAsState(
-        targetValue = if (state.qiblaDirection == null || !state.isSensorAvailable) {
-            MaterialTheme.colorScheme.outline
-        } else if (state.isFacingQibla) {
-            MaterialTheme.colorScheme.primary
-        } else {
-            MaterialTheme.colorScheme.tertiary
+        targetValue = when {
+            state.qiblaDirection == null || !state.isSensorAvailable -> MaterialTheme.colorScheme.outline
+            state.isFacingQibla -> MaterialTheme.colorScheme.primary
+            else -> MaterialTheme.colorScheme.secondary
         },
         animationSpec = if (motionEnabled) tween(durationMillis = 180) else snap(),
         label = "statusColor"
@@ -143,15 +150,23 @@ fun QiblaScreen(
                         containerColor = if (state.isFacingQibla) {
                             MaterialTheme.colorScheme.primaryContainer
                         } else {
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                            MaterialTheme.colorScheme.surface
                         },
                         contentColor = if (state.isFacingQibla) {
                             MaterialTheme.colorScheme.onPrimaryContainer
                         } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
+                            MaterialTheme.colorScheme.onSurface
                         }
                     ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = if (state.isFacingQibla) 4.dp else 1.dp)
+                    border = androidx.compose.foundation.BorderStroke(
+                        width = if (state.isFacingQibla) 1.5.dp else 1.dp,
+                        color = if (state.isFacingQibla) {
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                        } else {
+                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                        }
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = if (state.isFacingQibla) 3.dp else 1.dp)
                 ) {
                     Row(
                         modifier = Modifier
@@ -175,7 +190,7 @@ fun QiblaScreen(
                                         Icons.Default.Explore
                                     },
                                     contentDescription = null,
-                                    tint = if (state.isFacingQibla) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onTertiary,
+                                    tint = if (state.isFacingQibla) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondary,
                                     modifier = Modifier.size(24.dp)
                                 )
                             }
@@ -358,7 +373,12 @@ fun QiblaScreen(
                 // Bottom Readout Cards: Heading, Bearing, Distance
                 Surface(
                     shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.surface,
+                    border = androidx.compose.foundation.BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                    ),
+                    shadowElevation = 1.dp
                 ) {
                     Row(
                         modifier = Modifier
