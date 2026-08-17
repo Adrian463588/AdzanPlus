@@ -4,8 +4,18 @@
 [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2B%20KMP-00C853?style=for-the-badge)](https://developer.android.com/topic/architecture)
 [![Android Min SDK](https://img.shields.io/badge/Min%20SDK-API%2024%20(Nougat)-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com/)
+[![Download APK](https://img.shields.io/badge/Download-AdzanPlus%20v1.0.0%20APK-00C853?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Adrian463588/AdzanPlus/releases/latest)
 [![DevSecOps](https://img.shields.io/badge/DevSecOps-Anti--Leakage%20Enforced-critical?style=for-the-badge&logo=shield&logoColor=white)](#-devsecops--security-best-practices)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+
+---
+
+## 📥 Unduh Aplikasi (Download APK v1.0.0)
+
+Dapatkan file APK siap pasang langsung ke perangkat Android Anda tanpa perlu kompilasi:
+
+- 🚀 **[Download AdzanPlus v1.0.0 APK](https://github.com/Adrian463588/AdzanPlus/releases/download/v1.0.0/app-release.apk)** *(Rilis Resmi Siap Pakai)*
+- 📦 **[Halaman Rilis GitHub & Catatan Pembaruan](https://github.com/Adrian463588/AdzanPlus/releases)**
 
 ---
 
@@ -14,26 +24,12 @@
 ### 🕋 Layanan Utama Sholat & Arah Kiblat
 | Beranda & Countdown Sholat | Jadwal Bulanan (30 Hari) | Kompas Arah Kiblat & Haptic | Pengaturan & Metode Hisab |
 |:---:|:---:|:---:|:---:|
-| <img src="./docs/screenshots/home_light.png" width="220" alt="Beranda AdzanPlus - mode terang" /> | <img src="./docs/screenshots/schedule.png" width="220" alt="Jadwal Bulanan" /> | <img src="./docs/screenshots/qibla.png" width="220" alt="Kompas Arah Kiblat" /> | <img src="./docs/screenshots/settings_light.png" width="220" alt="Pengaturan & Hisab - mode terang" /> |
+| <img src="./docs/screenshots/home.png" width="220" alt="Beranda AdzanPlus" /> | <img src="./docs/screenshots/schedule.png" width="220" alt="Jadwal Bulanan" /> | <img src="./docs/screenshots/qibla.png" width="220" alt="Kompas Arah Kiblat" /> | <img src="./docs/screenshots/settings.png" width="220" alt="Pengaturan & Hisab" /> |
 
 ### 🌌 Suite Observasi Astronomi & Bintang (Sprint 2)
 | Dashboard Astronomi | Detail Bulan & Fase 30 Hari | Detail Matahari & Golden Hour | Peta Bintang (500 Bintang) | Kalender Hijriah & Masehi |
 |:---:|:---:|:---:|:---:|:---:|
 | <img src="./docs/screenshots/astronomy_dashboard.png" width="180" alt="Dashboard Astronomi" /> | <img src="./docs/screenshots/moon_detail.png" width="180" alt="Detail Bulan" /> | <img src="./docs/screenshots/sun_detail.png" width="180" alt="Detail Matahari" /> | <img src="./docs/screenshots/star_map.png" width="180" alt="Peta Bintang" /> | <img src="./docs/screenshots/hijri_calendar.png" width="180" alt="Kalender Hijriah" /> |
-
----
-
-### Bukti capture perangkat nyata
-
-Preview di atas diperbarui dari sesi smoke test pada 17 Agustus 2026, 15:37–15:44 WIB. Device: `2412DPC0AG` (`rodin_global`), serial `QSWSEMRKNFZ9LJRC`. APK debug yang diuji memiliki SHA-256 `7850f4499d8740e0a635febc277374181c58e318e9cb2bfe1beb77f8199311c2`.
-
-| Capture | SHA-256 |
-|:---|:---|
-| `docs/screenshots/home_light.png` | `b0fedb31748d5e86385d8f3d56abb14e4bd4ee9e3e695b93dcc940259acdba6e` |
-| `docs/screenshots/settings_light.png` | `8d709a9612efc4ca50cddd95b2371fabb6219f2307f9430b79510f324c7545cb` |
-| `docs/screenshots/astronomy_dashboard.png` | `83ef1f55fbbf896fbff96d847ae1d8aaa6b2cf9c8e1e4c8a45bfc5de3b63d75b` |
-| `docs/screenshots/moon_detail.png` | `6f4b14fb1b6ed67e28b9c4fa99d7d16370ae456e0e930fee0739645ef55d7036` |
-| `docs/screenshots/sun_detail.png` | `b5603d653b12b10772b6128f46b3cb8d612ecbc18f035bd37bc64f32e1ceed81` |
 
 ---
 
