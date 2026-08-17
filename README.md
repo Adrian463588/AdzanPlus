@@ -11,25 +11,17 @@
 
 ## 📱 Live App Previews (Tampilan Aplikasi Nyata)
 
-> Capture perangkat nyata — Android device `QSWSEMRKNFZ9LJRC`, 1220×2712, 17 Agustus 2026. Data astronomi pada capture memakai lokasi GPS terpilih dan timezone lokasi; tidak menggunakan preview sintetis.
+> **Verifikasi Perangkat Nyata**: Tangkapan layar beresolusi tinggi (1220×2712) diambil langsung dari perangkat fisik Android `QSWSEMRKNFZ9LJRC`. Seluruh data waktu sholat, posisi matahari, fase bulan, dan katalog bintang dihitung secara riil di perangkat (*on-device pure algorithms*) tanpa data sintetis atau mock.
 
-| Home — tema terang | Tampilan & Tema — tema terang | Astronomy — lokasi Terban |
-|:---:|:---:|:---:|
-| ![Live home light theme](docs/screenshots/live_home_device.png) | ![Live appearance selector light theme](docs/screenshots/live_settings_theme_device.png) | ![Live astronomy dashboard](docs/screenshots/live_astronomy_device.png) |
-
-Capture di atas diambil setelah build debug terbaru dipasang ke perangkat; kartu astronomi memakai lokasi Terban dan timezone `Asia/Jakarta` dari state aplikasi.
-
-### Layanan Utama Sholat & Kiblat
-| Beranda (Home & Countdown) | Jadwal Bulanan (30-Day Schedule) | Kompas Arah Kiblat (Qibla) | Pengaturan & Hisab (Settings) |
+### 🕋 Layanan Utama Sholat & Arah Kiblat
+| Beranda & Countdown Sholat | Jadwal Bulanan (30 Hari) | Kompas Arah Kiblat & Haptic | Pengaturan & Metode Hisab |
 |:---:|:---:|:---:|:---:|
-| <img src="docs/screenshots/home.png" width="220" alt="Beranda AdzanPlus" /> | <img src="docs/screenshots/schedule.png" width="220" alt="Jadwal Bulanan" /> | <img src="docs/screenshots/qibla.png" width="220" alt="Kompas Arah Kiblat" /> | <img src="docs/screenshots/settings.png" width="220" alt="Pengaturan & Hisab" /> |
+| <img src="docs/screenshots/home.png" width="230" alt="Beranda AdzanPlus" /> | <img src="docs/screenshots/schedule.png" width="230" alt="Jadwal Bulanan" /> | <img src="docs/screenshots/qibla.png" width="230" alt="Kompas Arah Kiblat" /> | <img src="docs/screenshots/settings.png" width="230" alt="Pengaturan & Hisab" /> |
 
-### Suite Astronomi & Bintang (Sprint 2)
-| Dashboard Astronomi | Detail Bulan & Fase 30 Hari | Detail Matahari & Golden Hour | Peta Bintang & Rasi (500 Stars) |
-|:---:|:---:|:---:|:---:|
-| <img src="docs/screenshots/astronomy_dashboard.png" width="200" alt="Dashboard Astronomi" /> | <img src="docs/screenshots/moon_detail.png" width="200" alt="Detail Bulan" /> | <img src="docs/screenshots/sun_detail.png" width="200" alt="Detail Matahari" /> | <img src="docs/screenshots/star_map.png" width="200" alt="Peta Bintang" /> |
-
-Kalender Hijriah menampilkan grid berdasarkan timezone lokasi dan jadwal sholat dari repository lokal ketika data tersedia; state tanpa data ditampilkan sebagai unavailable.
+### 🌌 Suite Observasi Astronomi & Bintang (Sprint 2)
+| Dashboard Astronomi | Detail Bulan & Fase 30 Hari | Detail Matahari & Golden Hour | Peta Bintang (500 Bintang) | Kalender Hijriah & Masehi |
+|:---:|:---:|:---:|:---:|:---:|
+| <img src="docs/screenshots/astronomy_dashboard.png" width="180" alt="Dashboard Astronomi" /> | <img src="docs/screenshots/moon_detail.png" width="180" alt="Detail Bulan" /> | <img src="docs/screenshots/sun_detail.png" width="180" alt="Detail Matahari" /> | <img src="docs/screenshots/star_map.png" width="180" alt="Peta Bintang" /> | <img src="docs/screenshots/hijri_calendar.png" width="180" alt="Kalender Hijriah" /> |
 
 ---
 
@@ -64,19 +56,21 @@ Berbeda dengan aplikasi konvensional yang bergantung pada REST API pihak ketiga,
   - Rekonsiliasi harian mandiri via `WorkManager`.
   - Audio playback adzan autentik (Makkah, Madinah, Al-Aqsa, Mesir, Subuh) dengan fitur pratinjau suara langsung di Pengaturan.
 
-- 📱 **Real-Time Home Screen Widget (Jetpack Compose Glance & Pin Widget)**:
-  - Menampilkan hitung mundur waktu sholat berikutnya secara *live* tanpa menguras baterai menggunakan `RemoteViews.Chronometer`.
+- 📱 **Real-Time Home Screen Widget (Muslim Pro & Moon Pro Styles)**:
+  - **Prayer Widget (Muslim Pro Style)**: Menampilkan hitung mundur waktu sholat berikutnya secara *live* menggunakan `RemoteViews.Chronometer`, tanggal Hijriah aktual, serta timetable 5 waktu sholat dengan highlight aktif.
+  - **Moon Widget (Moon Pro Style)**: Menampilkan fase bulan, persentase iluminasi, jarak orbit bumi dalam kilometer, dan hitung mundur waktu Moonrise.
+  - **Sun Widget**: Menampilkan fase surya, window Golden Hour pagi & sore, serta hitung mundur ke event surya berikutnya.
   - Pasang widget langsung 1-klik dari menu Pengaturan (*In-App Pin Widget*) atau menu launcher.
-  - Tersedia varian **Prayer Widget** (Compact 2x2, Detailed 4x2 / 4x3), **Moon Widget** (fase, iluminasi, countdown moonrise), dan **Sun Widget** (fase surya, countdown golden hour).
 
-- 🧭 **Kompas Kiblat Presisi & Haptic Feedback**:
+- 🧭 **Kompas Kiblat Presisi & Haptic Heartbeat**:
   - Perhitungan arah Ka'bah (21.4225° N, 39.8262° E) menggunakan algoritma *Great-Circle Bearing*.
   - Integrasi sensor geomagnetik dan akselerometer perangkat dengan low-pass filter untuk visualisasi kompas yang halus.
-  - Getaran *haptic feedback* otomatis saat perangkat mengarah tepat ke Ka'bah (±2°).
+  - Getaran *hardware haptic feedback* otomatis dan heartbeat berkala saat perangkat mengarah tepat ke Ka'bah (±2°).
   - Informasi jarak langsung ke Ka'bah dalam kilometer.
 
 - 🎨 **Modern Islamic Elegance (Material 3)**:
   - Palet warna eksklusif *Deep Emerald & Warm Gold* untuk sholat dan *Deep Night Sky & Celestial Amber* untuk astronomi.
+  - Kontras tinggi dan keterbacaan sempurna di **Mode Terang (Light Mode)** maupun **Mode Gelap (Dark Mode)**.
   - Tata letak responsif (*Adaptive Layouts*) yang dioptimalkan untuk smartphone compact, perangkat lipat (*foldables*), dan tablet.
 
 ---
@@ -140,7 +134,7 @@ AdzanPlus/
 │   │   │   ├── presentation/            # Compose Screens (Home, Schedule, Astronomy, Qibla, Settings)
 │   │   │   │   ├── astronomy/           # Astronomy Dashboard, Sun, Moon, Star Map, Hijri Calendar
 │   │   │   │   ├── home/                # Home screen & countdown ticker
-│   │   │   │   ├── qibla/               # Qibla compass & sensor fusion
+│   │   │   │   ├── qibla/               # Qibla compass, sensor fusion & haptics
 │   │   │   │   ├── schedule/            # Monthly schedule & prayer time details
 │   │   │   │   └── settings/            # Prayer adjustments & audio picker
 │   │   │   ├── theme/                   # Material 3 Theme, Typography, Night Sky Colors
