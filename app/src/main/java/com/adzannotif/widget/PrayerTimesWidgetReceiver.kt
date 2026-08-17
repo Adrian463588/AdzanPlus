@@ -80,6 +80,9 @@ class PrayerTimesWidgetReceiver : AppWidgetProvider() {
                 val nextTarget = nextInfo.targetTime
                 val todayRecord = nextInfo.todayRecord
 
+                val hijri = com.adzannotif.core.astronomy.internal.HijriCalendar.toHijri(System.currentTimeMillis())
+                val hijriFormatted = "${hijri.day} ${hijri.monthName} ${hijri.year} H"
+
                 for (appWidgetId in appWidgetIds) {
                     val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
                     val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 110)
@@ -90,7 +93,8 @@ class PrayerTimesWidgetReceiver : AppWidgetProvider() {
                             location = location,
                             nextPrayerName = nextName,
                             targetInstant = nextTarget,
-                            record = todayRecord
+                            record = todayRecord,
+                            hijriDateFormatted = hijriFormatted
                         )
                     } else {
                         WidgetRenderer.buildCompactWidget(

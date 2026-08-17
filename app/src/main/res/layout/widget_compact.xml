@@ -12,17 +12,18 @@
         android:id="@+id/widget_location_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text=""
+        android:text="Jakarta"
         android:textColor="#88D6B7"
         android:textSize="11sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:singleLine="true" />
 
     <TextView
         android:id="@+id/widget_next_prayer_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:text=""
+        android:text="DZUHUR"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         android:textStyle="bold" />
@@ -31,9 +32,10 @@
         android:id="@+id/widget_target_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text=""
+        android:text="12:05 WIB"
         android:textColor="#BFC9C3"
-        android:textSize="12sp" />
+        android:textSize="12sp"
+        android:textStyle="bold" />
 
     <Chronometer
         android:id="@+id/widget_countdown_chronometer"
@@ -45,7 +47,7 @@
         android:paddingHorizontal="10dp"
         android:paddingVertical="3dp"
         android:textColor="#FAC248"
-        android:textSize="16sp"
+        android:textSize="15sp"
         android:textStyle="bold" />
 
 </LinearLayout>

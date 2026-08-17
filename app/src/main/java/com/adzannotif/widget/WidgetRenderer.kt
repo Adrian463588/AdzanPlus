@@ -45,6 +45,7 @@ object WidgetRenderer {
         nextPrayerName: String,
         targetInstant: Instant,
         record: PrayerTimeRecord,
+        hijriDateFormatted: String? = null,
     ): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.widget_detailed)
         val timeZone = TimeZone.of(location.timeZoneId)
@@ -56,6 +57,10 @@ object WidgetRenderer {
             R.id.widget_det_prayer_time,
             formatTime(localTarget.hour, localTarget.minute, location.timeZoneId),
         )
+        if (hijriDateFormatted != null) {
+            views.setTextViewText(R.id.widget_det_hijri_date, hijriDateFormatted)
+            views.setViewVisibility(R.id.widget_det_hijri_date, View.VISIBLE)
+        }
         setCountdown(
             views = views,
             chronometerId = R.id.widget_det_countdown,

@@ -78,8 +78,16 @@ fun PrayerTimeRow(
                 MaterialTheme.colorScheme.onSurface
             }
         ),
+        border = androidx.compose.foundation.BorderStroke(
+            width = if (isActivePrayer) 1.5.dp else 1.dp,
+            color = if (isActivePrayer) {
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+            } else {
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            }
+        ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isActivePrayer) 2.dp else 0.5.dp
+            defaultElevation = if (isActivePrayer) 3.dp else 1.dp
         )
     ) {
         Row(
