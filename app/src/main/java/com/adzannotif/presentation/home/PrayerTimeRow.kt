@@ -40,6 +40,10 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import java.util.Locale
 
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.text.style.TextAlign
+
 @Composable
 fun PrayerTimeRow(
     prayer: Prayer,
@@ -115,7 +119,7 @@ fun PrayerTimeRow(
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     },
-                            modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(48.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
@@ -133,15 +137,19 @@ fun PrayerTimeRow(
                 )
             }
 
-            // Right: Time + Alarm toggle
+            // Right: Time + Alarm toggle slot (fixed width so all rows align vertically)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
                     text = timeFormatted,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontFeatureSettings = "tnum"
+                    ),
                     fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.width(64.dp),
                     color = if (isActivePrayer) {
                         MaterialTheme.colorScheme.primary
                     } else {
@@ -149,31 +157,37 @@ fun PrayerTimeRow(
                     }
                 )
 
-                if (prayer.isFardPrayer) {
-                    IconButton(
-                        onClick = onToggleAlarm,
-                    ) {
-                        Icon(
-                            imageVector = if (alarmConfig.isEnabled) {
-                                Icons.Default.Notifications
-                            } else {
-                                Icons.Default.NotificationsOff
-                            },
-                            contentDescription = androidx.compose.ui.res.stringResource(
-                                if (alarmConfig.isEnabled) {
-                                    com.adzannotif.R.string.disable_prayer_alarm
+                Box(
+                    modifier = Modifier.size(40.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (prayer.isFardPrayer) {
+                        IconButton(
+                            onClick = onToggleAlarm,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (alarmConfig.isEnabled) {
+                                    Icons.Default.Notifications
                                 } else {
-                                    com.adzannotif.R.string.enable_prayer_alarm
+                                    Icons.Default.NotificationsOff
                                 },
-                                prayer.localizedName(),
-                            ),
-                            tint = if (alarmConfig.isEnabled) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.outline
-                            },
-                            modifier = Modifier.size(22.dp)
-                        )
+                                contentDescription = androidx.compose.ui.res.stringResource(
+                                    if (alarmConfig.isEnabled) {
+                                        com.adzannotif.R.string.disable_prayer_alarm
+                                    } else {
+                                        com.adzannotif.R.string.enable_prayer_alarm
+                                    },
+                                    prayer.localizedName(),
+                                ),
+                                tint = if (alarmConfig.isEnabled) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.outline
+                                },
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
                     }
                 }
             }
