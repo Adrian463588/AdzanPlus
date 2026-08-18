@@ -6,7 +6,6 @@ import android.os.SystemClock
 import android.widget.RemoteViews
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -21,7 +20,6 @@ import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.color.ColorProvider as DayNightColorProvider
 import androidx.glance.background
-import androidx.glance.appwidget.components.Scaffold
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -48,7 +46,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import java.util.Locale
 
-
 internal object WidgetRenderer {
     private val navyHeader = dayNight(Color(0xFF0D3B66), Color(0xFF0A2540))
     private val timetableBg = dayNight(Color(0xFFFFFFFF), Color(0xFF161E26))
@@ -64,7 +61,7 @@ internal object WidgetRenderer {
     fun Content(snapshot: PrayerWidgetSnapshot) {
         val size = LocalSize.current
         val context = LocalContext.current
-        val isNight = (LocalConfiguration.current.uiMode and
+        val isNight = (context.resources.configuration.uiMode and
             Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val surfaceColor = if (isNight) Color(0xFF161E26) else Color.White
         val description = if (snapshot.availability == PrayerWidgetAvailability.AVAILABLE) {
