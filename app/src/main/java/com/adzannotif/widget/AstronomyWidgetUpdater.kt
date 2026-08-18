@@ -11,8 +11,7 @@ object AstronomyWidgetUpdater {
     fun isRefreshTrigger(action: String?): Boolean = action in REFRESH_ACTIONS
 
     suspend fun updateAll(context: Context) {
-        MoonWidget().updateAll(context)
-        SunWidget().updateAll(context)
+        AstronomyWidget().updateAll(context)
     }
 
     suspend fun updateForTrigger(context: Context, action: String?): Boolean {

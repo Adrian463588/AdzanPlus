@@ -78,10 +78,9 @@ Berbeda dengan aplikasi konvensional yang bergantung pada REST API pihak ketiga,
   - Rekonsiliasi harian mandiri via `WorkManager`.
   - Audio playback adzan autentik (Makkah, Madinah, Al-Aqsa, Mesir, Subuh) dengan fitur pratinjau suara langsung di Pengaturan.
 
-- 📱 **Real-Time Home Screen Widget (Muslim Pro & Moon Pro Styles)**:
-  - **Prayer Widget (Muslim Pro Style)**: Menampilkan hitung mundur waktu sholat berikutnya secara *live* menggunakan `RemoteViews.Chronometer`, tanggal Hijriah aktual, serta timetable 5 waktu sholat dengan highlight aktif.
-  - **Moon Widget (Moon Pro Style)**: Menampilkan fase bulan, persentase iluminasi, jarak orbit bumi dalam kilometer, dan hitung mundur waktu Moonrise.
-  - **Sun Widget**: Menampilkan fase surya, window Golden Hour pagi & sore, serta hitung mundur ke event surya berikutnya.
+- 📱 **Real-Time Home Screen Widgets (Responsive & Jetpack Glance)**:
+  - **Prayer Timetable Widget (Muslim Pro Style)**: Menampilkan hitung mundur waktu sholat berikutnya secara *live* menggunakan `RemoteViews.Chronometer`, tanggal Hijriah aktual, serta timetable 8 waktu sholat (Imsak s/d Isya) dengan status centang (`✓`/`○`) dan highlight sholat aktif.
+  - **Astronomy Suite Widget**: Widget observasi lengkap yang mengombinasikan fase surya, window **Golden Hour** & **Blue Hour** pagi & sore, fase bulan resolusi tinggi, persentase iluminasi, serta jadwal Moonrise/Moonset.
   - Pasang widget langsung 1-klik dari menu Pengaturan (*In-App Pin Widget*) atau menu launcher.
 
 - 🧭 **Kompas Kiblat Presisi & Haptic Heartbeat**:

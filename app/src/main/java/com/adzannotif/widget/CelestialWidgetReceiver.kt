@@ -23,19 +23,8 @@ internal object CelestialWidgetRoute {
     }
 }
 
-class MoonWidgetReceiver : GlanceAppWidgetReceiver() {
-    override val glanceAppWidget: GlanceAppWidget = MoonWidget()
-
-    override fun onReceive(context: Context, intent: Intent) {
-        super.onReceive(context, intent)
-        if (AstronomyWidgetUpdater.isRefreshTrigger(intent.action)) {
-            refresh(context, intent.action, goAsync())
-        }
-    }
-}
-
-class SunWidgetReceiver : GlanceAppWidgetReceiver() {
-    override val glanceAppWidget: GlanceAppWidget = SunWidget()
+class AstronomyWidgetReceiver : GlanceAppWidgetReceiver() {
+    override val glanceAppWidget: GlanceAppWidget = AstronomyWidget()
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)

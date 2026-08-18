@@ -277,10 +277,21 @@
     <string name="astro_star_map_sub">500 Stars &amp; Constellations</string>
     <string name="astro_hijri_cal_title">Hijri Calendar</string>
     <string name="astro_hijri_cal_sub">Gregorian &amp; Hijri</string>
-    <string name="astro_widget_card_title">Astronomy Home Screen Widgets</string>
-    <string name="astro_widget_card_desc">Pin moon phase or solar timetable &amp; golden hour widgets directly to your Home Screen.</string>
-    <string name="astro_btn_moon_widget">🌙 Moon Widget</string>
-    <string name="astro_btn_sun_widget">☀️ Sun Widget</string>
+    <string name="astro_widget_card_title">Astronomy Home Screen Widget</string>
+    <string name="astro_widget_card_desc">Pin the complete astronomy suite widget displaying moon phase, illumination, sun status, and Golden &amp; Blue Hour directly to your Home Screen.</string>
+    <string name="astro_btn_astronomy_widget">🌌 Install Astronomy Widget</string>
+    <string name="settings_install_astronomy_widget">Astronomy Widget (Sun &amp; Moon)</string>
+    <string name="astronomy_widget_name">AdzanPlus Astronomy</string>
+    <string name="astronomy_widget_description">Sun position, Moon phase &amp; illumination, and Golden &amp; Blue Hour.</string>
+    <string name="astronomy_widget_content_description">Astronomy widget: Sun %1$s, Moon %2$s (%3$s), %4$s</string>
+    <string name="astronomy_widget_data_unavailable">Astronomy data unavailable</string>
+    <string name="astronomy_widget_location_hint">Choose a location to show astronomy data.</string>
+    <string name="astronomy_widget_sun_title">SUN</string>
+    <string name="astronomy_widget_moon_title">MOON</string>
+    <string name="astronomy_widget_golden_label">Golden</string>
+    <string name="astronomy_widget_blue_label">Blue</string>
+    <string name="astronomy_widget_moonrise_label">Rise</string>
+    <string name="astronomy_widget_moonset_label">Set</string>
 
     <string name="sun_card_morning_label">Morning: %1$s</string>
     <string name="sun_card_evening_label">Evening: %1$s</string>
@@ -302,14 +313,8 @@
     <string name="value_unavailable">Unavailable</string>
     <string name="widget_open_settings">Open widget settings</string>
     <string name="widget_countdown_description">Countdown to the next prayer time</string>
-    <plurals name="widget_next_prayer_hours">
-        <item quantity="one">%1$s in %2$d hr</item>
-        <item quantity="other">%1$s in %2$d hr</item>
-    </plurals>
-    <plurals name="widget_next_prayer_minutes">
-        <item quantity="one">%1$s in %2$d min</item>
-        <item quantity="other">%1$s in %2$d min</item>
-    </plurals>
+    <string name="widget_next_prayer_hours">%1$s in %2$d hr</string>
+    <string name="widget_next_prayer_minutes">%1$s in %2$d min</string>
     <string name="widget_preview_data_unavailable">Widget data unavailable</string>
     <string name="widget_preview_data_hint">Choose a location to show real data.</string>
     <string name="sun_location_unavailable_detail">Location unavailable. Choose an offline city or allow device location.</string>

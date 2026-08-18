@@ -1140,40 +1140,20 @@ fun SettingsScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // 2. Astronomy Moon & Sun Widgets
-                        Column(
+                        // 2. Astronomy Suite Widget
+                        OutlinedButton(
+                            onClick = {
+                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O && appWidgetManager != null && isPinSupported) {
+                                    val provider = android.content.ComponentName(context, com.adzannotif.widget.AstronomyWidgetReceiver::class.java)
+                                    appWidgetManager.requestPinAppWidget(provider, null, null)
+                                    android.widget.Toast.makeText(context, context.getString(R.string.widget_pin_requested), android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                            },
                             modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            enabled = isPinSupported,
+                            shape = RoundedCornerShape(12.dp)
                         ) {
-                            OutlinedButton(
-                                onClick = {
-                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O && appWidgetManager != null && isPinSupported) {
-                                        val provider = android.content.ComponentName(context, com.adzannotif.widget.MoonWidgetReceiver::class.java)
-                                        appWidgetManager.requestPinAppWidget(provider, null, null)
-                                        android.widget.Toast.makeText(context, context.getString(R.string.widget_pin_requested), android.widget.Toast.LENGTH_SHORT).show()
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                enabled = isPinSupported,
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Text(stringResource(R.string.settings_install_moon_widget), style = MaterialTheme.typography.labelSmall)
-                            }
-
-                            OutlinedButton(
-                                onClick = {
-                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O && appWidgetManager != null && isPinSupported) {
-                                        val provider = android.content.ComponentName(context, com.adzannotif.widget.SunWidgetReceiver::class.java)
-                                        appWidgetManager.requestPinAppWidget(provider, null, null)
-                                        android.widget.Toast.makeText(context, context.getString(R.string.widget_pin_requested), android.widget.Toast.LENGTH_SHORT).show()
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                enabled = isPinSupported,
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Text(stringResource(R.string.settings_install_sun_widget), style = MaterialTheme.typography.labelSmall)
-                            }
+                            Text(stringResource(R.string.settings_install_astronomy_widget))
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))

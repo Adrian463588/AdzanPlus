@@ -275,39 +275,22 @@ fun AstronomyWidgetPinningCard() {
                     color = AstronomyTwilightCivil
                 )
                 Spacer(modifier = Modifier.height(12.dp))
-                Row(
+                Button(
+                    onClick = {
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                            val provider = android.content.ComponentName(context, com.adzannotif.widget.AstronomyWidgetReceiver::class.java)
+                            appWidgetManager.requestPinAppWidget(provider, null, null)
+                            android.widget.Toast.makeText(context, context.getString(com.adzannotif.R.string.widget_pin_requested), android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AstronomySunAmber, contentColor = AstronomyBackgroundDeep),
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    OutlinedButton(
-                        onClick = {
-                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                                val provider = android.content.ComponentName(context, com.adzannotif.widget.MoonWidgetReceiver::class.java)
-                                appWidgetManager.requestPinAppWidget(provider, null, null)
-                                android.widget.Toast.makeText(context, context.getString(com.adzannotif.R.string.widget_pin_requested), android.widget.Toast.LENGTH_SHORT).show()
-                            }
-                        },
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = AstronomyMoonGold),
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(stringResource(R.string.astro_btn_moon_widget), style = MaterialTheme.typography.labelSmall)
-                    }
-
-                    Button(
-                        onClick = {
-                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                                val provider = android.content.ComponentName(context, com.adzannotif.widget.SunWidgetReceiver::class.java)
-                                appWidgetManager.requestPinAppWidget(provider, null, null)
-                                android.widget.Toast.makeText(context, context.getString(com.adzannotif.R.string.widget_pin_requested), android.widget.Toast.LENGTH_SHORT).show()
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = AstronomySunAmber),
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(stringResource(R.string.astro_btn_sun_widget), style = MaterialTheme.typography.labelSmall, color = Color.Black)
-                    }
+                    Text(
+                        stringResource(R.string.astro_btn_astronomy_widget),
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    )
                 }
             }
         }

@@ -17,6 +17,8 @@ import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.action.actionStartActivity as actionStartActivityIntent
 import androidx.glance.appwidget.AndroidRemoteViews
+import androidx.glance.appwidget.appWidgetBackground
+import androidx.glance.appwidget.cornerRadius
 import androidx.glance.color.ColorProvider as DayNightColorProvider
 import androidx.glance.background
 import androidx.glance.appwidget.components.Scaffold
@@ -77,13 +79,15 @@ internal object WidgetRenderer {
         }
         val rootModifier = GlanceModifier
             .fillMaxSize()
+            .appWidgetBackground()
+            .background(timetableBg)
+            .cornerRadius(16.dp)
             .semantics { contentDescription = description }
             .clickable(actionStartActivity<MainActivity>())
 
-        Scaffold(
+        Box(
             modifier = rootModifier,
-            backgroundColor = ColorProvider(surfaceColor),
-            horizontalPadding = 0.dp,
+            contentAlignment = Alignment.Center,
         ) {
             if (snapshot.availability == PrayerWidgetAvailability.AVAILABLE) {
                 // The timetable needs vertical room for all eight real entries.
@@ -344,17 +348,15 @@ internal object WidgetRenderer {
         val hours = totalMinutes / 60
         val minutes = totalMinutes % 60
         return when {
-            hours > 0 -> context.resources.getQuantityString(
-                R.plurals.widget_next_prayer_hours,
+            hours > 0 -> context.getString(
+                R.string.widget_next_prayer_hours,
+                prayerName,
                 hours.toInt(),
-                prayerName,
-                hours,
             )
-            else -> context.resources.getQuantityString(
-                R.plurals.widget_next_prayer_minutes,
-                minutes.toInt(),
+            else -> context.getString(
+                R.string.widget_next_prayer_minutes,
                 prayerName,
-                minutes,
+                minutes.toInt(),
             )
         }
     }
