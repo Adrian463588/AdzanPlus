@@ -19,31 +19,27 @@ Tautan asset tetap menggunakan path `v1.0.0/app-release.apk` sesuai kontrak dist
 
 ---
 
-## 📱 Live App Previews (Tampilan Perangkat Nyata)
+## 📱 Live App Previews (Tampilan Fitur Lengkap)
 
-Preview berikut berasal dari perangkat Android nyata `SM-G988B` (Android 13), dengan lokasi Yogyakarta yang dipilih pengguna dan mode offline. Nilai jadwal sholat, Hijriah, matahari, bulan, dan widget berasal dari engine/cache lokal nyata.
+Seluruh antarmuka aplikasi dibangun menggunakan **Jetpack Compose Material 3** dan **Jetpack Glance AppWidgets**, dengan kalkulasi waktu sholat dan observasi astronomi yang dihitung secara *real-time* langsung di perangkat (*100% Offline-First*).
 
-### 🕋 Aplikasi
+### 🕋 1. Fitur Utama &amp; Ibadah
 
-| Beranda offline | Pengaturan & lokasi | Dashboard astronomi |
-|:---:|:---:|:---:|
-| <img src="./docs/screenshots/home-release.png" width="220" alt="Beranda AdzanPlus pada perangkat nyata" /> | <img src="./docs/screenshots/settings-release.png" width="220" alt="Pengaturan AdzanPlus pada perangkat nyata" /> | <img src="./docs/screenshots/astronomy-release.png" width="220" alt="Dashboard astronomi AdzanPlus pada perangkat nyata" /> |
+| Beranda &amp; Countdown | Jadwal Sholat Bulanan | Kompas Kiblat Presisi | Pengaturan &amp; Kalibrasi |
+|:---:|:---:|:---:|:---:|
+| <img src="./docs/screenshots/home.png" width="200" alt="Beranda dan Countdown Sholat" /> | <img src="./docs/screenshots/schedule.png" width="200" alt="Jadwal Sholat Bulanan" /> | <img src="./docs/screenshots/qibla.png" width="200" alt="Kompas Kiblat Presisi" /> | <img src="./docs/screenshots/settings.png" width="200" alt="Pengaturan dan Lokasi" /> |
 
-### 🧩 Widget
+### 🌌 2. Suite Observasi Astronomi (`:core-astronomy`)
 
-| Widget waktu sholat 3×4 | Widget astronomi |
+| Dashboard Astronomi | Detail Matahari &amp; Twilight | Detail Bulan &amp; Fase 30 Hari | Peta Bintang 2D Polar | Kalender Hijriah &amp; Masehi |
+|:---:|:---:|:---:|:---:|:---:|
+| <img src="./docs/screenshots/astronomy.png" width="180" alt="Dashboard Astronomi" /> | <img src="./docs/screenshots/sun_detail.png" width="180" alt="Detail Matahari dan Golden Hour" /> | <img src="./docs/screenshots/moon_detail.png" width="180" alt="Detail Bulan dan Fase" /> | <img src="./docs/screenshots/star_map.png" width="180" alt="Peta Bintang Polar 2D" /> | <img src="./docs/screenshots/hijri_calendar.png" width="180" alt="Kalender Hijriah dan Masehi" /> |
+
+### 📱 3. Home Screen Widgets (Jetpack Glance)
+
+| Widget Waktu Sholat &amp; Countdown 3×4 | Widget Observasi Astronomi (Sun &amp; Moon) |
 |:---:|:---:|
-| <img src="./docs/screenshots/widget-prayer-3x4.png" width="260" alt="Widget waktu sholat detail 3x4 pada perangkat nyata" /> | <img src="./docs/screenshots/widget-astronomy.png" width="260" alt="Widget matahari dan bulan pada perangkat nyata" /> |
-
-### Bukti artefak
-
-- Device capture: `SM-G988B`, Android 13, lokasi offline Yogyakarta, 18 Agustus 2026.
-- APK SHA-256: `c81473f52848998b6bd80e687ded4c80b4d0a9b6c6f6a13a3b3750455131638d`.
-- `home-release.png`: `4d23c836abc21e460ea5af2d4d0701060d4cb58390f8ac608ed631d32e3c6962`.
-- `settings-release.png`: `bd5707954b1f65e8710010ff91a6e4c02b3b402b21d6d93d01869f2d9318d3d9`.
-- `astronomy-release.png`: `a85f5cbdfdbde664aa7d722fe4a9785c4c8bb874ed12f93c343d0184fc2b4817`.
-- `widget-prayer-3x4.png`: `dace5bc427b7a03111b6216b7cdb1c44b38fe5911963370154d86f25a14755c1`.
-- `widget-astronomy.png`: `93512158a9e85b337ed5559a3255aca6afc7c66bdc12e1297219cbd4c576cf36`.
+| <img src="./docs/screenshots/widget-prayer-3x4.png" width="260" alt="Widget Waktu Sholat Detail 3x4" /> | <img src="./docs/screenshots/widget-astronomy.png" width="260" alt="Widget Astronomi Matahari dan Bulan" /> |
 
 ---
 
