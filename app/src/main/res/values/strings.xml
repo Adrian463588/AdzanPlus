@@ -118,6 +118,11 @@
     <string name="settings_high_latitude_angle">Berdasarkan sudut</string>
     <string name="settings_prayer_notifications_section">NOTIFIKASI &amp; ALARM SHOLAT</string>
     <string name="settings_prayer_notifications_description">Aktifkan pengingat dan pilih sumber audio yang tersedia.</string>
+    <string name="settings_sound_type">Mode Notifikasi</string>
+    <string name="settings_sound_adhan">Suara Adzan</string>
+    <string name="settings_sound_beep">Bip</string>
+    <string name="settings_sound_silent">Hanya Notifikasi</string>
+    <string name="settings_sound_silent_desc">Notifikasi saja tanpa suara</string>
     <string name="settings_adhan_voice_label">Suara adzan</string>
     <string name="settings_choose_voice_for">Pilih suara adzan untuk %1$s</string>
     <string name="settings_no_reminder">Tanpa pengingat</string>

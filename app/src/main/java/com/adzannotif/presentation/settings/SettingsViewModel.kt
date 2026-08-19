@@ -7,6 +7,7 @@ import com.adzannotif.core.prayer.CalculationMethod
 import com.adzannotif.core.prayer.HighLatitudeRule
 import com.adzannotif.core.prayer.Madhab
 import com.adzannotif.core.prayer.Prayer
+import com.adzannotif.domain.model.AdhanSoundType
 import com.adzannotif.domain.model.AdhanVoice
 import com.adzannotif.domain.model.AllAlarmSettings
 import com.adzannotif.domain.model.CelestialAlertType
@@ -64,6 +65,7 @@ sealed interface SettingsUiAction {
     data class SetThemeMode(val themeMode: ThemeMode) : SettingsUiAction
     data class SetPrayerAdjustment(val prayer: Prayer, val minutes: Int) : SettingsUiAction
     data class SetPrayerEnabled(val prayer: Prayer, val enabled: Boolean) : SettingsUiAction
+    data class SetSoundType(val prayer: Prayer, val soundType: AdhanSoundType) : SettingsUiAction
     data class SetAdhanVoice(val prayer: Prayer, val voice: AdhanVoice) : SettingsUiAction
     data class SetCustomSound(val prayer: Prayer, val uriString: String?) : SettingsUiAction
     data class ToggleAdhanPreview(val voice: AdhanVoice) : SettingsUiAction
@@ -226,6 +228,14 @@ class SettingsViewModel @Inject constructor(
                     }
                     refreshAlarms()
                     PrayerTimesWidgetReceiver.updateAll(context)
+                }
+            }
+            is SettingsUiAction.SetSoundType -> {
+                launchSettingsAction {
+                    val currentConfig = uiState.value.alarmSettings.getConfigForPrayer(action.prayer)
+                    val updated = currentConfig.copy(soundType = action.soundType)
+                    settingsRepository.updateAlarmSettings { it.updateConfig(updated) }
+                    refreshAlarms()
                 }
             }
             is SettingsUiAction.SetAdhanVoice -> {

@@ -68,6 +68,7 @@ Berbeda dengan aplikasi konvensional yang bergantung pada REST API pihak ketiga,
   - **Kalender Hijriah & Masehi**: Grid kalender dual Masehi-Hijriah berbasis hisab Umm al-Qura dengan 5 dot waktu sholat harian, highlight hari ini, penanda golden hour, dan bottom sheet rincian astronomis.
 
 - ⏰ **Sistem Alarm & Notifikasi Presisi (Doze-Resistant)**:
+  - **3 Mode Notifikasi Fleksibel per Waktu Sholat**: Pilihan kustomisasi lengkap antara **Suara Adzan Penuh** (audio autentik / file kustom), **Bip Notifikasi** (nada dering sistem ringkas), atau **Hanya Notifikasi / Tanpa Suara** (banner notifikasi senyap tanpa pemutaran suara).
   - Memanfaatkan `AlarmManager.setExactAndAllowWhileIdle()` untuk ketepatan waktu alarm bahkan saat perangkat dalam mode *Doze*.
   - Pemulihan otomatis setelah *reboot* (`BootReceiver`) dan deteksi pergantian zona waktu (`TimeChangeReceiver`).
   - Penjadwalan alarm benda langit (`CelestialAlarmReceiver`) untuk Golden Hour pagi dan Moonrise.

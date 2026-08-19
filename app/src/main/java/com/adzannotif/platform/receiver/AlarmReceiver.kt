@@ -73,17 +73,15 @@ class AlarmReceiver : BroadcastReceiver() {
                         vibrate = config.isVibrate,
                     )
                 } else {
-                    // Show High Importance Adzan Notification & Fullscreen Intent
-                    notificationGateway.showAdhanNotification(
-                        prayer = prayer,
-                        prayerTitle = prayerTitle,
-                        locationName = locationName,
-                        vibrate = config.isVibrate,
-                    )
-
-                    // Play Audio based on sound configuration
                     when (config.soundType) {
                         AdhanSoundType.FULL_ADHAN, AdhanSoundType.SHORT_TAKBEER -> {
+                            // Show High Importance Adzan Notification & Fullscreen Intent
+                            notificationGateway.showAdhanNotification(
+                                prayer = prayer,
+                                prayerTitle = prayerTitle,
+                                locationName = locationName,
+                                vibrate = config.isVibrate,
+                            )
                             AdhanPlaybackService.start(
                                 context = context,
                                 voice = config.adhanVoice,
@@ -102,7 +100,12 @@ class AlarmReceiver : BroadcastReceiver() {
                             )
                         }
                         AdhanSoundType.SILENT -> {
-                            // Silent
+                            notificationGateway.showSilentNotification(
+                                prayer = prayer,
+                                prayerTitle = prayerTitle,
+                                locationName = locationName,
+                                vibrate = config.isVibrate,
+                            )
                         }
                     }
 

@@ -86,6 +86,7 @@ import com.adzannotif.core.prayer.CalculationMethod
 import com.adzannotif.core.prayer.HighLatitudeRule
 import com.adzannotif.core.prayer.Madhab
 import com.adzannotif.core.prayer.Prayer
+import com.adzannotif.domain.model.AdhanSoundType
 import com.adzannotif.domain.model.AdhanVoice
 import com.adzannotif.domain.model.AlarmConfig
 import com.adzannotif.domain.model.CelestialAlertType
@@ -113,6 +114,15 @@ private fun prayerLabel(prayer: Prayer): String = stringResource(
         Prayer.IMSAK -> R.string.prayer_imsak
         Prayer.MIDNIGHT -> R.string.prayer_midnight
         Prayer.TAHAJJUD -> R.string.prayer_tahajjud
+    },
+)
+
+@Composable
+private fun adhanSoundTypeLabel(type: AdhanSoundType): String = stringResource(
+    when (type) {
+        AdhanSoundType.FULL_ADHAN, AdhanSoundType.SHORT_TAKBEER -> R.string.settings_sound_adhan
+        AdhanSoundType.BEEP_NOTIFICATION -> R.string.settings_sound_beep
+        AdhanSoundType.SILENT -> R.string.settings_sound_silent
     },
 )
 
@@ -573,6 +583,11 @@ fun SettingsScreen(
                             )
                         }
                         val voiceOptions = AdhanVoice.entries
+                        val soundTypeOptions = listOf(
+                            AdhanSoundType.FULL_ADHAN,
+                            AdhanSoundType.BEEP_NOTIFICATION,
+                            AdhanSoundType.SILENT,
+                        )
 
                         alarmItems.forEachIndexed { index, alarm ->
                             val alarmToggleDescription = stringResource(
@@ -607,72 +622,109 @@ fun SettingsScreen(
                                     },
                                 )
                             }
-                            AdhanVoiceDropdown(
-                                prayer = alarm.prayer,
-                                selectedVoice = alarm.config.adhanVoice,
-                                options = voiceOptions,
-                                onVoiceSelected = { voice ->
-                                    viewModel.onAction(SettingsUiAction.SetAdhanVoice(alarm.prayer, voice))
-                                },
-                            )
-                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                items(listOf(0, 5, 10, 15)) { minutes ->
-                                    FilterChip(
-                                        selected = alarm.config.preReminderMinutes == minutes,
-                                        onClick = {
-                                            viewModel.onAction(SettingsUiAction.SetPreReminder(alarm.prayer, minutes))
-                                        },
-                                        label = {
-                                            Text(
-                                                if (minutes == 0) {
-                                                    stringResource(R.string.settings_no_reminder)
-                                                } else {
-                                                    stringResource(R.string.settings_reminder_minutes, minutes)
-                                                },
-                                            )
+
+                            if (alarm.config.isEnabled) {
+                                Text(
+                                    text = stringResource(R.string.settings_sound_type),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 4.dp),
+                                )
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.padding(vertical = 4.dp),
+                                ) {
+                                    items(soundTypeOptions) { soundType ->
+                                        FilterChip(
+                                            selected = alarm.config.soundType == soundType ||
+                                                (soundType == AdhanSoundType.FULL_ADHAN && alarm.config.soundType == AdhanSoundType.SHORT_TAKBEER),
+                                            onClick = {
+                                                viewModel.onAction(SettingsUiAction.SetSoundType(alarm.prayer, soundType))
+                                            },
+                                            label = {
+                                                Text(adhanSoundTypeLabel(soundType))
+                                            },
+                                        )
+                                    }
+                                }
+
+                                if (alarm.config.soundType == AdhanSoundType.FULL_ADHAN || alarm.config.soundType == AdhanSoundType.SHORT_TAKBEER) {
+                                    AdhanVoiceDropdown(
+                                        prayer = alarm.prayer,
+                                        selectedVoice = alarm.config.adhanVoice,
+                                        options = voiceOptions,
+                                        onVoiceSelected = { voice ->
+                                            viewModel.onAction(SettingsUiAction.SetAdhanVoice(alarm.prayer, voice))
                                         },
                                     )
-                                }
-                            }
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(
-                                    text = alarm.config.customSoundUri?.let {
-                                        stringResource(R.string.settings_custom_audio_saved)
-                                    } ?: stringResource(
-                                        R.string.settings_builtin_audio,
-                                        alarm.config.adhanVoice.title,
-                                    ),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.weight(1f).padding(end = 8.dp),
-                                    maxLines = 2,
-                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                                )
-                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    OutlinedButton(
-                                        onClick = {
-                                            customSoundPrayer = alarm.prayer
-                                            audioPicker.launch(arrayOf("audio/*"))
-                                        },
-                                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp),
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically,
                                     ) {
-                                        Text(stringResource(R.string.settings_choose_audio))
-                                    }
-                                    if (alarm.config.customSoundUri != null) {
-                                        IconButton(
-                                            onClick = {
-                                                viewModel.onAction(SettingsUiAction.SetCustomSound(alarm.prayer, null))
-                                            },
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Close,
-                                                contentDescription = stringResource(R.string.settings_remove_custom_audio),
-                                            )
+                                        Text(
+                                            text = alarm.config.customSoundUri?.let {
+                                                stringResource(R.string.settings_custom_audio_saved)
+                                            } ?: stringResource(
+                                                R.string.settings_builtin_audio,
+                                                alarm.config.adhanVoice.title,
+                                            ),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.weight(1f).padding(end = 8.dp),
+                                            maxLines = 2,
+                                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                        )
+                                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            OutlinedButton(
+                                                onClick = {
+                                                    customSoundPrayer = alarm.prayer
+                                                    audioPicker.launch(arrayOf("audio/*"))
+                                                },
+                                                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp),
+                                            ) {
+                                                Text(stringResource(R.string.settings_choose_audio))
+                                            }
+                                            if (alarm.config.customSoundUri != null) {
+                                                IconButton(
+                                                    onClick = {
+                                                        viewModel.onAction(SettingsUiAction.SetCustomSound(alarm.prayer, null))
+                                                    },
+                                                ) {
+                                                    Icon(
+                                                        Icons.Default.Close,
+                                                        contentDescription = stringResource(R.string.settings_remove_custom_audio),
+                                                    )
+                                                }
+                                            }
                                         }
+                                    }
+                                } else if (alarm.config.soundType == AdhanSoundType.SILENT) {
+                                    Text(
+                                        text = stringResource(R.string.settings_sound_silent_desc),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(vertical = 2.dp),
+                                    )
+                                }
+
+                                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    items(listOf(0, 5, 10, 15)) { minutes ->
+                                        FilterChip(
+                                            selected = alarm.config.preReminderMinutes == minutes,
+                                            onClick = {
+                                                viewModel.onAction(SettingsUiAction.SetPreReminder(alarm.prayer, minutes))
+                                            },
+                                            label = {
+                                                Text(
+                                                    if (minutes == 0) {
+                                                        stringResource(R.string.settings_no_reminder)
+                                                    } else {
+                                                        stringResource(R.string.settings_reminder_minutes, minutes)
+                                                    },
+                                                )
+                                            },
+                                        )
                                     }
                                 }
                             }

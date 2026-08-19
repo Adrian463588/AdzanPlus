@@ -234,6 +234,34 @@ class NotificationHelper @Inject constructor(
         postNotification(NOTIFICATION_ID_ADHAN + prayer.ordinal + 5000, builder)
     }
 
+    override fun showSilentNotification(
+        prayer: Prayer,
+        prayerTitle: String,
+        locationName: String,
+        vibrate: Boolean,
+    ) {
+        val localizedPrayer = prayerLabel(context, prayer)
+        val contentIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            prayer.ordinal + 600,
+            contentIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val builder = NotificationCompat.Builder(context, CHANNEL_ADHAN_ID)
+            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setContentTitle(prayerTitle)
+            .setContentText(context.getString(com.adzannotif.R.string.notification_adhan_content, localizedPrayer, locationName))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .setVibrate(if (vibrate) ADHAN_VIBRATION_PATTERN else longArrayOf(0))
+        postNotification(NOTIFICATION_ID_ADHAN + prayer.ordinal, builder)
+    }
+
     override fun showCelestialEventNotification(eventType: String, label: String) {
         if (eventType.isBlank() || label.isBlank()) return
 
