@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -138,6 +139,66 @@ private fun adhanVoiceLabel(voice: AdhanVoice): String = stringResource(
         AdhanVoice.SYSTEM_DEFAULT -> R.string.settings_voice_system_default
     },
 )
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NotificationModeDropdown(
+    prayer: Prayer,
+    selectedType: AdhanSoundType,
+    options: List<AdhanSoundType>,
+    onTypeSelected: (AdhanSoundType) -> Unit,
+) {
+    var expanded by remember(prayer) { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        OutlinedTextField(
+            value = adhanSoundTypeLabel(selectedType),
+            onValueChange = {},
+            readOnly = true,
+            singleLine = true,
+            label = { Text(stringResource(R.string.settings_sound_type)) },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            modifier = Modifier
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                .fillMaxWidth(),
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            options.forEach { soundType ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = adhanSoundTypeLabel(soundType),
+                            maxLines = 2,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        )
+                    },
+                    onClick = {
+                        onTypeSelected(soundType)
+                        expanded = false
+                    },
+                    leadingIcon = if (selectedType == soundType || (soundType == AdhanSoundType.FULL_ADHAN && selectedType == AdhanSoundType.SHORT_TAKBEER)) {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                            )
+                        }
+                    } else null,
+                )
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -624,29 +685,14 @@ fun SettingsScreen(
                             }
 
                             if (alarm.config.isEnabled) {
-                                Text(
-                                    text = stringResource(R.string.settings_sound_type),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(top = 4.dp),
+                                NotificationModeDropdown(
+                                    prayer = alarm.prayer,
+                                    selectedType = alarm.config.soundType,
+                                    options = soundTypeOptions,
+                                    onTypeSelected = { soundType ->
+                                        viewModel.onAction(SettingsUiAction.SetSoundType(alarm.prayer, soundType))
+                                    },
                                 )
-                                LazyRow(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    modifier = Modifier.padding(vertical = 4.dp),
-                                ) {
-                                    items(soundTypeOptions) { soundType ->
-                                        FilterChip(
-                                            selected = alarm.config.soundType == soundType ||
-                                                (soundType == AdhanSoundType.FULL_ADHAN && alarm.config.soundType == AdhanSoundType.SHORT_TAKBEER),
-                                            onClick = {
-                                                viewModel.onAction(SettingsUiAction.SetSoundType(alarm.prayer, soundType))
-                                            },
-                                            label = {
-                                                Text(adhanSoundTypeLabel(soundType))
-                                            },
-                                        )
-                                    }
-                                }
 
                                 if (alarm.config.soundType == AdhanSoundType.FULL_ADHAN || alarm.config.soundType == AdhanSoundType.SHORT_TAKBEER) {
                                     AdhanVoiceDropdown(
@@ -705,6 +751,46 @@ fun SettingsScreen(
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.padding(vertical = 2.dp),
+                                    )
+                                }
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier.weight(1f).padding(end = 8.dp),
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Vibration,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(20.dp),
+                                        )
+                                        Column {
+                                            Text(
+                                                text = stringResource(R.string.settings_vibration_label),
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.Medium,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.settings_vibration_desc),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                        }
+                                    }
+                                    androidx.compose.material3.Switch(
+                                        checked = alarm.config.isVibrate,
+                                        onCheckedChange = { vibrate ->
+                                            viewModel.onAction(SettingsUiAction.SetVibrate(alarm.prayer, vibrate))
+                                        },
                                     )
                                 }
 

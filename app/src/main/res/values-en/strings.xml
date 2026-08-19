@@ -125,6 +125,8 @@
     <string name="settings_sound_beep">Beep</string>
     <string name="settings_sound_silent">Notification Only</string>
     <string name="settings_sound_silent_desc">Notification only without sound</string>
+    <string name="settings_vibration_label">Vibration (Haptic)</string>
+    <string name="settings_vibration_desc">Vibrate device when prayer notification arrives</string>
     <string name="settings_adhan_voice_label">Adhan voice</string>
     <string name="settings_choose_voice_for">Choose an adhan voice for %1$s</string>
     <string name="settings_no_reminder">No pre-reminder</string>

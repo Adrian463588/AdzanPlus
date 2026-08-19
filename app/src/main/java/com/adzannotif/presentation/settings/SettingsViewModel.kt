@@ -66,6 +66,7 @@ sealed interface SettingsUiAction {
     data class SetPrayerAdjustment(val prayer: Prayer, val minutes: Int) : SettingsUiAction
     data class SetPrayerEnabled(val prayer: Prayer, val enabled: Boolean) : SettingsUiAction
     data class SetSoundType(val prayer: Prayer, val soundType: AdhanSoundType) : SettingsUiAction
+    data class SetVibrate(val prayer: Prayer, val vibrate: Boolean) : SettingsUiAction
     data class SetAdhanVoice(val prayer: Prayer, val voice: AdhanVoice) : SettingsUiAction
     data class SetCustomSound(val prayer: Prayer, val uriString: String?) : SettingsUiAction
     data class ToggleAdhanPreview(val voice: AdhanVoice) : SettingsUiAction
@@ -236,6 +237,13 @@ class SettingsViewModel @Inject constructor(
                     val updated = currentConfig.copy(soundType = action.soundType)
                     settingsRepository.updateAlarmSettings { it.updateConfig(updated) }
                     refreshAlarms()
+                }
+            }
+            is SettingsUiAction.SetVibrate -> {
+                launchSettingsAction {
+                    val currentConfig = uiState.value.alarmSettings.getConfigForPrayer(action.prayer)
+                    val updated = currentConfig.copy(isVibrate = action.vibrate)
+                    settingsRepository.updateAlarmSettings { it.updateConfig(updated) }
                 }
             }
             is SettingsUiAction.SetAdhanVoice -> {

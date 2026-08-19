@@ -20,6 +20,7 @@ class AlarmConfigSettingsTest {
         val allSettings = AllAlarmSettings()
         assertTrue(allSettings.fajr.isEnabled)
         assertEquals(AdhanSoundType.FULL_ADHAN, allSettings.fajr.soundType)
+        assertTrue(allSettings.fajr.isVibrate)
         assertFalse(allSettings.sunrise.isEnabled)
         assertEquals(AdhanSoundType.BEEP_NOTIFICATION, allSettings.sunrise.soundType)
     }
@@ -40,18 +41,35 @@ class AlarmConfigSettingsTest {
     }
 
     @Test
-    fun testSerializationWithSilentSoundType() {
+    fun testUpdateVibrationSetting() {
+        val allSettings = AllAlarmSettings()
+        val fajrConfig = allSettings.fajr
+        val updatedFajr = fajrConfig.copy(isVibrate = false)
+
+        val updatedAll = allSettings.updateConfig(updatedFajr)
+        assertFalse(updatedAll.fajr.isVibrate)
+
+        // Ensure other prayers remain unaffected
+        assertTrue(updatedAll.dhuhr.isVibrate)
+        assertTrue(updatedAll.maghrib.isVibrate)
+    }
+
+    @Test
+    fun testSerializationWithSilentSoundTypeAndVibration() {
         val original = AllAlarmSettings(
-            fajr = AlarmConfig(Prayer.FAJR, soundType = AdhanSoundType.SILENT),
-            dhuhr = AlarmConfig(Prayer.DHUHR, soundType = AdhanSoundType.BEEP_NOTIFICATION),
-            maghrib = AlarmConfig(Prayer.MAGHRIB, soundType = AdhanSoundType.FULL_ADHAN),
+            fajr = AlarmConfig(Prayer.FAJR, soundType = AdhanSoundType.SILENT, isVibrate = false),
+            dhuhr = AlarmConfig(Prayer.DHUHR, soundType = AdhanSoundType.BEEP_NOTIFICATION, isVibrate = true),
+            maghrib = AlarmConfig(Prayer.MAGHRIB, soundType = AdhanSoundType.FULL_ADHAN, isVibrate = false),
         )
 
         val serialized = json.encodeToString(original)
         val deserialized = json.decodeFromString<AllAlarmSettings>(serialized)
 
         assertEquals(AdhanSoundType.SILENT, deserialized.fajr.soundType)
+        assertFalse(deserialized.fajr.isVibrate)
         assertEquals(AdhanSoundType.BEEP_NOTIFICATION, deserialized.dhuhr.soundType)
+        assertTrue(deserialized.dhuhr.isVibrate)
         assertEquals(AdhanSoundType.FULL_ADHAN, deserialized.maghrib.soundType)
+        assertFalse(deserialized.maghrib.isVibrate)
     }
 }

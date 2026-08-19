@@ -123,6 +123,8 @@
     <string name="settings_sound_beep">Bip</string>
     <string name="settings_sound_silent">Hanya Notifikasi</string>
     <string name="settings_sound_silent_desc">Notifikasi saja tanpa suara</string>
+    <string name="settings_vibration_label">Getar (Haptic)</string>
+    <string name="settings_vibration_desc">Getarkan perangkat saat notifikasi/adzan tiba</string>
     <string name="settings_adhan_voice_label">Suara adzan</string>
     <string name="settings_choose_voice_for">Pilih suara adzan untuk %1$s</string>
     <string name="settings_no_reminder">Tanpa pengingat</string>
