@@ -69,8 +69,11 @@ firebase.json
 # Local reference and archive folders & documents
 ReferenceProjects/
 ReferenceProjects/**
+**/ReferenceProjects/**
 docs/*.md
 docs/**/*.md
+**/docs/*.md
+**/docs/**/*.md
 scratch/
 scratch/**
 *.log
