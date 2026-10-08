@@ -89,6 +89,7 @@ data class CelestialAlertSettings(
 data class AllAlarmSettings(
     val fajr: AlarmConfig = AlarmConfig(Prayer.FAJR, adhanVoice = AdhanVoice.FAJR_SPECIAL),
     val sunrise: AlarmConfig = AlarmConfig(Prayer.SUNRISE, isEnabled = false, soundType = AdhanSoundType.BEEP_NOTIFICATION),
+    val dhuha: AlarmConfig = AlarmConfig(Prayer.DHUHA, isEnabled = false, soundType = AdhanSoundType.BEEP_NOTIFICATION),
     val dhuhr: AlarmConfig = AlarmConfig(Prayer.DHUHR),
     val asr: AlarmConfig = AlarmConfig(Prayer.ASR),
     val maghrib: AlarmConfig = AlarmConfig(Prayer.MAGHRIB),
@@ -99,20 +100,22 @@ data class AllAlarmSettings(
     fun getConfigForPrayer(prayer: Prayer): AlarmConfig = when (prayer) {
         Prayer.FAJR -> fajr
         Prayer.SUNRISE -> sunrise
+        Prayer.DHUHA -> dhuha
         Prayer.DHUHR -> dhuhr
         Prayer.ASR -> asr
         Prayer.MAGHRIB -> maghrib
         Prayer.ISHA -> isha
-        Prayer.IMSAK, Prayer.DHUHA, Prayer.MIDNIGHT, Prayer.TAHAJJUD -> fajr
+        Prayer.IMSAK, Prayer.MIDNIGHT, Prayer.TAHAJJUD -> fajr
     }
 
     fun updateConfig(config: AlarmConfig): AllAlarmSettings = when (config.prayer) {
         Prayer.FAJR -> copy(fajr = config)
         Prayer.SUNRISE -> copy(sunrise = config)
+        Prayer.DHUHA -> copy(dhuha = config)
         Prayer.DHUHR -> copy(dhuhr = config)
         Prayer.ASR -> copy(asr = config)
         Prayer.MAGHRIB -> copy(maghrib = config)
         Prayer.ISHA -> copy(isha = config)
-        Prayer.IMSAK, Prayer.DHUHA, Prayer.MIDNIGHT, Prayer.TAHAJJUD -> this
+        Prayer.IMSAK, Prayer.MIDNIGHT, Prayer.TAHAJJUD -> this
     }
 }

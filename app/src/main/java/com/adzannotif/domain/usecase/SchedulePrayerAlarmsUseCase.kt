@@ -39,15 +39,8 @@ class SchedulePrayerAlarmsUseCase @Inject constructor(
         val tomorrowRecord = getTodayPrayerTimesUseCase(tomorrowDate).first()
         val alarmSettings = settingsRepository.alarmSettings.first()
 
-        // Fard prayers plus the optional sunrise alert exposed in Settings.
-        val scheduledPrayers = listOf(
-            Prayer.FAJR,
-            Prayer.SUNRISE,
-            Prayer.DHUHR,
-            Prayer.ASR,
-            Prayer.MAGHRIB,
-            Prayer.ISHA
-        )
+        // Scheduled prayers including Fard, Sunrise, and Dhuha as configured in Settings.
+        val scheduledPrayers = Prayer.STANDARD_TIMELINE
 
         for (prayer in scheduledPrayers) {
             val config = alarmSettings.getConfigForPrayer(prayer)

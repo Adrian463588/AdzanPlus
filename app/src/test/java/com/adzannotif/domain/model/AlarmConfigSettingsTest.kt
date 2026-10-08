@@ -103,4 +103,38 @@ class AlarmConfigSettingsTest {
         assertEquals(5, deserialized.maghrib.preReminderMinutes)
         assertEquals(0, deserialized.asr.preReminderMinutes)
     }
+
+    @Test
+    fun testFajrAndDhuhaPreReminderIndependence() {
+        val allSettings = AllAlarmSettings()
+        assertEquals(0, allSettings.fajr.preReminderMinutes)
+        assertEquals(0, allSettings.dhuha.preReminderMinutes)
+
+        // Update Fajr pre-reminder to 15 minutes
+        val updatedFajr = allSettings.fajr.copy(preReminderMinutes = 15)
+        val afterFajrUpdate = allSettings.updateConfig(updatedFajr)
+
+        // Verify Fajr is 15 but Dhuha remains 0
+        assertEquals(15, afterFajrUpdate.fajr.preReminderMinutes)
+        assertEquals(15, afterFajrUpdate.getConfigForPrayer(Prayer.FAJR).preReminderMinutes)
+        assertEquals(0, afterFajrUpdate.dhuha.preReminderMinutes)
+        assertEquals(0, afterFajrUpdate.getConfigForPrayer(Prayer.DHUHA).preReminderMinutes)
+
+        // Update Dhuha pre-reminder to 10 minutes
+        val updatedDhuha = afterFajrUpdate.dhuha.copy(isEnabled = true, preReminderMinutes = 10)
+        val afterDhuhaUpdate = afterFajrUpdate.updateConfig(updatedDhuha)
+
+        // Verify Fajr is still 15 and Dhuha is now 10
+        assertEquals(15, afterDhuhaUpdate.fajr.preReminderMinutes)
+        assertEquals(10, afterDhuhaUpdate.dhuha.preReminderMinutes)
+        assertTrue(afterDhuhaUpdate.dhuha.isEnabled)
+        assertTrue(afterDhuhaUpdate.fajr.isEnabled)
+
+        // Verify serialization preserves both distinct values
+        val serialized = json.encodeToString(afterDhuhaUpdate)
+        val deserialized = json.decodeFromString<AllAlarmSettings>(serialized)
+        assertEquals(15, deserialized.fajr.preReminderMinutes)
+        assertEquals(10, deserialized.dhuha.preReminderMinutes)
+        assertTrue(deserialized.dhuha.isEnabled)
+    }
 }
