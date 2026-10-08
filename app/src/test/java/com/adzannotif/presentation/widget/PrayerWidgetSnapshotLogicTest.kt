@@ -99,6 +99,7 @@ class PrayerWidgetSnapshotLogicTest {
         imsak = Instant.parse(fajr),
         fajr = Instant.parse(fajr),
         sunrise = Instant.parse(sunrise),
+        dhuha = Instant.parse(sunrise),
         dhuhr = Instant.parse(dhuhr),
         asr = Instant.parse(asr),
         maghrib = Instant.parse(maghrib),

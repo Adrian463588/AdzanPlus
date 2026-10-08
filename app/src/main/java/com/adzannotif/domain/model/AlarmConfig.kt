@@ -103,7 +103,7 @@ data class AllAlarmSettings(
         Prayer.ASR -> asr
         Prayer.MAGHRIB -> maghrib
         Prayer.ISHA -> isha
-        Prayer.IMSAK, Prayer.MIDNIGHT, Prayer.TAHAJJUD -> fajr
+        Prayer.IMSAK, Prayer.DHUHA, Prayer.MIDNIGHT, Prayer.TAHAJJUD -> fajr
     }
 
     fun updateConfig(config: AlarmConfig): AllAlarmSettings = when (config.prayer) {
@@ -113,6 +113,6 @@ data class AllAlarmSettings(
         Prayer.ASR -> copy(asr = config)
         Prayer.MAGHRIB -> copy(maghrib = config)
         Prayer.ISHA -> copy(isha = config)
-        Prayer.IMSAK, Prayer.MIDNIGHT, Prayer.TAHAJJUD -> this
+        Prayer.IMSAK, Prayer.DHUHA, Prayer.MIDNIGHT, Prayer.TAHAJJUD -> this
     }
 }

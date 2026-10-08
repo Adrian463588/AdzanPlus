@@ -131,6 +131,8 @@
     <string name="settings_choose_voice_for">Choose an adhan voice for %1$s</string>
     <string name="settings_no_reminder">No pre-reminder</string>
     <string name="settings_reminder_minutes">-%1$d min</string>
+    <string name="settings_pre_reminder_label">Pre-Adhan Reminder</string>
+    <string name="settings_pre_reminder_desc">Heads-up notification minutes before prayer time</string>
     <string name="settings_custom_audio_saved">Custom audio saved</string>
     <string name="settings_builtin_audio">Built-in audio: %1$s</string>
     <string name="settings_choose_audio">Select audio</string>

@@ -140,6 +140,7 @@ class PrayerTimesRepositoryImpl @Inject constructor(
             imsak = prayerTimes.imsak,
             fajr = prayerTimes.fajr,
             sunrise = prayerTimes.sunrise,
+            dhuha = prayerTimes.dhuha,
             dhuhr = prayerTimes.dhuhr,
             asr = prayerTimes.asr,
             maghrib = prayerTimes.maghrib,

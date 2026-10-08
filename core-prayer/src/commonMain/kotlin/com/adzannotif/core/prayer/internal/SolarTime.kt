@@ -64,6 +64,20 @@ internal class SolarTime(
     }
 
     /**
+     * Calculates time for a specific solar altitude angle (e.g. +4.5 degrees for Dhuha).
+     */
+    fun timeForAltitude(altitudeDegrees: Double, isAfterTransit: Boolean): Double? {
+        val ha = AstronomicalMath.hourAngle(altitudeDegrees, coordinates.latitude, solar.declination) ?: return null
+        val deltaHours = ha / 15.0
+
+        return if (isAfterTransit) {
+            (transit + deltaHours).unwindHours()
+        } else {
+            (transit - deltaHours).unwindHours()
+        }
+    }
+
+    /**
      * Calculates Asr time using shadow factor.
      */
     fun timeForAsr(shadowFactor: Double): Double? {

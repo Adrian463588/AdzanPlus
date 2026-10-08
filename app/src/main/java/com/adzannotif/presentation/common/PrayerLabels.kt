@@ -14,6 +14,7 @@ private fun Prayer.prayerLabelRes(): Int = when (this) {
     Prayer.IMSAK -> R.string.prayer_imsak
     Prayer.FAJR -> R.string.prayer_fajr
     Prayer.SUNRISE -> R.string.prayer_sunrise
+    Prayer.DHUHA -> R.string.prayer_dhuha
     Prayer.DHUHR -> R.string.prayer_dhuhr
     Prayer.ASR -> R.string.prayer_asr
     Prayer.MAGHRIB -> R.string.prayer_maghrib

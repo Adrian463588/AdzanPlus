@@ -101,4 +101,21 @@ class SunnahAndAdditionalTimesTest {
         // Maghrib (Sunset) is around 17:50 - 18:05
         assertTrue(maghribLocal.hour in 17..18, "Maghrib in Jakarta should be around 17:50 - 18:05")
     }
+
+    @Test
+    fun testDhuhaTiming() {
+        val jakarta = Coordinates(latitude = -6.2088, longitude = 106.8456)
+        val date = DateComponents(year = 2026, month = 8, day = 16)
+        val params = CalculationMethod.KEMENAG_RI.createParameters()
+
+        val prayerTimes = PrayerTimes(jakarta, date, params)
+
+        val dhuha = prayerTimes.dhuha
+        assertEquals(dhuha, prayerTimes.timeForPrayer(Prayer.DHUHA))
+        assertTrue(dhuha > prayerTimes.sunrise, "Dhuha must be after Sunrise")
+        assertTrue(dhuha < prayerTimes.dhuhr, "Dhuha must be before Dhuhr")
+
+        val diffMinutes = (dhuha.toEpochMilliseconds() - prayerTimes.sunrise.toEpochMilliseconds()) / (60 * 1000L)
+        assertTrue(diffMinutes in 15..30, "Dhuha in Jakarta should be around 15-30 minutes after Sunrise")
+    }
 }

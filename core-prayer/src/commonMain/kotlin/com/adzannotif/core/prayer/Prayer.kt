@@ -10,6 +10,7 @@ enum class Prayer(val displayNameEn: String, val displayNameId: String, val isFa
     IMSAK("Imsak", "Imsak", false),
     FAJR("Fajr", "Subuh", true),
     SUNRISE("Sunrise", "Terbit / Syuruq", false),
+    DHUHA("Dhuha", "Dhuha", false),
     DHUHR("Dhuhr", "Dzuhur", true),
     ASR("Asr", "Ashar", true),
     MAGHRIB("Maghrib", "Maghrib", true),
@@ -24,8 +25,8 @@ enum class Prayer(val displayNameEn: String, val displayNameId: String, val isFa
         val FARD_PRAYERS = listOf(FAJR, DHUHR, ASR, MAGHRIB, ISHA)
 
         /**
-         * All standard display timeline prayers including Sunrise.
+         * All standard display timeline prayers including Sunrise and Dhuha.
          */
-        val STANDARD_TIMELINE = listOf(FAJR, SUNRISE, DHUHR, ASR, MAGHRIB, ISHA)
+        val STANDARD_TIMELINE = listOf(FAJR, SUNRISE, DHUHA, DHUHR, ASR, MAGHRIB, ISHA)
     }
 }

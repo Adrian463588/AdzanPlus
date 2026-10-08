@@ -36,7 +36,7 @@ data class PrayerAdjustments(
             Prayer.ASR -> asr
             Prayer.MAGHRIB -> maghrib
             Prayer.ISHA -> isha
-            Prayer.MIDNIGHT, Prayer.TAHAJJUD -> 0
+            Prayer.DHUHA, Prayer.MIDNIGHT, Prayer.TAHAJJUD -> 0
         }
     }
 

@@ -24,6 +24,7 @@ class PrayerTimes(
     val calculationParameters: CalculationParameters,
     val fajr: Instant,
     val sunrise: Instant,
+    val dhuha: Instant,
     val dhuhr: Instant,
     val asr: Instant,
     val maghrib: Instant,
@@ -39,6 +40,7 @@ class PrayerTimes(
             Prayer.IMSAK -> imsak
             Prayer.FAJR -> fajr
             Prayer.SUNRISE -> sunrise
+            Prayer.DHUHA -> dhuha
             Prayer.DHUHR -> dhuhr
             Prayer.ASR -> asr
             Prayer.MAGHRIB -> maghrib
@@ -58,6 +60,7 @@ class PrayerTimes(
             nowMs >= maghrib.toEpochMilliseconds() -> Prayer.MAGHRIB
             nowMs >= asr.toEpochMilliseconds() -> Prayer.ASR
             nowMs >= dhuhr.toEpochMilliseconds() -> Prayer.DHUHR
+            nowMs >= dhuha.toEpochMilliseconds() -> Prayer.DHUHA
             nowMs >= sunrise.toEpochMilliseconds() -> Prayer.SUNRISE
             nowMs >= fajr.toEpochMilliseconds() -> Prayer.FAJR
             nowMs >= imsak.toEpochMilliseconds() -> Prayer.IMSAK
@@ -74,6 +77,7 @@ class PrayerTimes(
             nowMs < imsak.toEpochMilliseconds() -> Prayer.IMSAK
             nowMs < fajr.toEpochMilliseconds() -> Prayer.FAJR
             nowMs < sunrise.toEpochMilliseconds() -> Prayer.SUNRISE
+            nowMs < dhuha.toEpochMilliseconds() -> Prayer.DHUHA
             nowMs < dhuhr.toEpochMilliseconds() -> Prayer.DHUHR
             nowMs < asr.toEpochMilliseconds() -> Prayer.ASR
             nowMs < maghrib.toEpochMilliseconds() -> Prayer.MAGHRIB
@@ -165,6 +169,11 @@ class PrayerTimes(
             val sunriseDate = if (sunriseHours > dhuhrHours) baseDate.minus(DatePeriod(days = 1)) else baseDate
             val sunriseInstant = toInstantWithAdjustments(sunriseDate, sunriseHours, calculationParameters.prayerAdjustments.sunrise, calculationParameters.rounding)
 
+            // Dhuha (+4.5° solar altitude or fallback to sunrise + 20 min)
+            val dhuhaHours = solarTime.timeForAltitude(4.5, isAfterTransit = false) ?: (sunriseHours + (20.0 / 60.0))
+            val dhuhaDate = if (dhuhaHours > dhuhrHours) baseDate.minus(DatePeriod(days = 1)) else baseDate
+            val dhuhaInstant = toInstantWithAdjustments(dhuhaDate, dhuhaHours, 0, calculationParameters.rounding)
+
             // Asr, Maghrib, Isha occur after Dhuhr on the observer's local day; if their UTC hours < dhuhrHours, they fall on baseDate + 1 day in UTC
             val asrDate = if (asrHours < dhuhrHours) baseDate.plus(DatePeriod(days = 1)) else baseDate
             val asrInstant = toInstantWithAdjustments(asrDate, asrHours, calculationParameters.prayerAdjustments.asr, calculationParameters.rounding)
@@ -207,6 +216,7 @@ class PrayerTimes(
                     calculationParameters = calculationParameters,
                     fajr = fajrInstant,
                     sunrise = sunriseInstant,
+                    dhuha = dhuhaInstant,
                     dhuhr = dhuhrInstant,
                     asr = asrInstant,
                     maghrib = maghribInstant,

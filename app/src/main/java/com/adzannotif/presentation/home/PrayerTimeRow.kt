@@ -61,6 +61,7 @@ fun PrayerTimeRow(
         Prayer.IMSAK -> Icons.Default.WbTwilight
         Prayer.FAJR -> Icons.Default.Brightness5
         Prayer.SUNRISE -> Icons.Default.WbSunny
+        Prayer.DHUHA -> Icons.Default.WbSunny
         Prayer.DHUHR -> Icons.Default.Brightness7
         Prayer.ASR -> Icons.Default.Brightness6
         Prayer.MAGHRIB -> Icons.Default.WbTwilight

@@ -13,7 +13,7 @@ import com.adzannotif.data.local.entity.SavedLocationEntity
         SavedLocationEntity::class,
         com.adzannotif.data.local.entity.AstronomyCacheEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class PrayerDatabase : RoomDatabase() {

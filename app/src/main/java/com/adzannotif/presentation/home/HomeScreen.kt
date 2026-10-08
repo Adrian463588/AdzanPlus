@@ -234,6 +234,7 @@ private fun HomeContent(
         Prayer.IMSAK to prayerTimes.imsak,
         Prayer.FAJR to prayerTimes.fajr,
         Prayer.SUNRISE to prayerTimes.sunrise,
+        Prayer.DHUHA to prayerTimes.dhuha,
         Prayer.DHUHR to prayerTimes.dhuhr,
         Prayer.ASR to prayerTimes.asr,
         Prayer.MAGHRIB to prayerTimes.maghrib,

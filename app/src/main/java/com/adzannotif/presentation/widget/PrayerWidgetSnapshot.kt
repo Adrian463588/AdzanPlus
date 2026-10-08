@@ -98,11 +98,7 @@ internal object PrayerWidgetSnapshotLoader {
                 todayRecord = todayRecord,
                 tomorrowRecord = tomorrowRecord,
                 hijriDate = hijriDate,
-                dhuhaTimeEpochMillis = PrayerWidgetDhuhaCalculator.calculate(
-                    location = location,
-                    todayRecord = todayRecord,
-                    astronomyEngine = astronomyEngine,
-                ),
+                dhuhaTimeEpochMillis = todayRecord.dhuha.toEpochMilliseconds(),
                 now = now,
             )
         } catch (_: PrayerTimesUnavailableException) {

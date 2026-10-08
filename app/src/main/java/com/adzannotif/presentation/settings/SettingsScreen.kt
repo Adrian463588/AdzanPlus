@@ -108,6 +108,7 @@ private fun prayerLabel(prayer: Prayer): String = stringResource(
     when (prayer) {
         Prayer.FAJR -> R.string.prayer_fajr
         Prayer.SUNRISE -> R.string.prayer_sunrise
+        Prayer.DHUHA -> R.string.prayer_dhuha
         Prayer.DHUHR -> R.string.prayer_dhuhr
         Prayer.ASR -> R.string.prayer_asr
         Prayer.MAGHRIB -> R.string.prayer_maghrib
@@ -794,23 +795,39 @@ fun SettingsScreen(
                                     )
                                 }
 
-                                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    items(listOf(0, 5, 10, 15)) { minutes ->
-                                        FilterChip(
-                                            selected = alarm.config.preReminderMinutes == minutes,
-                                            onClick = {
-                                                viewModel.onAction(SettingsUiAction.SetPreReminder(alarm.prayer, minutes))
-                                            },
-                                            label = {
-                                                Text(
-                                                    if (minutes == 0) {
-                                                        stringResource(R.string.settings_no_reminder)
-                                                    } else {
-                                                        stringResource(R.string.settings_reminder_minutes, minutes)
-                                                    },
-                                                )
-                                            },
-                                        )
+                                Column(modifier = Modifier.padding(top = 4.dp)) {
+                                    Text(
+                                        text = stringResource(R.string.settings_pre_reminder_label),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.settings_pre_reminder_desc),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    LazyRow(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier.padding(top = 4.dp),
+                                    ) {
+                                        items(listOf(0, 5, 10, 15, 20, 30)) { minutes ->
+                                            FilterChip(
+                                                selected = alarm.config.preReminderMinutes == minutes,
+                                                onClick = {
+                                                    viewModel.onAction(SettingsUiAction.SetPreReminder(alarm.prayer, minutes))
+                                                },
+                                                label = {
+                                                    Text(
+                                                        if (minutes == 0) {
+                                                            stringResource(R.string.settings_no_reminder)
+                                                        } else {
+                                                            stringResource(R.string.settings_reminder_minutes, minutes)
+                                                        },
+                                                    )
+                                                },
+                                            )
+                                        }
                                     }
                                 }
                             }

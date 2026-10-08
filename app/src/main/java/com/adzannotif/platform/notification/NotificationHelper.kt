@@ -75,14 +75,22 @@ class NotificationHelper @Inject constructor(
                 enableVibration(true)
             }
 
-            // Normal Priority Channel for Pre-Prayer Reminders (5/10/15 mins before)
+            // High Priority Channel for Pre-Prayer Reminders (Heads-up notification before adzan)
             val reminderChannel = NotificationChannel(
                 CHANNEL_REMINDER_ID,
                 context.getString(com.adzannotif.R.string.notification_channel_reminder_name),
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = context.getString(com.adzannotif.R.string.notification_channel_reminder_description)
+                setSound(
+                    RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT)
+                        .build(),
+                )
                 enableVibration(true)
+                vibrationPattern = ADHAN_VIBRATION_PATTERN
+                lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
             }
 
             // Low Priority Channel for Persistent / Ongoing Status
@@ -198,7 +206,9 @@ class NotificationHelper @Inject constructor(
                 ),
             )
             .setContentText(context.getString(com.adzannotif.R.string.notification_pre_reminder_content, localizedPrayer, locationName))
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .setVibrate(if (vibrate) ADHAN_VIBRATION_PATTERN else longArrayOf(0))

@@ -8,6 +8,7 @@ internal fun prayerLabel(context: Context, prayer: Prayer): String = when (praye
     Prayer.IMSAK -> context.getString(R.string.prayer_imsak)
     Prayer.FAJR -> context.getString(R.string.prayer_fajr)
     Prayer.SUNRISE -> context.getString(R.string.prayer_sunrise)
+    Prayer.DHUHA -> context.getString(R.string.prayer_dhuha)
     Prayer.DHUHR -> context.getString(R.string.prayer_dhuhr)
     Prayer.ASR -> context.getString(R.string.prayer_asr)
     Prayer.MAGHRIB -> context.getString(R.string.prayer_maghrib)

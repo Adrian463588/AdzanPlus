@@ -129,6 +129,8 @@
     <string name="settings_choose_voice_for">Pilih suara adzan untuk %1$s</string>
     <string name="settings_no_reminder">Tanpa pengingat</string>
     <string name="settings_reminder_minutes">-%1$d m</string>
+    <string name="settings_pre_reminder_label">Pengingat Sebelum Adzan</string>
+    <string name="settings_pre_reminder_desc">Notifikasi layar beberapa menit sebelum waktu sholat tiba</string>
     <string name="settings_custom_audio_saved">Audio kustom tersimpan</string>
     <string name="settings_builtin_audio">Audio bawaan: %1$s</string>
     <string name="settings_choose_audio">Pilih audio</string>

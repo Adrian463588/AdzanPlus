@@ -19,6 +19,7 @@ data class PrayerScheduleEntity(
     val imsakEpochMs: Long,
     val fajrEpochMs: Long,
     val sunriseEpochMs: Long,
+    val dhuhaEpochMs: Long = 0L,
     val dhuhrEpochMs: Long,
     val asrEpochMs: Long,
     val maghribEpochMs: Long,
@@ -28,12 +29,18 @@ data class PrayerScheduleEntity(
     val lastThirdOfNightEpochMs: Long? = null,
 ) {
     fun toDomain(): PrayerTimeRecord {
+        val dhuhaInstant = if (dhuhaEpochMs > 0L) {
+            Instant.fromEpochMilliseconds(dhuhaEpochMs)
+        } else {
+            Instant.fromEpochMilliseconds(sunriseEpochMs + 20 * 60 * 1000L)
+        }
         return PrayerTimeRecord(
             date = LocalDate.parse(dateString),
             coordinates = Coordinates(latitude, longitude),
             imsak = Instant.fromEpochMilliseconds(imsakEpochMs),
             fajr = Instant.fromEpochMilliseconds(fajrEpochMs),
             sunrise = Instant.fromEpochMilliseconds(sunriseEpochMs),
+            dhuha = dhuhaInstant,
             dhuhr = Instant.fromEpochMilliseconds(dhuhrEpochMs),
             asr = Instant.fromEpochMilliseconds(asrEpochMs),
             maghrib = Instant.fromEpochMilliseconds(maghribEpochMs),
@@ -55,6 +62,7 @@ data class PrayerScheduleEntity(
                 imsakEpochMs = record.imsak.toEpochMilliseconds(),
                 fajrEpochMs = record.fajr.toEpochMilliseconds(),
                 sunriseEpochMs = record.sunrise.toEpochMilliseconds(),
+                dhuhaEpochMs = record.dhuha.toEpochMilliseconds(),
                 dhuhrEpochMs = record.dhuhr.toEpochMilliseconds(),
                 asrEpochMs = record.asr.toEpochMilliseconds(),
                 maghribEpochMs = record.maghrib.toEpochMilliseconds(),

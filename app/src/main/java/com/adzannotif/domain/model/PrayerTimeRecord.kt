@@ -14,6 +14,7 @@ data class PrayerTimeRecord(
     val imsak: Instant,
     val fajr: Instant,
     val sunrise: Instant,
+    val dhuha: Instant,
     val dhuhr: Instant,
     val asr: Instant,
     val maghrib: Instant,
@@ -26,6 +27,7 @@ data class PrayerTimeRecord(
         Prayer.IMSAK -> imsak
         Prayer.FAJR -> fajr
         Prayer.SUNRISE -> sunrise
+        Prayer.DHUHA -> dhuha
         Prayer.DHUHR -> dhuhr
         Prayer.ASR -> asr
         Prayer.MAGHRIB -> maghrib
@@ -41,6 +43,7 @@ data class PrayerTimeRecord(
         val schedule = listOf(
             Prayer.FAJR to fajr,
             Prayer.SUNRISE to sunrise,
+            Prayer.DHUHA to dhuha,
             Prayer.DHUHR to dhuhr,
             Prayer.ASR to asr,
             Prayer.MAGHRIB to maghrib,
@@ -53,7 +56,8 @@ data class PrayerTimeRecord(
         return when {
             now < fajr -> null
             now < sunrise -> Prayer.FAJR
-            now < dhuhr -> Prayer.SUNRISE
+            now < dhuha -> Prayer.SUNRISE
+            now < dhuhr -> Prayer.DHUHA
             now < asr -> Prayer.DHUHR
             now < maghrib -> Prayer.ASR
             now < isha -> Prayer.MAGHRIB

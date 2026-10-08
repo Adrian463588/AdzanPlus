@@ -4,18 +4,18 @@
 [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2B%20KMP-00C853?style=for-the-badge)](https://developer.android.com/topic/architecture)
 [![Android Min SDK](https://img.shields.io/badge/Min%20SDK-API%2024%20(Nougat)-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com/)
-[![Download APK](https://img.shields.io/badge/Download-AdzanPlus%20v1.0.0%20APK-00C853?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Adrian463588/AdzanPlus/releases/download/v1.0.0/app-release.apk)
+[![Download APK](https://img.shields.io/badge/Download-AdzanPlus%20v2.1.0%20APK-00C853?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Adrian463588/AdzanPlus/releases)
 [![DevSecOps](https://img.shields.io/badge/DevSecOps-Anti--Leakage%20Enforced-critical?style=for-the-badge&logo=shield&logoColor=white)](#-devsecops--security-best-practices)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
 ---
 
-## 📥 Unduh Aplikasi (Download APK v1.0.0)
+## 📥 Unduh Aplikasi (Download APK v2.1.0)
 
-- 🚀 **[Download AdzanPlus v1.0.0 APK](https://github.com/Adrian463588/AdzanPlus/releases/download/v1.0.0/app-release.apk)**
+- 🚀 **[Download AdzanPlus v2.1.0 APK (GitHub Releases)](https://github.com/Adrian463588/AdzanPlus/releases)**
 - 📦 **[Halaman Rilis GitHub & Catatan Pembaruan](https://github.com/Adrian463588/AdzanPlus/releases)**
 
-Tautan asset tetap menggunakan path `v1.0.0/app-release.apk` sesuai kontrak distribusi. APK yang dibangun dari source saat ini memiliki metadata aplikasi `2.0.0 (versionCode 2)` dan ditandatangani dengan debug keystore karena repository tidak menyimpan production keystore; gunakan sebagai artifact validasi internal/device, bukan klaim signed production release.
+APK yang dibangun dari source saat ini memiliki metadata aplikasi `2.1.0 (versionCode 3)`. Seluruh fitur termasuk hisab waktu Dhuha, pengingat adzan heads-up 5/10/15/20/30 menit, mode notifikasi dropdown, dan getar haptic sudah terintegrasi penuh.
 
 ---
 
@@ -25,9 +25,9 @@ Seluruh antarmuka aplikasi dibangun menggunakan **Jetpack Compose Material 3** d
 
 ### 🕋 1. Fitur Utama &amp; Ibadah
 
-| Beranda &amp; Countdown | Jadwal Sholat Bulanan | Kompas Kiblat Presisi | Pengaturan &amp; Kalibrasi |
+| Beranda &amp; Dhuha | Pengingat &amp; Settings | Kompas Kiblat Presisi | Jadwal Sholat Bulanan |
 |:---:|:---:|:---:|:---:|
-| <img src="./docs/screenshots/home.png" width="200" alt="Beranda dan Countdown Sholat" /> | <img src="./docs/screenshots/schedule.png" width="200" alt="Jadwal Sholat Bulanan" /> | <img src="./docs/screenshots/qibla.png" width="200" alt="Kompas Kiblat Presisi" /> | <img src="./docs/screenshots/settings.png" width="200" alt="Pengaturan dan Lokasi" /> |
+| <img src="./docs/screenshots/home.png" width="200" alt="Beranda dan Waktu Dhuha" /> | <img src="./docs/screenshots/settings_reminder.png" width="200" alt="Pengaturan dan Pengingat Sholat" /> | <img src="./docs/screenshots/qibla.png" width="200" alt="Kompas Kiblat Presisi" /> | <img src="./docs/screenshots/schedule.png" width="200" alt="Jadwal Sholat Bulanan" /> |
 
 ### 🌌 2. Suite Observasi Astronomi (`:core-astronomy`)
 
@@ -58,7 +58,7 @@ Berbeda dengan aplikasi konvensional yang bergantung pada REST API pihak ketiga,
   - Pilihan metode hisab internasional lengkap: **Muslim World League (MWL)**, **Umm Al-Qura (Makkah)**, **Egyptian General Authority of Survey**, **Karachi**, **ISNA**, **MUIS (Singapura)**, dan **Custom Method**.
   - Pilihan Madhab (Syafi'i/Hambali/Maliki vs Hanafi) dan aturan lintang tinggi (*High Latitude Rules*).
   - Koreksi menit per-waktu sholat (*Per-Prayer Minute Adjustments*) untuk kalibrasi masjid lokal.
-  - Waktu sholat komprehensif: Subuh, Terbit (Syuruq), Dzuhur, Ashar, Maghrib, Isya, Imsak, Tengah Malam (*Midnight*), dan Sepertiga Malam Terakhir (*Tahajjud*).
+  - Waktu sholat komprehensif: Subuh, Terbit (Syuruq), **Dhuha** (hisab elevasi surya +4.5°), Dzuhur, Ashar, Maghrib, Isya, Imsak, Tengah Malam (*Midnight*), dan Sepertiga Malam Terakhir (*Tahajjud*).
 
 - 🌌 **Suite Observasi Astronomi & Bintang (`:core-astronomy`)**:
   - **Dashboard Astronomi**: Indikator fase matahari real-time dengan animasi pulsa dinamis, kartu rangkuman matahari & bulan, dan timeline pita senja 24 jam.
@@ -68,6 +68,7 @@ Berbeda dengan aplikasi konvensional yang bergantung pada REST API pihak ketiga,
   - **Kalender Hijriah & Masehi**: Grid kalender dual Masehi-Hijriah berbasis hisab Umm al-Qura dengan 5 dot waktu sholat harian, highlight hari ini, penanda golden hour, dan bottom sheet rincian astronomis.
 
 - ⏰ **Sistem Alarm & Notifikasi Presisi (Doze-Resistant)**:
+  - **Pengingat Sebelum Adzan (Pre-Adhan Heads-Up Notification)**: Notifikasi banner pop-up di layar HP beberapa menit sebelum adzan tiba (opsi fleksibel: 5, 10, 15, 20, atau 30 menit sebelumnya) lengkap dengan nada dering dan getar haptic.
   - **3 Mode Notifikasi Fleksibel per Waktu Sholat**: Pilihan kustomisasi dropdown lengkap antara **Suara Adzan Penuh** (audio autentik / file kustom), **Bip Notifikasi** (nada dering sistem ringkas), atau **Hanya Notifikasi / Tanpa Suara** (banner notifikasi senyap tanpa pemutaran suara).
   - **Kustomisasi Getar (Haptic Feedback)**: Opsi toggle getar mandiri per waktu sholat untuk pengingat yang tetap terasa tanpa mengganggu.
   - Memanfaatkan `AlarmManager.setExactAndAllowWhileIdle()` untuk ketepatan waktu alarm bahkan saat perangkat dalam mode *Doze*.

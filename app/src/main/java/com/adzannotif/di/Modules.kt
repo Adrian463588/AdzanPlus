@@ -53,7 +53,8 @@ object AppModule {
             PrayerDatabase::class.java,
             "prayer_times.db"
         )
-            .addMigrations(PRAYER_DATABASE_MIGRATION_1_2)
+            .addMigrations(PRAYER_DATABASE_MIGRATION_1_2, PRAYER_DATABASE_MIGRATION_2_3)
+            .fallbackToDestructiveMigrationOnDowngrade()
             .build()
     }
 
@@ -123,6 +124,14 @@ private val PRAYER_DATABASE_MIGRATION_1_2 = object : Migration(1, 2) {
                 PRIMARY KEY(`cacheKey`)
             )
             """.trimIndent()
+        )
+    }
+}
+
+private val PRAYER_DATABASE_MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            "ALTER TABLE prayer_schedules ADD COLUMN dhuhaEpochMs INTEGER NOT NULL DEFAULT 0"
         )
     }
 }
