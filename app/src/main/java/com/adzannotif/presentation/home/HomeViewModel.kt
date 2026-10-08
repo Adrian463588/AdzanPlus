@@ -16,6 +16,7 @@ import com.adzannotif.domain.usecase.SchedulePrayerAlarmsUseCase
 import com.adzannotif.platform.network.NetworkMonitor
 import android.content.Context
 import com.adzannotif.presentation.widget.PrayerTimesWidgetReceiver
+import com.adzannotif.widget.AstronomyWidgetUpdater
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -53,11 +54,19 @@ data class HomeUiState(
     val locationError: String? = null,
     val isLoading: Boolean = false,
     val dataState: HomeDataState = HomeDataState.LOADING,
+    // Offline city picker
+    val isOfflineCityPickerOpen: Boolean = false,
+    val offlineCitySearchQuery: String = "",
+    val offlineCityResults: List<LocationInfo> = emptyList(),
 )
 
 sealed interface HomeUiAction {
     data class TogglePrayerAlarm(val prayer: Prayer) : HomeUiAction
     data object RefreshLocation : HomeUiAction
+    data object OpenOfflineCityPicker : HomeUiAction
+    data object CloseOfflineCityPicker : HomeUiAction
+    data class SearchOfflineCities(val query: String) : HomeUiAction
+    data class SelectOfflineCity(val city: LocationInfo) : HomeUiAction
 }
 
 @HiltViewModel
@@ -77,6 +86,9 @@ class HomeViewModel @Inject constructor(
     private val _nextPrayerTarget = MutableStateFlow<Instant?>(null)
     private val _hijriDateFormatted = MutableStateFlow<String?>(null)
     private val _locationError = MutableStateFlow<String?>(null)
+    private val _isOfflineCityPickerOpen = MutableStateFlow(false)
+    private val _offlineCitySearchQuery = MutableStateFlow("")
+    private val _offlineCityResults = MutableStateFlow<List<LocationInfo>>(emptyList())
 
     private val prayerInfoFlow = combine(
         locationRepository.currentOrSelectedLocation,
@@ -106,11 +118,18 @@ class HomeViewModel @Inject constructor(
         HomeConnectivitySnapshot(isOnline, isRefreshing, locationError)
     }
 
+    private val pickerFlow = combine(
+        _isOfflineCityPickerOpen,
+        _offlineCitySearchQuery,
+        _offlineCityResults,
+    ) { isOpen, query, results -> HomePickerSnapshot(isOpen, query, results) }
+
     val uiState: StateFlow<HomeUiState> = combine(
         prayerInfoFlow,
-    settingsStateFlow,
-    connectivityFlow
-    ) { (location, todayRecord, nextInfo), settings, connectivity ->
+        settingsStateFlow,
+        connectivityFlow,
+        pickerFlow,
+    ) { (location, todayRecord, nextInfo), settings, connectivity, picker ->
         val current = nextInfo?.currentPrayer ?: todayRecord?.findCurrentPrayer(Clock.System.now())
         val hasPrayerData = location != null && todayRecord != null && nextInfo != null
 
@@ -137,6 +156,9 @@ class HomeViewModel @Inject constructor(
                 }
                 else -> HomeDataState.READY
             },
+            isOfflineCityPickerOpen = picker.isOpen,
+            offlineCitySearchQuery = picker.query,
+            offlineCityResults = picker.results,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -148,6 +170,9 @@ class HomeViewModel @Inject constructor(
         startCountdownTicker()
         refreshHijriDate()
         scheduleInitialAlarms()
+        viewModelScope.launch {
+            _offlineCityResults.value = locationRepository.getAllOfflineCities()
+        }
     }
 
     private fun refreshHijriDate() {
@@ -193,6 +218,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onAction(action: HomeUiAction) {
+        android.util.Log.d("HomeViewModel", "onAction: $action")
         when (action) {
             is HomeUiAction.TogglePrayerAlarm -> {
                 viewModelScope.launch {
@@ -226,6 +252,37 @@ class HomeViewModel @Inject constructor(
                     }
                 }
             }
+            is HomeUiAction.OpenOfflineCityPicker -> {
+                viewModelScope.launch {
+                    val cities = locationRepository.getAllOfflineCities()
+                    _offlineCityResults.value = cities
+                    _offlineCitySearchQuery.value = ""
+                    _isOfflineCityPickerOpen.value = true
+                }
+            }
+            is HomeUiAction.CloseOfflineCityPicker -> {
+                _isOfflineCityPickerOpen.value = false
+            }
+            is HomeUiAction.SearchOfflineCities -> {
+                _offlineCitySearchQuery.value = action.query
+                viewModelScope.launch {
+                    val results = locationRepository.searchOfflineCities(action.query)
+                    _offlineCityResults.value = results
+                }
+            }
+            is HomeUiAction.SelectOfflineCity -> {
+                viewModelScope.launch {
+                    locationRepository.saveLocation(action.city)
+                    settingsRepository.updateUserSettings {
+                        it.copy(selectedLocation = action.city, useAutoLocation = false)
+                    }
+                    _locationError.value = null
+                    _isOfflineCityPickerOpen.value = false
+                    schedulePrayerAlarmsUseCase()
+                    PrayerTimesWidgetReceiver.updateAll(context)
+                    AstronomyWidgetUpdater.updateAll(context)
+                }
+            }
         }
     }
 
@@ -240,5 +297,11 @@ class HomeViewModel @Inject constructor(
         val isOnline: Boolean,
         val isRefreshing: Boolean,
         val locationError: String?,
+    )
+
+    private data class HomePickerSnapshot(
+        val isOpen: Boolean,
+        val query: String,
+        val results: List<LocationInfo>,
     )
 }

@@ -3,13 +3,17 @@ package com.adzannotif.presentation.home
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -18,11 +22,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,20 +37,25 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -65,6 +76,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val motionEnabled = rememberMotionAnimationsEnabled()
     val refreshRotation by animateFloatAsState(
         targetValue = if (state.isRefreshingGps && motionEnabled) 360f else 0f,
@@ -180,13 +192,14 @@ fun HomeScreen(
                     modifier = Modifier.padding(innerPadding),
                     message = state.locationError,
                     onRetry = { viewModel.onAction(HomeUiAction.RefreshLocation) },
+                    onChooseLocation = { viewModel.onAction(HomeUiAction.OpenOfflineCityPicker) },
                 )
             }
             HomeDataState.UNAVAILABLE -> {
                 UnavailableState(
                     modifier = Modifier.padding(innerPadding),
                     onRetry = { viewModel.onAction(HomeUiAction.RefreshLocation) },
-                    onChooseLocation = onNavigateToSettings,
+                    onChooseLocation = { viewModel.onAction(HomeUiAction.OpenOfflineCityPicker) },
                 )
             }
             HomeDataState.READY -> {
@@ -211,6 +224,23 @@ fun HomeScreen(
                     },
                 )
             }
+        }
+    }
+
+    // Inline offline city picker — shown when no GPS permission or location unavailable
+    if (state.isOfflineCityPickerOpen) {
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.onAction(HomeUiAction.CloseOfflineCityPicker) },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+        ) {
+            OfflineCityPickerContent(
+                searchQuery = state.offlineCitySearchQuery,
+                cities = state.offlineCityResults,
+                selectedCityId = state.location?.id,
+                onSearch = { viewModel.onAction(HomeUiAction.SearchOfflineCities(it)) },
+                onSelectCity = { viewModel.onAction(HomeUiAction.SelectOfflineCity(it)) },
+            )
         }
     }
 }
@@ -426,6 +456,7 @@ private fun ErrorState(
     modifier: Modifier = Modifier,
     message: String?,
     onRetry: () -> Unit,
+    onChooseLocation: (() -> Unit)? = null,
 ) {
     Box(
         modifier = modifier
@@ -458,8 +489,18 @@ private fun ErrorState(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onErrorContainer,
                 )
-                Button(onClick = onRetry) {
-                    Text(text = stringResource(R.string.retry))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Button(onClick = onRetry) {
+                        Text(text = stringResource(R.string.retry))
+                    }
+                    onChooseLocation?.let { openSettings ->
+                        androidx.compose.material3.OutlinedButton(onClick = openSettings) {
+                            Text(text = stringResource(R.string.choose_offline_location))
+                        }
+                    }
                 }
             }
         }
@@ -482,5 +523,111 @@ private fun LocationErrorCard(message: String) {
             color = MaterialTheme.colorScheme.onErrorContainer,
             style = MaterialTheme.typography.bodyMedium,
         )
+    }
+}
+
+@Composable
+private fun OfflineCityPickerContent(
+    searchQuery: String,
+    cities: List<LocationInfo>,
+    selectedCityId: String?,
+    onSearch: (String) -> Unit,
+    onSelectCity: (LocationInfo) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .padding(bottom = 32.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.settings_location_picker_title),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = stringResource(R.string.settings_location_picker_description),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = onSearch,
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text(stringResource(R.string.settings_city_search_label)) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            shape = RoundedCornerShape(12.dp),
+            singleLine = true,
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 420.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            if (cities.isEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.settings_locations_unavailable),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 16.dp),
+                    )
+                }
+            }
+            items(cities, key = { it.id }) { city ->
+                val isSelected = selectedCityId == city.id
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                        .clickable { onSelectCity(city) },
+                    shape = RoundedCornerShape(8.dp),
+                    color = if (isSelected) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        Color.Transparent
+                    },
+                ) {
+                    Row(
+                        modifier = Modifier.padding(vertical = 10.dp, horizontal = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = city.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                text = "${city.country} • ${String.format(java.util.Locale.US, "%.2f", city.latitude)}°, ${String.format(java.util.Locale.US, "%.2f", city.longitude)}° • ${city.timeZoneId}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                            )
+                        }
+                        if (isSelected) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = stringResource(R.string.settings_selected),
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
